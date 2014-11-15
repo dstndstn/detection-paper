@@ -774,6 +774,214 @@ Run & Min field & Max field \\
 \end{figure}
 
 
+\section{Discussion}
+
+--similarities and differences from Szalay et al 19999 -- SED-matched
+filters $\sim$ ``optimal subspace filtering''
+
+--galaxy detection?
+
+--No weights go to zero -- all images contribute *something*, in
+proportion to t he information they bring.  Contrast with lucky
+imaging and some co-adding schemes.
+
+--sub-pixel shifts: lower threshold so that max pixel is above
+threshold; post-process to cut out peaks that really were below
+threshold.
+
+
+\section{Conclusions}
+
+[[What to do with a detection image; how to proceed.  Build models,
+    fit simultaneously to all images in the ``stack''.]]
+
+[[Practicalities: bad pixels / masks, interpolation, etc]]
+
+
+%\bibliographystyle{plain}
+%\bibliography{coadd}
+
+
+
+\appendix
+
+\section{Appendices}
+
+\subsection{Optimal linear detection}
+\label{app:lindet}
+
+Let us assume that there exists a linear filter whose output allows
+optimal detection of isolated point sources.  That is, we seek a
+(two-dimensional) set of coefficients $a_{\ivec}$ that, when
+correlated with the image $S_{\jvec}$, produces a map $M_{\jvec}$
+whose peak is the likely location of the point source.  See
+\figref{fig:detmap}.
+
+
+The linear filtering (correlation) operation is
+\begin{equation}
+M_{\jvec} = \sum_{\iina} a_{\ivec} \, S_{\ivec + \jvec}
+\label{eq:detmap1}
+\end{equation}
+where $\mathcal{A}$ is the support of $\avec$ (integer pixel
+positions), and the center of $\avec$ is $\coord{0}{0}$.  We will
+demand that the elements of $\avec$ are non-negative and sum to unity.
+
+Inserting \eqnref{eq:modelimg}, we get
+\begin{eqnarray}
+M_{\jvec} &\drawnfrom& \sum_{\iina}
+  C_k \, a_{\ivec} \, \psi(\ivec + \jvec - \kvec) + \gaussx{0, \sigma_1^2}
+  \\
+&\drawnfrom& \gaussx{ C_k \sum_{\iina} a_{\ivec} \, \psi(\ivec + \jvec - \kvec),
+    \sum_{\iina} a_{\ivec}^2 \, \sigma_1^2}
+\end{eqnarray}
+and the per-pixel signal-to-noise in the map is
+\begin{equation}
+%  \signoise_{D_{\jvec}} = \frac{C_k \, \sum_{\iina} a_{\ivec} \, \psi(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\iina} a_{\ivec}^2}}
+  \snr{M_{\jvec}} = \frac{C_k \, \sum a_{\ivec} \, \psi(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\ivec} a_{\ivec}^2}} \quad .
+  \label{eq:detmapsn1}
+\end{equation}
+
+We want to choose coefficients $a_{\ivec}$ to maximize the 
+signal-to-noise at the true pixel position of the source,
+$\kvec$.  Rewriting the expression using dot-products and
+norms\footnote{All norms in this \doctype\ are $\ell_2$ norms: $\norm{X} =
+  \sqrt{\sum_i X_i^2}$.}, treating the two-dimensional images
+$a_{\ivec}$ and $\psi(\ivec + \jvec - \kvec)$ as vectors indexed by
+$\ivec$, we have:
+\begin{eqnarray}
+  %\signoise_{D_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psi(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psi(j-k)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+ &=& \frac{C_k \, \norm{\avec} \norm{\bm{\psi(j-k)}} \cos \theta}{\sigma_1 \norm{\avec}} \\
+ &=& \frac{C_k \, \norm{\bm{\psi(j-k)}} \cos \theta}{\sigma_1}
+\end{eqnarray}
+where $\theta$ is a generalized angle between $\avec$ and $\bm{\psi(j-k)}$.
+At the pixel position of the source, $\kvec$,
+\begin{equation}
+\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psi(0)}} \cos \theta}{\sigma_1}
+\label{eqn:sndsingle}
+\end{equation}
+Clearly this is maximized when $\theta = 0$, \ie, when $\avec$ is a
+multiple of $\bm{\psi(0)}$, the PSF evaluated at a grid of integer
+pixel positions.  Since we have defined both the PSF and coefficients
+$a$ to sum to unity, we find that the optimal linear filter for
+detection is given by:
+\begin{equation}
+%  a_{\ivec} = \psi_{\ivec} \quad ,
+\avec = \bm{\psi(0)} \quad ,
+\end{equation}
+which means that the operation of \emph{correlating} the image with
+its PSF produces a map with optimal signal-to-noise.  Repeating
+equation \ref{eq:detmap1}, we have found that the map $M_{\jvec}$ can
+be computed by correlating the image with its PSF:
+\begin{equation}
+M_{\jvec} = \sum_{\iina} \psi_{\ivec} \, S_{\ivec + \jvec} \quad ,
+\end{equation}
+where, as before, $\mathcal{A}$ is the support of the PSF and
+$\psfat{\ivec} = \psi(\ivec)$ is an image of the PSF evaluated at
+integer pixel positions $\ivec$.
+
+The signal-to-noise in this map at the true source pixel
+position $\kvec$ is
+\begin{equation}
+\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psi}}}{\sigma_1} \quad .
+\end{equation}
+
+
+
+\subsubsection{Norm of a Gaussian PSF}
+\label{app:gaussnorm}
+For a Gaussian PSF with standard deviation $\psfw$ pixels,
+\begin{eqnarray}\displaystyle
+\psf^G(x,y) &=& \frac{1}{2 \pi \psfw^2} \exp{\left(-\frac{x^2}{2 \psfw^2}\right)} \exp{\left(-\frac{y^2}{2 \psfw^2}\right)}
+\end{eqnarray}
+the norm is% approximately:
+\begin{eqnarray}
+\norm{\bm{\psf^G}} &=& \sqrt{ \sum_{x} \sum_{y} \left(\frac{1}{2 \pi \psfw^2} \exp{\left(-\frac{x^2}{2 \psfw^2}\right)} \exp{\left(-\frac{y^2}{2 \psfw^2}\right)} \right)^2} \\
+%\left(\norm{\psf^G}\right)^2 &\simeq& \iint \frac{1}{4 \pi^2 \psfw^4} \exp{\left(-\frac{x^2}{\psfw^2}\right)} \exp{\left(-\frac{y^2}{\psfw^2}\right)} \mathrm{d}x \, \mathrm{d}y \\
+\norm{\bm{\psf^G}} &\simeq& \sqrt{\iint \frac{1}{4 \pi^2 \psfw^4} \exp{\left(-\frac{x^2}{\psfw^2}\right)} \exp{\left(-\frac{y^2}{\psfw^2}\right)} \mathrm{d}x \, \mathrm{d}y} \\
+\norm{\bm{\psf^G}} &\simeq& \frac{1}{2 \sqrt{\pi} \psfw}
+\end{eqnarray}
+so the \detmap\ has signal-to-noise at the true source position $\kvec$,
+\begin{equation}
+\snr{D_{\kvec}^G} = \frac{C_k}{2 \sqrt{\pi} \psfw \sigma_1 } \quad .
+\label{eqn:sndsinglegauss}
+\end{equation}
+
+Note, however, that we have defined the point-spread function
+$\psi(\cdot)$ to be the \emph{pixel-convolved} response, so it cannot
+be exactly Gaussian if the pixel response is assumed to be a boxcar
+function.  In practice, however, a two-dimensional Gaussian with
+variance $v^2$ correlated with a two-dimensional boxcar function is
+well approximated by a Gaussian with variance $v^2 + \frac{1}{12}$, as
+long as $v \gtrsim \frac{1}{2}$.
+
+% figure showing this?
+
+
+
+
+\subsubsection{Why not signal-to-noise-squared?}
+In correlating the image with the PSF, it looks like the
+\detmap\ weights pixels by their signal-to-noise, rather than
+signal-to-noise \emph{squared}.  This apparent conflict can be
+resolved by scaling the pixel values so that each pixel is an estimate
+of the same quantity.  That is, we want to estimate the total source
+counts $C$, but the pixels contain estimates of the source counts
+scaled by the PSF, $C \psf$; we must undo this scaling by multiplying
+the pixels by $1/\psf$.
+
+Given a source at position $\kvec$, we define the image $K$ whose
+pixels each contain an estimate of the total source counts:
+\begin{eqnarray}
+  K_{\jvec} &=& \frac{1}{\psfat{\jvec-\kvec}} S_{\jvec}  \\
+  K_{\jvec} &\drawnfrom& \frac{1}{\psfat{\jvec-\kvec}} \, \gaussian{C_k \, \psfat{\jvec-\kvec}\, , \, \sigma_1^2} \\
+  K_{\jvec} &\drawnfrom& \gaussian{C_k \, , \, \frac{\sigma_1^2}{\psfat{\jvec-\kvec}^2}} \quad .
+\end{eqnarray}
+
+The signal-to-noise remains the same, since we have just scaled the
+values:
+\begin{eqnarray}
+\snr{K_{\jvec}} &=& \frac{C_k \, \psfat{\jvec-\kvec}}{\sigma_1} \\
+\snr{K_{\jvec}} &=& \snr{S_{\jvec}} \quad .
+\end{eqnarray}
+
+
+As before, the \detmap\ pixels are a linear combination of the
+(shifted) pixels of the $K$ image with weights $b_{\ivec}$:
+\begin{eqnarray}
+D_{\jvec}^\star &=& \sum_{\ivec} b_{\ivec} \, K_{\ivec+\jvec} \\
+&\drawnfrom& \sum_{\ivec} b_{\ivec} \, \gaussian{C_k \,,\, \frac{\sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}} \\
+&\drawnfrom& \gaussian{C_k \sum_{\ivec} b_{\ivec} \,,\, \sum_{\ivec} \frac{b_{\ivec}^2 \sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}}
+\end{eqnarray}
+and the signal-to-noise in that \detmap\ at pixel $\kvec$ is
+\begin{eqnarray}
+\snr{D_{\kvec}^\star} &=& \frac{C_k \sum_{\ivec} b_{\ivec}}{\sigma_1 \sqrt{\sum_{\ivec} \frac{b_{\ivec}^2}{\psfat{\ivec}^2}}}
+\end{eqnarray}
+which is maximized by setting the $b_{\ivec}$
+\begin{equation}
+b_{\ivec} \propto \psfat{\ivec}^2 \quad :
+\end{equation}
+proportional to the signal-to-noise \emph{squared}, as expected.
+
+% Derivative is
+% d\snr{D_k^\star}/db_k = 
+%  \[ \frac{f}{\sigma} [ \frac{1}{\sqrt{\sum_j \frac{b_j^2}{\psfat{j}^2}}}
+%                       - \frac{(\sum_j b_j) b_k}{\psfat{j}^2 (\sum_j \frac{b_j^2}{\psfat{j}^2})^{3/2}} ]
+% \]
+%
+% And through some seemingly circular math you get to:
+% b_k = \psfat{k}^2 * ( \sum_j (b_j^2 / \psfat(j)^2) ) / (sum_j (b_j))
+%
+% (you can remove the b_k term from the sums over j if you want, with no effect.)
+%
+% So b_k = \alpha \psfat{k}^2; substituting that you get:
+%
+% b_k = \psfat{k}^2 * ( \sum_j ( (\psfat{j}^2 \alpha)^2 / \psfat{j}^2 ) / (sum_j (\psfat{j}^2 \alpha))
+%     = \psfat{k}^2 * ( \alpha^2 \sum_j \psfat{j}^2 ) / (\alpha \sum_j(\psfat{j}^2))
+%     = \psfat{k}^2 * \alpha
+
+
 
 
 
