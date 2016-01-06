@@ -148,52 +148,37 @@
 
 \newcommand{\commentout}[1]{}
 
+\slugcomment{Submitted to The Astronomical Journal}
+
 \begin{document}
-\title{
-%  Things you always wanted to know about combining images \\
-%  but were afraid to ask, part I: \\
-%  Detecting point sources in heterogeneous collections of images
-%  Things you always wanted to know (in astronomy) but were
-%  afraid to ask:\\I: Detecting point sources in images}
-Principled point-source detection in collections of astronomical images
-}
+\title{Principled point-source detection in collections of astronomical images}
 \author{%
   Dustin Lang\altaffilmark{1,2,3},
   David W. Hogg\altaffilmark{4,5},
   \& Others}
 
-\altaffiltext{1}{To whom correspondence should be addressed; \texttt{dstn@cmu.edu}}
-\altaffiltext{2}{McWilliams Center for Cosmology, Carnegie Mellon University, 5000 Forbes Avenue, Pittsburgh, PA 15213, USA}
-\altaffiltext{3}{Princeton University Observatory, Princeton, NJ 08544, USA}
+\altaffiltext{1}{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
+\altaffiltext{2}%
+{Department of Astronomy \& Astrophysics and Dunlap Institute,
+  University of Toronto,
+  50 Saint George Street, Toronto, ON, M5S 3H4, Canada}
+\altaffiltext{3}%
+{Department of Physics \& Astronomy,
+  University of Waterloo,
+  200 University Avenue West,
+  Waterloo, ON, N2L 3G1, Canada}
 \altaffiltext{4}{Center for Cosmology and Particle Physics, Department of Physics, New York University, 4 Washington Place, New York, NY 10003, USA}
 \altaffiltext{5}{Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17, D-69117 Heidelberg, Germany}
 
-%% \setcounter{address}{1}
-%% \altaffiltext{\theaddress}{\stepcounter{address}\label{Princeton}
-%% Princeton University Observatory, 4 Ivy Lane, Princeton, NJ  08544}
-%% \altaffiltext{\theaddress}{\stepcounter{address}\label{email} To whom
-%% correspondence should be addressed: \texttt{dstn@astro.princeton.edu}}
-%% \altaffiltext{\theaddress}{\stepcounter{address}\label{CCPP} Center
-%% for Cosmology and Particle Physics, Department of Physics, New York
-%% University, 4 Washington Place, New York, NY 10003}
-%% \altaffiltext{\theaddress}{\stepcounter{address}\label{MPIA}
-%% Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17,
-%% D-69117 Heidelberg, Germany}
-%% \altaffiltext{\theaddress}{\stepcounter{address}\label{TheGood}
-%% The Good}
-
-
 \begin{abstract}
-  Given a collection of images taken of the same patch of sky, it is
+  Given a collection of astronomical images of the same patch of sky, it is
   possible to detect sources fainter than those detectable in any
   individual image.
   %
   In some traditional astronomical image analysis codes, this
-  operation is performed by first co-adding the images, after
-  interpolation to a common grid, and running standard image-reduction
+  operation is performed by first co-adding the images (after
+  interpolation to a common grid), and running standard image-reduction
   routines on the co-added image.
-  %
-  %Issues begin to arise 
   %
   This approach fails to make use of all the available information in
   the images when the images contain different levels of noise, have
@@ -204,32 +189,21 @@ Principled point-source detection in collections of astronomical images
   detection proceeds by an operation that looks very much like
   convolution, interpolation, and co-addition, but which does
   \emph{not} produce a final image that is a sensible measure of the
-  intensity field; it is instead a heterogeneous significance map.  We
+  intensity field; it is instead a heterogeneous significance map.
+  %
+  We
   then show how to detect sources in images taken through different
   bandpass filters by combining these significance maps.  This
   requires prior information about the distribution of spectral energy
   distributions.  We show how traditional approaches can be
   interpreted as assuming particular spectral energy distribution
-  priors.  After sources have been detected in the correct way
+  priors.  After sources have been detected in the way
   outlined here, photometry, astrometry, and other measurements should
   be made by simultaneously fitting models to the collection of pixels
   in the non-co-added individual images (which have not been degraded
   by convolution, interpolation, or co-addition).  We show that the
   best practices differ from common practices only in small ways; in
   particular, best practices are not computationally expensive.
-
-%%   Many astronomers know the correct procedures for detecting objects
-%%   in images, co-adding images, and detecting objects in sets of
-%%   images.  However, the mathematics behind these procedures, and the
-%%   required assumptions about the data and the objects being detected,
-%%   seem to be known less well.  This paper attempts to remedy this
-%%   situation by walkings through the math and assumptions and deriving
-%%   the rules of thumb that everyone know.
-  
-  % Many astronomers know facts about the correct ways to detect objects
-  % in images, co-add images, and detect objects in sets of images.
-  % Some of these known facts are correct, but \emph{why} they are so is
-  % not always known with the same certainty as the facts themselves.
 \end{abstract}
 
 \keywords{
@@ -255,15 +229,16 @@ Fundamentally, when much is understood about a signal latent in noisy
 data, the best detection methods are (or look like) \emph{matched
 filters}.
 A matched filter is a model of the expected signal with which the data
-are \emph{cross-correlated}.% (often wrongly called ``convolved'').
+are \emph{cross-correlated}. % (often wrongly called ``convolved'').
 Peaks in the cross-correlation are candidate signal detections.
 In astronomical point-source detection, the expected signal is the
 point-spread function (PSF), and the cross-correlation operation is often
 wrongly called ``convolution''.
 Matched filters are well used in astronomy, in contexts ranging from
-spectroscopy (CITE) to ultra-faint galaxies (CITE) to gravitational
+spectroscopy (CITE) to galaxy cluster detection \citep{postman},
+ultra-faint galaxies \citep{willman} and gravitational
 radiation (CITE).
-NOTE TO SELF: TWEET A REQUEST FOR MATCHED-FILTER REFS.
+
 
 In what follows, we will argue for matched filtering for point-source
 detection.
@@ -291,12 +266,12 @@ We will fully execute this idea here when it comes to spectral-energy
 distributions, but there are natural extensions to deal with
 point-spread function, noise-model, calibration, and time-domain
 uncertainties.
-DSTN: WE SHOULD RETURN TO THESE ISSUES IN THE DISCUSSION.
+
 
 Often, astronomers ``co-add'' their imaging to find faint objects.
 Technically, this step is only justifiable if the bandpass and
 point-spread function are the same for all images, and the images
-ought to be weighted somehow according to sensitivity.
+ought to be weighted according to sensitivity.
 Co-addition is not necessary for source detection, of course; it is
 possible to combine low-significance source-detection information
 coming from many images and do as well or better than co-addition.
@@ -305,7 +280,7 @@ the combination of source-detection information looks very much like a
 (weighted) co-addition of (smoothed) data!
 
 That is, in what follows, we will detect sources as above-threshold
-pixels or regions in a weighted co-add of PSF-correlated input images.
+pixels in a weighted co-add of PSF-correlated input images.
 We will call this object a ``detection map''.
 This detection map is the best thing to use for source detection.
 Once sources are detected, of course, the detection map should be put
@@ -316,7 +291,6 @@ That measurement and likelihood function is beyond the scope of this
 paper, but the subject of a parallel research program (CITE).
 
 \section{Our image model}
-
 
 %%% FIXME:
 %%%---I think we assume 100% fill factor also
@@ -395,7 +369,7 @@ $\thetavec$ is a two-dimensional angular position on the sky,
 $t$ is a time, $H(t)$ is a function describing the time period over which the telescope was
 integrating this exposure,
 %
-$\lambda$ is a wavelength, $R(\lambda)$ is a function describing the bandpass \cite{kcorrect},
+$\lambda$ is a wavelength, $R(\lambda)$ is a function describing the bandpass \citep{kcorrect},
 %
 $\posvec$ is a two-dimensional position vector in the telescope aperture plane,
 %
@@ -1391,6 +1365,9 @@ illustrated in \figref{fig:coaddwt1}.
 
 \section{Discussion}
 
+--talk about uncertainties in PSF, noise model, flat field / calibration,
+source SEDs.  Extended sources.  Time varying?
+
 --similarities and differences from Szalay et al 19999 -- SED-matched
 filters $\sim$ ``optimal subspace filtering''
 
@@ -1442,6 +1419,9 @@ Stoughton, C. \etal, 2002, \aj, 123, 485
 
 \bibitem[Szalay \etal(1999)]{szalay}
 Szalay, A. \etal, 1999, \aj, 117, 68
+
+\bibitem[Willman \etal(2002)]{willman}
+Willman, B. \etal, 2002, \aj, 123, 848
 
 \bibitem[York \etal(2000)]{sdss}
 York,~D.~G. \etal, 2000, \aj, 120, 1579
