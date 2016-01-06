@@ -292,209 +292,58 @@ paper, but the subject of a parallel research program (CITE).
 
 \section{Our image model}
 
-%%% FIXME:
-%%%---I think we assume 100% fill factor also
-%%%---and well-sampled images?
+We consider idealized astronomical images such as those obtained from
+a CCD in broadband optical imaging.
+%
+We will assume that the image is well calibrated: the flat-field or
+per-pixel sensitivities are known, as is the astrometric calibration
+and the point-spread function.
+%
+We assume the image pixels contain additive, independent, Gaussian
+noise.  This is reasonable for images with significant background or
+``sky'' noise and read noise, where the mean sky level has been
+estimated and subtracted.  (Background flux is typically Poisson
+distributed, which at high count levels is well approximated by the
+Gaussian.)
+%
 
-%%% HOGG SAY: we assume *either* well sampled *or* complete fill factor.
-
-% To begin, let us assume we have an image containing a point source
-% that we wish to detect.  Assume that the image contains additive
-% Gaussian noise that is independent (uncorrelated) between pixels and
-% equal in variance.  This is roughly equivalent to assuming that the
-% noise in the image is dominated by sky noise or read noise, rather
-% than Poisson noise from the source itself.  This is close to correct
-% at the limit of detecting faint sources in wide-band optical images.
-% Also assume that we have a good model of the point-spread function,
-% and that it is constant over the image.  Further, let us assume that
-% the image has had the sky and other ``background'' levels removed so
-% that the mean value would be zero if the image did not contain any
-% sources.  
-
-We consider astronomical images such as those obtained from an
-(idealized) CCD.  Aside from noise, each pixel contains a signal
-related to the number of photons incident upon it during the exposure.
-%
-We are measuring the intensity field $I(\thetavec,\posvec,\lambda,t)$
-(energy per unit solid angle, two-dimensional transverse position,
-wavelength, and time) by taking an exposure for some amount of time
-through a filter, optics, and possibly atmosphere.  This can be seen
-as an integration over time, wavelength, telescope aperture, and the
-point-spread function.
-%
-% We model the signal $C_{\jvec}$ as being related to the intensity
-% field $I(\thetavec,\posvec,\lambda,t)$ (energy per unit solid angle,
-% two-dimensional transverse position, wavelength, and time) by a
-% six-dimensional integral
-Consider a discrete image made up of a square array of pixels $\jvec$,
-each of which has signal (or counts) $C_{\jvec}$, where we use $\jvec$
-as a two-dimensional focal-plane position, measured in pixel units.
-The signal $C_{\jvec}$ is given by the integral
-\begin{eqnarray}\displaystyle
-%C_{\jvec} &=& \frac{\dd C}{\dd E}\,\int\dd^2\thetavec'\,\psi(\thetavec_{\jvec} - \thetavec')\,\int \dd^2\posvec\,A(\posvec)\int \dd\lambda\,\lambda\,R(\lambda)\,\int\dd t\,H(t)\,I(\thetavec',\posvec,\lambda,t) + \noise_{\jvec}
-%\\
-%C_{\jvec} &=& \frac{\dd C}{\dd E}\,\int \dd^2\cvec\,\psi(\jvec - \cvec)\,\Omega_1\,\int \dd^2\posvec\,A(\posvec)\,\int \dd\lambda\,\lambda\,R(\lambda)\,\int\dd t\,H(t)\,I(\thetavec_{\cvec},\posvec,\lambda,t) + \noise_{\jvec}
-C_{\jvec} &=& \frac{\dd C}{\dd E}\,\Omega_1\, %
-\!
-\int \!\!\!
-\int \!\!\!
-\int \!\!\!
-\int
-I(\thetavec_{\cvec},\posvec,\lambda,t)
-\;H(t)\,
-\dd t\,
-\;
-\lambda\,R(\lambda)\,
-\dd\lambda\,
-\;
-A(\posvec)\,
-\dd^2\posvec\,
-\;
-\psi(\jvec - \cvec)\,
-\dd^2\cvec\,
- + \noise_{\jvec}
-\quad,
-\label{eqn:bigint}
-\end{eqnarray}
-where 
-%
-$\dd C/\dd E$ is the calibration factor taking integrated energies to per-pixel counts (in the mean),
-%
-$\Omega_1$ is the solid angle of a single pixel (assumed the same for all pixels),
-%
-$I(\cdot)$ is the intensity field,
-%
-$\thetavec$ is a two-dimensional angular position on the sky,
-%
-$t$ is a time, $H(t)$ is a function describing the time period over which the telescope was
-integrating this exposure,
-%
-$\lambda$ is a wavelength, $R(\lambda)$ is a function describing the bandpass \citep{kcorrect},
-%
-$\posvec$ is a two-dimensional position vector in the telescope aperture plane,
-%
-$A(\posvec)$ is a function describing the telescope aperture,
-%
-$\psi(\cdot)$ is a function describing the pixel-convolved point-spread function of the
-whole system,
-%
-$\cvec$ is a two-dimensional focal-plane position in the same coordinates and units as $\jvec$,
-%
-and
-$\noise_{\jvec}$ is the noise contribution to pixel $\jvec$.
-%
-The per-pixel noise could include effects such as read noise and dark current.
-%
-Importantly, the PSF function is the pixel-convolved PSF, not simply
-the PSF due to optics and atmosphere, so image pixels are a sampling
-and not a convolution of the PSF-convolved intensity field.
-%We will assume the PSF is well-sampled by the pixels.
-
-In %what follows
-the rest of this \doctype, we will assume that the (perhaps tiny) image of
-interest contains only a uniform background value plus one point
-source $k$ with some (unknown) flux $F_k$ and position $\thetavec_k$.
-In this case, the intensity field is just
-\begin{eqnarray}\displaystyle
-I(\thetavec',\posvec,\lambda,t) &=& I_{\sky}(\lambda, t) + F_k(\lambda, t)\,\delta(\thetavec_k - \thetavec')
-\quad,
-\label{eqn:intensity}
-\end{eqnarray}
-where $I_{\sky}$ is the intensity of the background (sky), $F_k$ has
-units of flux (energy per area per time per wavelength), and
-$\delta()$ is a two-dimensional delta function on the sky.  For
-simplicity, we have dropped all assumption-violating contributions
-from galaxies, nebulosity, neighboring sources, or sky gradients.  The
-noise values are drawn from a probability distribution which we assume
-to be
-\begin{eqnarray}\displaystyle
-p(\noise_{\jvec}) &=& \gaussian{\noise_{\jvec}|0,\sigma_1^2}
-\quad,
-\end{eqnarray}
-where $\gaussian{x|m,V}$ is the Gaussian distribution with mean $m$
-and variance $V$, and $\sigma_1^2$ is the per-pixel noise variance
-(assumed equal for all pixels).  That is, we are assuming constant,
-zero-mean, Gaussian noise.  This assumption is not too bad for
-sky-limited images from which the sky level has been subtracted: the
-sky contribution can be modeled as a Poisson process contributing
-Poisson or ``shot'' noise which we then approximate by the Gaussian.
-This approximation gets better as the sky level (number of
-photo-electrons) increases.
-
-In the above, we have made extremely strong assumptions.  In addition
-to the listed assumptions we have assumed that any electronic gain at
-readout has been calibrated out.  We have also assumed that the image
-is not contaminated by cosmic rays, stray light, bad pixels, bad
-columns, electronic artifacts, or any other of the many defects in
-real images.
+Importantly, we will assume the PSF function $\psi(\cdot)$ is the
+pixel-convolved PSF, not simply the PSF due to optics and atmosphere,
+so image pixels are a sampling and not a convolution or binning of the
+PSF-convolved intensity field.
+We will assume the PSF is well-sampled by the pixels.
 
 \section{Detecting a point source in a single image}
 
-In this section, we will assume a source $k$ with constant flux
-$F_k(\lambda)$, and constant sky intensity $I_{\sky}(\lambda)$.
-Applying the integral of \eqnref{eqn:bigint}\ to the simple intensity
-model (\eqnref{eqn:intensity}) with a constant-flux source, the
-aperture $A(x)$ and exposure $H(t)$
-% and sensitivity $R(\lambda)$
-terms become constants which we will combine with the $\Omega_1$ and
-$\frac{\dd C}{\dd E}$ terms, leaving
-\begin{eqnarray}\displaystyle
-%   C_{\jvec} &=& K \int \dd^2 \cvec\, \psi(\jvec - \cvec)
-%   \int \dd\lambda\,\lambda\,R(\lambda)\,
-%   \left(
-%   I_{\sky}(\lambda) + F_k(\lambda)\,\delta(\thetavec_k - \thetavec_{\cvec})
-%   \right)  + \noise_{\jvec} \quad ,
-C_{\jvec} &=& K
-\int \!\!
-\int
-\Big[
-  I_{\sky}(\lambda) + F_k(\lambda)\,\delta(\thetavec_k - \thetavec_{\cvec})
-\Big]
-\lambda\,R(\lambda)\,
-\dd\lambda\,
-\psi(\jvec - \cvec)\,
-\dd^2 \cvec\
-  + \noise_{\jvec} \quad ,
-\end{eqnarray}
-and integrating out the sky and source terms yields
-\begin{eqnarray}\displaystyle
-  C_{\jvec} &=& C_{\sky} + C_k \, \psi(\jvec - \kvec)  + \noise_{\jvec} \quad ,
-\end{eqnarray}
-%where $C_k$ is a pixel-summed count, and $\kvec$ is the pixel position
-%corresponding to the angular direction $\thetavec_k$ of source $k$.
-where $\kvec$ is the pixel position corresponding to the angular
-direction $\thetavec_k$ of source $k$, and $C_k$ is the total number
-of counts (summed over pixels) from the source, which we will call the
-\emph{source counts}.
+In this section, we will assume that the (perhaps tiny) image of
+interest contains only a single isolated point source $k$ with some
+constant unknown flux $F_k$ and position $\kvec$ in pixel coordinates.
 
-
-We will subtract the sky level $C_{\sky}$, leaving the sky-subtracted
-image $S_{\jvec}$.  We assume that we can estimate the sky level
-exactly; in reality our estimate will be noisy.  The sky term
-$C_{\sky}$ contributes Poisson noise to the image, which we will
-approximate by Gaussian noise and combine with the other noise term
-$\noise_{\jvec}$, yielding
+As described above, we will assume any background level has been
+estimated perfectly and subtracted, so that the image pixels contain
+only signal due to the source plus zero-mean, pixelwise-independent,
+Gaussian noise of known variance;
 \begin{eqnarray}\displaystyle
-  S_{\jvec} &\drawnfrom& C_k \, \psi(\jvec - \kvec) + \gaussx{0,\sigma_1^2}
+  C_{\jvec} &=& F_k \, \psi(\jvec - \kvec)  + \noise_{\jvec} \quad ,
+\end{eqnarray}
+where $C_{\jvec}$ is the image pixel value in pixel $\jvec$ (a
+two-dimensional index), $F_k$ is the scalar flux of the source,
+$\psi(\cdot)$ is the point-spread function, and $\noise_{\jvec}$ is
+the noise term.  We can also write this as
+\begin{eqnarray}\displaystyle
+  C_{\jvec} &\drawnfrom& \gaussx{F_k \, \psi(\jvec - \kvec), \sigma_1^2}
 \label{eq:modelimg}
 \end{eqnarray}
 where the symbol ``$\drawnfrom$'' means ``drawn from the
 distribution'', and $\gaussx{\mu,\sigma^2}$ is the Gaussian
-distribution with mean $\mu$ and variance $\sigma^2$.  Put simply, in
-our model the image pixels contain signal due to a pixel-convolved
-point-spread function $\psi(\cdot)$ shifted to the source center
-$\kvec$ and scaled by the source counts $C_k$; plus additive,
-pixelwise-independent, constant-variance Gaussian noise.  We will
-assume that the point-spread function $\psi(\cdot)$ is non-negative
-and, when evaluated on a pixel grid, sums to unity.
-% don't need a fig for this
-%See \figref{fig:image}.
+distribution with mean $\mu$ and variance $\sigma^2$; $\sigma_1^2$ is
+the variance of the per-pixel noise values $\noise_{\jvec}$, assumed
+constant in this section.
 
-% The signal-to-noise ratio in a pixel $S_{\jvec}$ is the model mean signal
-% over the per-pixel noise standard deviation:
-% \begin{equation}
-% \snr{S_{\jvec}} = \frac{C_k \, \psi(\jvec - \kvec)}{\sigma_1} \quad .
-% \end{equation}
+
+
+
+
 
 
 \subsection{Optimal linear detection}
@@ -1432,6 +1281,11 @@ York,~D.~G. \etal, 2000, \aj, 120, 1579
 \appendix
 
 \section{Appendices}
+
+\subsection{Image model}
+\label{app:model}
+\input{imagemodel.tex}
+
 
 \subsection{Optimal linear detection}
 \label{app:lindet}
