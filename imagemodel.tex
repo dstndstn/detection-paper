@@ -33,14 +33,14 @@ point-spread function.
 % two-dimensional transverse position, wavelength, and time) by a
 % six-dimensional integral
 Consider a discrete image made up of a square array of pixels $\jvec$,
-each of which has signal (or counts) $C_{\jvec}$, where we use $\jvec$
+each of which has signal (or counts) $S_{\jvec}$, where we use $\jvec$
 as a two-dimensional focal-plane position, measured in pixel units.
-The signal $C_{\jvec}$ is given by the integral
+The signal $S_{\jvec}$ is given by the integral
 \begin{eqnarray}\displaystyle
 %C_{\jvec} &=& \frac{\dd C}{\dd E}\,\int\dd^2\thetavec'\,\psi(\thetavec_{\jvec} - \thetavec')\,\int \dd^2\posvec\,A(\posvec)\int \dd\lambda\,\lambda\,R(\lambda)\,\int\dd t\,H(t)\,I(\thetavec',\posvec,\lambda,t) + \noise_{\jvec}
 %\\
 %C_{\jvec} &=& \frac{\dd C}{\dd E}\,\int \dd^2\cvec\,\psi(\jvec - \cvec)\,\Omega_1\,\int \dd^2\posvec\,A(\posvec)\,\int \dd\lambda\,\lambda\,R(\lambda)\,\int\dd t\,H(t)\,I(\thetavec_{\cvec},\posvec,\lambda,t) + \noise_{\jvec}
-C_{\jvec} &=& \frac{\dd C}{\dd E}\,\Omega_1\, %
+S_{\jvec} &=& \frac{\dd C}{\dd E}\,\Omega_1\, %
 \!
 \int \!\!\!
 \int \!\!\!
@@ -133,3 +133,74 @@ readout has been calibrated out.  We have also assumed that the image
 is not contaminated by cosmic rays, stray light, bad pixels, bad
 columns, electronic artifacts, or any other of the many defects in
 real images.
+
+
+\subsubsection{Single point source in a single image}
+
+In this section, we will assume that the (perhaps tiny) image of
+interest contains only a single isolated point source $k$ with some
+constant flux
+$F_k(\lambda)$, and constant sky intensity $I_{\sky}(\lambda)$.
+Applying the integral of \eqnref{eqn:bigint}\ to the simple intensity
+model (\eqnref{eqn:intensity}) with a constant-flux source, the
+aperture $A(x)$ and exposure $H(t)$
+% and sensitivity $R(\lambda)$
+terms become constants which we will combine with the $\Omega_1$ and
+$\frac{\dd C}{\dd E}$ terms, leaving
+\begin{eqnarray}\displaystyle
+%   C_{\jvec} &=& K \int \dd^2 \cvec\, \psi(\jvec - \cvec)
+%   \int \dd\lambda\,\lambda\,R(\lambda)\,
+%   \left(
+%   I_{\sky}(\lambda) + F_k(\lambda)\,\delta(\thetavec_k - \thetavec_{\cvec})
+%   \right)  + \noise_{\jvec} \quad ,
+S_{\jvec} &=& K
+\int \!\!
+\int
+\Big[
+  I_{\sky}(\lambda) + F_k(\lambda)\,\delta(\thetavec_k - \thetavec_{\cvec})
+\Big]
+\lambda\,R(\lambda)\,
+\dd\lambda\,
+\psi(\jvec - \cvec)\,
+\dd^2 \cvec\
+  + \noise_{\jvec} \quad ,
+\end{eqnarray}
+and integrating out the sky and source terms yields
+\begin{eqnarray}\displaystyle
+  S_{\jvec} &=& C_{\sky} + C_k \, \psi(\jvec - \kvec)  + \noise_{\jvec} \quad ,
+\end{eqnarray}
+%where $C_k$ is a pixel-summed count, and $\kvec$ is the pixel position
+%corresponding to the angular direction $\thetavec_k$ of source $k$.
+where $\kvec$ is the pixel position corresponding to the angular
+direction $\thetavec_k$ of source $k$, and $C_k$ is the total number
+of counts (summed over pixels) from the source, which we will call the
+\emph{source counts}.
+
+
+We will subtract the sky level $C_{\sky}$, leaving the sky-subtracted
+image $C_{\jvec}$.  We assume that we can estimate the sky level
+exactly; in reality our estimate will be noisy.  The sky term
+$C_{\sky}$ contributes Poisson noise to the image, which we will
+approximate by Gaussian noise and combine with the other noise term
+$\noise_{\jvec}$, yielding
+\begin{eqnarray}\displaystyle
+  C_{\jvec} &\drawnfrom& C_k \, \psi(\jvec - \kvec) + \gaussx{0,\sigma_1^2}
+\label{eq:modelimg}
+\end{eqnarray}
+where the symbol ``$\drawnfrom$'' means ``drawn from the
+distribution'', and $\gaussx{\mu,\sigma^2}$ is the Gaussian
+distribution with mean $\mu$ and variance $\sigma^2$.  Put simply, in
+our model the image pixels contain signal due to a pixel-convolved
+point-spread function $\psi(\cdot)$ shifted to the source center
+$\kvec$ and scaled by the source counts $C_k$; plus additive,
+pixelwise-independent, constant-variance Gaussian noise.  We will
+assume that the point-spread function $\psi(\cdot)$ is non-negative
+and, when evaluated on a pixel grid, sums to unity.
+% don't need a fig for this
+%See \figref{fig:image}.
+
+% The signal-to-noise ratio in a pixel $S_{\jvec}$ is the model mean signal
+% over the per-pixel noise standard deviation:
+% \begin{equation}
+% \snr{S_{\jvec}} = \frac{C_k \, \psi(\jvec - \kvec)}{\sigma_1} \quad .
+% \end{equation}
