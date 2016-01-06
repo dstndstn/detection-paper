@@ -54,7 +54,8 @@
 \newcommand{\drawnfrom}{\sim}
 \newcommand{\gaussianN}{\mathcal{N}}
 \newcommand{\gaussian}[1]{\gaussianN\!\left(#1\right)}
-\newcommand{\gaussx}[1]{\hat{\gaussianN}\!\left(#1\right)}
+%\newcommand{\gaussx}[2]{\hat{\gaussianN}\!\left(#1 \, , \, #2\right)}
+\newcommand{\gaussx}[2]{\gaussianN\!\left(#1 \, , \, #2\right)}
 %\newcommand{\gaussx}[1]{\mathfrak{N}\!\left(#1\right)}
 %\newcommand{\psf}{\mathrm{psf}}
 \newcommand{\psf}{\psi}
@@ -91,17 +92,56 @@
   \& Others}
 \altaffiltext{1}{To whom correspondence should be addressed; \texttt{dstn@cmu.edu}}
 \altaffiltext{2}{McWilliams Center for Cosmology, Carnegie Mellon University, 5000 Forbes Avenue, Pittsburgh, PA 15213, USA}
+\altaffiltext{3}%
+{Department of Physics \& Astronomy,
+  University of Waterloo,
+  200 University Avenue West,
+  Waterloo, ON, N2L 3G1, Canada}
 %\altaffiltext{3}{Princeton University Observatory, Princeton, NJ 08544, USA}
 \altaffiltext{4}{Center for Cosmology and Particle Physics, Department of Physics, New York University, 4 Washington Place, New York, NY 10003, USA}
 \altaffiltext{5}{Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17, D-69117 Heidelberg, Germany}
 
 \begin{abstract}
+We review the well-known \emph{matched filter} method for the
+detection of point sources in astronomical images.  This is shown to
+be optimal (that is, to saturate the Cram\'er--Rao bound) under stated
+conditions that are very strong: an isolated source in
+background-dominated imaging with perfectly known background level,
+point-spread function, and noise models.  We show that the matched
+filter produces a maximum-likelihood estimate of the brightness of a
+purported point source, and this leads to a simple way to combine
+multiple images---taken through the same bandpass filter but with
+different background levels and point-spread functions---to produce an
+optimal point source detection map.  We then extend the approach to
+images taken through different bandpass filters, introducing the
+\emph{SED-matched filter}, which allows us to combine images taken
+through different filters, but requires us to specify the colors of
+the objects we wish to detect.  We show that this approach is superior
+to some methods traditionally employed, such as the \emph{chi-squared
+  coadd}, and that other traditional methods can be seen as instances
+of SED-matched filtering with implied (and often unreasonable) priors.
+We suggest a set of SED filters and how one ought to proceed: lower
+the detection threshold to ensure that all sources of interest are
+detected, then fit for their properties and keep or discard sources
+based on their utility for the question at hand.
 \end{abstract}
 
 \keywords{
     methods:~statistical ---
     techniques:~image~processing
 }
+
+FIXME -- are we going to talk about detecting galaxies?  Seems like we
+should!
+
+FIXME -- should we talk about the probability of selecting the wrong
+pixel as the peak?
+
+FIXME -- need some consistent way of labelling image quantities, and
+sensible naming and careful use of ``flux'' and ``counts''.  Some
+notation for ``estimates for'' or ``maximum-likelihood point estimate
+of'' would be useful too.  Hats?
+
 
 \section{Introduction}
 
@@ -121,15 +161,20 @@ Fundamentally, when much is understood about a signal latent in noisy
 data, the best detection methods are (or look like) \emph{matched
 filters}.
 A matched filter is a model of the expected signal with which the data
-are \emph{cross-correlated}.% (often wrongly called ``convolved'').
+are \emph{cross-correlated}. % (often wrongly called ``convolved'').
 Peaks in the cross-correlation are candidate signal detections.
 In astronomical point-source detection, the expected signal is the
 point-spread function (PSF), and the cross-correlation operation is often
-wrongly called ``convolution''.
+wrongly called ``convolution by the PSF''.
 Matched filters are well used in astronomy, in contexts ranging from
 spectroscopy (CITE) to ultra-faint galaxies (CITE) to gravitational
 radiation (CITE).
 [ADD ADDITIONAL REFS]
+
+% from the tweeps:
+% http://scholar.google.com/scholar?q=astronomy+matched+filter
+% http://arxiv.org/abs/astro-ph/0602424
+
 
 In what follows, we will argue for matched filtering for point-source
 detection.  This is not new (CITE); what is new is that we consider
@@ -139,22 +184,27 @@ sensitivity) multi-epoch, multi-band imaging.
 While the optimality of matched filtering for single-image point
 source detection is well known by astronomers, the straightforward
 mathematics behind it is often not, leading to a misconception that
-this is simply an algorithmic choice.  To our knowledge, the optimal%
+it is simply an algorithmic choice.  To our knowledge, the optimal%
 \footnote{In this \doctype\ we use ``optimal'' in a technical sense,
-  of saturating the Cramer--Rao bound under stated assumptions.  We
-  encourage other authors to do the same!}
+ of saturating the Cram\'er--Rao bound under stated assumptions.  We
+ encourage other authors to do the same!}
 method of combining multiple images with different properties to
 obtain the greatest possible sensitivity to point sources has not been
 written down in the astronomical literature.  The mathematics are
-straightforward and the resulting procedure is simple to implement and
-computationally efficient.
+straightforward and the resulting procedure is simple and
+computationally inexpensive.  
+% In this \doctype\ we use the word
+% ``optimal'' in the technical sense of saturating the Cram\'er--Rao bound
+% under stated assumptions (and we encourage other authors to do the
+% same).
 
 Perhaps more controversially, we go on to argue that when imaging in
-multiple bands is available, one should use a filter matched to the
-spectral-energy distribution (SED) of the sources to be detected.
-This SED-matched filtering, as we will call it, makes explicit the
-assumptions that are implicitly embedded in any method that attempts
-to detect sources by combining imaging from multiple bands.
+multiple bands is available, one should again use a matched filter,
+now matched to the spectral-energy distribution (SED) of the sources
+to be detected.  This SED-matched filtering, as we will call it, makes
+explicit the assumptions that are implicitly embedded in any method
+that attempts to detect sources by combining imaging from multiple
+bands.
 
 In the Real World, astronomers never precisely know their point-spread
 function, their noise model, their flat-field (or other calibration
@@ -206,89 +256,151 @@ program (CITE).
 
 \section{Our image model}
 
+
+% In the "image model" section you don't mention the PSF.  We assume:
+% - the point source is convolved with a pixel-convolved PSF and added into the image linearly
+% - the pixel-convolved PSF is known very precisely
+% These assumptions are extreme and required for any claim of optimality (see footnote!).  In general, this "image model" section could state all of our assumptions clearly (almost as a bulleted list -- or actually).
+% 
+
 We consider astronomical images such as those obtained from an
 (idealized) CCD.  Aside from noise, each pixel contains a signal
-related to the number of photons incident upon it during the exposure.
-We will consider a discrete image made up of a square array of pixels
-$\jvec$, each of which has signal (or counts) $C_{\jvec}$, where we
-use $\jvec$ as a two-dimensional focal-plane position, measured in
-pixel units.  We will assume that the noise (coming from such sources
-as the Poisson distribution of the sky background and dark current,
-and read noise) is zero-mean, Gaussian, pixelwise independent, and of
-known variance.  This assumption is not too bad for sky-limited images
-from which the sky level has been subtracted.
-We assume that we can estimate the sky level
-exactly; in reality our estimate will be noisy.
+proportional to the number of photons incident upon it during the
+exposure, modulated by a bandpass filter.  We will consider a discrete
+image made up of a square array of pixels $\jvec$, each of which has
+signal (or counts) $C_{\jvec}$, where we use $\jvec$ as a
+two-dimensional focal-plane position, measured in integer pixel units.
 
-%  $\psi(\cdot)$ is a function describing the
-%pixel-convolved point-spread function of the whole system, and
-%$\noise_{\jvec}$ is the noise contribution to pixel $\jvec$.
+% We will assume that the noise (coming from such sources as the Poisson
+% distribution of the sky background, dark current, and read noise) is
+% zero-mean, Gaussian, pixelwise independent, and of known variance.
+% This assumption is not too bad for sky-limited images from which the
+% sky level has been subtracted (for example, typical optical or
+% near-infrared images).  We assume that we can estimate the sky level
+% exactly; in reality our estimate will be noisy.  We will ignore the
+% fact that the signal itself likely follows a Poisson distribution.  We
+% will assume that the image is well sampled.
 
-In the rest of this \doctype, we will assume that the (perhaps tiny)
-image of interest contains only a uniform background value plus one
-% point source $k$ with some (unknown) flux $F_k$ and position
-% $\thetavec_k$.  The pixel-convolved point-spread function of the whole
-% system is denoted $\psi(\cdot).
-point source with some (unknown) flux and position.  For simplicity we
-will assume the source is centered with a pixel.
-%The pixel-convolved point-spread function of the whole
-% system is denoted $\psi(\cdot)$.
+We will make many strong assumptions:
+\begin{itemize}
+\item that the noise (coming from such sources as the Poisson
+  distribution of the sky background, dark current, and read noise) is
+  zero-mean, Gaussian, pixelwise independent, and of known variance.
+  The zero-mean assumption can be seen as assuming perfect background
+  subtraction (sky estimation);
+  %This assumption is not too bad for sky-limited images from which the
+  %sky level has been subtracted (for example, typical optical or
+  %near-infrared images)
+\item that the image is well sampled;
+%\item that the image contains continuous (not integer) 
+\item that the (perhaps tiny) image contains \emph{only} one point
+  source with some (unknown) flux and position;
+\item that the source is centered within a pixel (we will relax this
+  later);
+\item that the point-spread function is spatially constant (across the
+  possibly small image patch of interest) and known perfectly;
+\item that the photometric calibration of the image is known
+  perfectly; that is, that it is possible to map from ``count'' units
+  back to physical units or a photometric standard;
+\item that the image is not contaminated by cosmic rays, stray light,
+  bad pixels, bad columns, electronic artifacts, or any other of the
+  many defects in real images.
+\end{itemize}
+Throughout this \doctype\ we assume a ``pixel-convolved'' PSF;%
+\footnote{Which should probably be called the ``pixel-correlated''
+  PSF!}  we consider the point-spread function to \emph{include} the
+effects of pixelization.  In well-sampled images, we think of the
+image as being a continuous function which, after being correlated by
+the PSF, is sampled at delta-function pixel locations.  There is no
+need to think of pixels as ``little boxes''; they are simply samples
+of an underlying smooth two-dimensional signal.
+
+% FIXME -- mention that the pixel-sampled PSF is the thing we actually
+% have access to in the images. (ie, if we use known stars to construct
+% a PSF model)
+
+
+With these strong assumptions, we can write down the probability
+distribution of each pixel value, which allows us to prove the
+optimality of the method.
 %
-For simplicity, we have dropped all assumption-violating contributions
-from galaxies, nebulosity, neighboring sources, or sky gradients.
+Specifically, if the image contains a single point source, centered on
+the pixel at position $\kvec$ and with constant flux resulting in a
+total number of counts $F$, then the image is
+\begin{eqnarray}
+  C_{\jvec} &=& F \, \psfat{\jvec - \kvec} + \noise_{\jvec} \quad ,
+  \label{eqn:image}
+\end{eqnarray}
+where $\psi(\jvec-\kvec)$ is the point-spread function evaluated at
+offset $\jvec-\kvec$ and $\noise_{\jvec}$ is per-pixel noise drawn
+from a zero-mean Gaussian with known per-pixel variance $\sigma_1^2$.
+%
+We can also write this as
+\begin{eqnarray}
+  C_{\jvec} &\drawnfrom& \gaussx{F \, \psfat{\jvec - \kvec}}{\sigma_1^2}
+  \quad ,
+\end{eqnarray}
+meaning that $C_{\jvec}$ is drawn from a Gaussian distribution with
+mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
 
-In the above, we have made extremely strong assumptions.  In addition
-to the listed assumptions we have assumed that any electronic gain at
-readout has been calibrated out.  We have also assumed that the image
-is not contaminated by cosmic rays, stray light, bad pixels, bad
-columns, electronic artifacts, or any other of the many defects in
-real images.
+
+% Put simply, in our model the image pixels contain signal due to a
+% pixel-convolved point-spread function $\psi(\cdot)$ shifted to the
+% source center $\kvec$ and scaled by the source counts $C_k$; plus
+% additive, pixelwise-independent, constant-variance Gaussian noise.
+% We will assume that the point-spread function $\psi(\cdot)$ is
+% non-negative and, when evaluated on a pixel grid, sums to unity.
+% See \figref{fig:image}.
+
+% For simplicity, we have dropped all
+% assumption-violating contributions from galaxies, nebulosity,
+% neighboring sources, or sky gradients.
+
 
 \section{Detecting a point source in a single image}
 
-In this section, we will assume a source $k$ with constant flux $F_k$
-and pixel position $\kvec$ (centered within the pixel).  The
-image is thus
+%\subsection{Optimal linear detection}
+
+Here we consider a point source $k$ in a single image, as in
+\eqnref{eqn:image}.
+
+% the map $M_{\jvec}$ can
+% be computed by correlating the image with its PSF:
+% \begin{equation}
+% M_{\jvec} = \sum_{\iina} \psi_{\ivec} \, S_{\ivec + \jvec} \quad ,
+% \end{equation}
+% where, as before, $\mathcal{A}$ is the support of the PSF and
+% $\psfat{\ivec} = \psi(\ivec)$ is an image of the PSF evaluated at
+% integer pixel positions $\ivec$.
+
+The \emph{matched filtering} operation, also known as ``smoothing by
+the PSF'' or ``convolving by the PSF'' can be written as
 \begin{eqnarray}
-  C_{\jvec} &=& C_k \, \psi(\jvec - \kvec)  + \noise_{\jvec} \quad ,
+  M_{\jvec} &=&= \sum_{\iina} \psfat{\ivec} \, C_{\ivec + \jvec} \quad ,
 \end{eqnarray}
-where $\psi(\cdot)$ is the (pixel-convolved) point-spread function and
-$C_k$ is the total number of counts (summed over pixels) from the
-source, which we will call the \emph{source counts}.
-We will assume that the point-spread function $\psi(\cdot)$ is
-non-negative and, when evaluated on a pixel grid, sums to unity.
+where $\mathcal{A}$ is the support of the PSF and $\psfat{\ivec} =
+\psf(\ivec)$ is an image of the PSF evaluated at integer pixel
+positions $\ivec$.  This operation can be seen as ``gathering up'' the
+signal that is dispersed into many pixels by the PSF.  In
+\appref{app:lindet} we derive the matched filter and 
 
-% We 
-% \begin{eqnarray}\displaystyle
-%   S_{\jvec} &\drawnfrom& C_k \, \psi(\jvec - \kvec) + \gaussx{0,\sigma_1^2}
-% \label{eq:modelimg}
-% \end{eqnarray}
-% where the symbol ``$\drawnfrom$'' means ``drawn from the
-% distribution'', and $\gaussx{\mu,\sigma^2}$ is the Gaussian
-% distribution with mean $\mu$ and variance $\sigma^2$.  Put simply, in
-% our model the image pixels contain signal due to a pixel-convolved
-% point-spread function $\psi(\cdot)$ shifted to the source center
-% $\kvec$ and scaled by the source counts $C_k$; plus additive,
-% pixelwise-independent, constant-variance Gaussian noise.  We will
-% assume that the point-spread function $\psi(\cdot)$ is non-negative
-% and, when evaluated on a pixel grid, sums to unity.  See
-% \figref{fig:image}.
+% In \appref{app:lindet}\ we show that \emph{correlating} an image by
+% its PSF---\emph{matched filtering}---results in an optimal detector
+% for isolated point sources.  This operation can be seen as ``gathering
+% up'' the signal that is dispersed into many pixels by the PSF; or as
+% re-scaling each pixel in the support of the PSF into an estimate of
+% the total flux and producing a weighted average of these estimates.
 
-
-\subsection{Optimal linear detection}
-
-In \appref{app:lindet}\ we show that \emph{correlating} an image by
-its PSF results in an optimal detector for isolated point sources.
-
-We define the \emph{\detmap} $D_{\jvec}$ as the correlation of
-the image with its PSF model, scaled to be in convenient units:
+We define the \emph{\detmap} $D_{\jvec}$ as the matched filter, scaled to be in convenient units:
 \begin{equation}
-D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \, S_{\ivec + \jvec} \quad ,
+D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \,
+C_{\ivec + \jvec} \quad ,
 \label{eq:detmap}
 \end{equation}
-where $\mathcal{A}$ is the support of the PSF and
-$\psfat{\ivec} = \psf(\ivec)$ is an image of the PSF evaluated at
-integer-offset pixel positions $\ivec$.  The PSF norm $\psfnorm$ is
+%where $\mathcal{A}$ is the support of the PSF and
+%$\psfat{\ivec} = \psf(\ivec)$ is an image of the PSF model evaluated at
+%integer-offset pixel positions $\ivec$.
+The PSF norm $\psfnorm$ is
 \begin{equation}
 \psfnorm = \sqrt{\sum_{\iina} \psfat{\ivec}^2} \quad ,
 \end{equation}
@@ -304,18 +416,18 @@ The per-pixel error in the \detmap\ is given by
 
 
 We have scaled the \detmap\ so that each pixel contains the
-maximum-likelihood total counts of a source centered at that pixel.
-That is, computing at pixel $\jvec$ the total source counts
-$C^{\ast}_{\jvec}$ to minimizes the chi-squared ($\chi^2$) residual
-within the support of the PSF:
+maximum-likelihood estimate of the total counts of a source centered
+at that pixel.  That is, if we compute at pixel $\jvec$ the total
+source counts $F^{\ast}_{\jvec}$ to minimizes the chi-squared
+($\chi^2$) residual within the support of the PSF:
 \begin{equation}
-  C^{\ast}_{\jvec} = \arg\min_{c} \sum_{\ivec} \left( \frac{S_{\ivec+\jvec} - c \, \psi_{\ivec}}{\sigma_1} \right)^2
+  F^{\ast}_{\jvec} = \arg\min_{f} \sum_{\ivec} \left( \frac{C_{\ivec+\jvec} - f \, \psfat{\ivec}}{\sigma_1} \right)^2
 \end{equation}
 we find
 \begin{eqnarray}
-  C^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} S_{\ivec+\jvec} \, \psi_{\ivec}}{\sum_{\ivec} \psi_{\ivec}^2}
+  F^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} C_{\ivec+\jvec} \, \psfat{\ivec}}{\sum_{\ivec} \psfat{\ivec}^2}
   \\
-  C^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
+  F^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
 \end{eqnarray}
 as defined above.
 %
@@ -327,8 +439,10 @@ source centered at that pixel.
 %image contains only a single isolated point source.
 
 
+FIXME -- the paragraph below is repetitive.
+
 The intuition behind creating a \detmap\ is that the point-spread
-function spreads the signal from a point-source over a number of
+function spreads the signal from a point source over a number of
 pixels.  By correlating with the PSF, we ``gather up'' that spread-out
 signal, weighting the pixels over which the signal has been spread by
 the fraction of the signal that went into each pixel.  By scaling the
@@ -339,7 +453,7 @@ follows.
 % The signal-to-noise in the detection map at the true source pixel
 % position $\kvec$ is
 % \begin{equation}
-% \snr{D_{\kvec}} = \frac{C_k \, \norm{\bm{\psi}}}{\sigma_1} \quad .
+% \snr{D_{\kvec}} = \frac{C_k \, \norm{\bm{\psfat}}}{\sigma_1} \quad .
 % \end{equation}
 
 
@@ -365,24 +479,41 @@ when the PSF model is symmetric).
 detect peaks at integer pixel or sub-pixel locations; we discuss this
 in \ref{XXX}.
 
+FIXME -- should I talk about peaks and detection thresholds here?
 
-\paragraph{Sufficient statistic.}  Correlation by the PSF ``gathers
-up'' all relevant information regarding the presence of a source at
-each pixel.  In some astronomical source detection packages (including
-SourceExtractor), there is a notion of requiring more than one
-neighboring pixel to exceed a detection threshold.  This is not
-necessary or useful; in effect it imposes a larger detection threshold
-that varies based on the source and PSF morphology.
+\paragraph{Sufficient statistic.}  Correlation by the PSF summarizes
+all relevant information regarding the presence of a source at
+each pixel; the detection map and its variance are sufficient to
+describe our knowledge.  In some astronomical source detection
+packages (including SourceExtractor), there is a notion of requiring
+more than one neighboring pixel to exceed a detection threshold.  This
+is not necessary or useful; in effect it imposes a larger detection
+threshold that varies based on the source morphology and PSF, which is
+undesirable.
+
+\paragraph{Optimality} FIXME -- write this!
+
+\paragraph{PSF model} FIXME -- how sensitive is this to the PSF model?
+(This is related to the way the peak value dips as the source shifts
+across a pixel, and ties in with the practicalities of what one does
+with a detection map.)
+
+\paragraph{What would Bayes do?}  FIXME -- We haven't really explained that
+we are producing and evaluating an estimate for each pixel.  Could
+also point out that one could instantiate and test the generative
+model (with position and flux) at each pixel, and that this basically
+just short-cuts that process, telling you places where that test is
+going to give significant results.
 
 
 \section{Detecting a point source in multiple images}
 
-Assume we have a point source whose flux is constant over time, and a
-series of images taken through different bandpass filters and with
-different noise levels, exposure times, point-spread functions, and
-telescope pointings.  We can achieve optimal detection of the source
-by building a \detmap\ for each image and combining them with weights
-as described below.
+In this section we will assume we have a stationary point source whose
+flux is constant over time, and a series of images taken through
+different bandpass filters and with different noise levels, exposure
+times, point-spread functions, and telescope pointings.  We can
+achieve optimal detection of the source by building a \detmap\ for
+each image and combining them with weights as described below.
 
 
 
@@ -393,7 +524,7 @@ through identical bandpass filters.
 
 As we have seen, the \detmap\ defined in \eqnref{eq:detmap} is a
 maximum-likelihood estimate of the total \emph{counts} contributed by
-the source, in the arbitrary units of the original image.  In order to
+the source, in the units of the original image.  In order to
 combine information from multiple images, we must calibrate them so
 that they are in the same units.  Since this calibration is simply a
 linear scaling, it can be applied to the original image or to the
@@ -408,8 +539,9 @@ so resampling to a pixel grid of the same or finer resolution results
 in no loss of information.
 %
 Since the pixel values in the \detmap\ represent the \emph{total} flux
-from the source, the \detmap\ does not need to be rescaled after
-resampling.
+from the source, the \detmap\ does not need to be rescaled when
+resampled to a different pixel scale.
+
 
 
 Once the \detmap\ for each image has been calibrated and resampled to
@@ -445,15 +577,40 @@ This is simply the maximum-likelihood estimate of the flux based on a
 set of independent Gaussian estimates.
 
 
+In summary, the procedure to produce an optimal detection map given
+multiple images (in the same filter) is:
+\begin{enumerate}
+\item \emph{correlate} each image by its PSF model
+\item \emph{calibrate} each resulting detection map (and its variance)
+  to common units
+\item \emph{resample} each calibrated detection map to a common pixel
+  grid
+\item \emph{coadd} the calibrated detection maps weighted by their
+  inverse variances.
+\end{enumerate}
+Assuming well-sampled images, the \emph{correlation},
+\emph{calibration}, and \emph{resampling} steps can occur in any
+order.  Importantly, however, the \emph{coaddition} stage must occur
+\emph{after} correlation by the point-spread functions of the
+individual images; each image must be correlated by its own matched
+filter to produce \emph{detection maps} which are coadded.
+
+\subsection{Comments}
+
+\paragraph{Optimality} FIXME -- write this!
+
+\paragraph{Dumb things that people do} FIXME -- how exactly do coadds suck?
+
+
 \subsection{Different bandpass filters}
 
 As we saw in the single-bandpass case, we can combine multiple
 individual exposures into an aggregate estimate of the flux of a point
 source.  In order to do this, it was essential to calibrate the images
-so that each one is an estimate of the same underlying quantity.  The
-multiple-bandpass case is similar: We first combine all the images
-taken in each bandpass into a single estimate for that bandpass.
-Then, to combine the bandpasses we must scale them so that they are
+so that each one was an estimate of the same underlying quantity.  The
+multiple-bandpass case is similar: For each bandpass, we first combine
+the images taken in that bandpass into an aggregate estimate.  Then,
+to combine the bandpasses we must scale them so that they are
 estimates of the same quantity.  This requires \emph{knowing} the
 spectral energy distribution, or at least the \emph{colors} in the
 filters of interest, of the source to be detected; this allows us to
@@ -468,16 +625,16 @@ quantity such as the integrated intensity.
 
 
 The intuition here is that if we know that our sources of interest are
-twice as bright in bandpass A than in bandpass B, then we can convert
+twice as bright in bandpass A as in bandpass B, then we can convert
 an estimate of the brightness in band B into an estimate of the
 brightness in band A by multiplying by two.  The variance of the
-scaled estimate increases appropriately, so a bandpass in which a
-source is expected to be faint will contribute an estimate with a
-large variance and will be downweighted when the estimates are
-combined.  We can also view the problem as one of estimating a
-``total'' flux that has been split into the different bandpasses, and
-in that view it is analogous to the way flux is spread into pixels by
-the point-spread function.
+scaled estimate increases appropriately (by a factor of four), so a
+bandpass in which a source is expected to be faint will contribute an
+estimate with a large variance and will be downweighted when the
+estimates are combined.  We can also view the problem as one of
+estimating a total flux that has been split into the different
+bandpasses, and in that view it is analogous to the way flux is spread
+into pixels by the point-spread function.
 
 \newcommand{\sigdj}{\sigma_{j}}
 
@@ -486,32 +643,62 @@ $\sigdj$ for a number of different bandpasses.  Assume each
 bandpass has a known conversion factor $f_j$ to the canonical band;
 that is,
 \begin{eqnarray}
-  D_j & \drawnfrom & \gaussx{f_j \, C, \sigdj^2}
+  D_j & \drawnfrom & \gaussx{f_j F}{\sigdj^2}
 \end{eqnarray}
-for flux in the canonical band $C$.  Given a number of such detection
-maps, we assume they are independent and find that the
-maximum-likelihood estimate for $C$ is:
+for flux in the canonical band $F$.
+% \footnote{% The notation $x
+%   \drawnfrom \gaussx{\mu}{\sigma^2}$ means that $x$ is drawn from a
+%   Gaussian distribution with mean $\mu$ and variance $\sigma^2$.}
+%
+Given a number of such detection maps, we first scale them so they are all estimates of the
+same quantity, by dividing by $f_j$:
 \begin{eqnarray}
-  \hat{C} &=& 
-  \frac{\sum_j D_j \, f_j \, \sigdj^{-2}}%
-       {\sum_j f_j^2 \, \sigdj^{-2}}
+  F_j & = & \frac{D_j}{f_j} \\
+  F_j & \drawnfrom & \gaussx{F}{\frac{\sigdj^2}{f_j^2}}
+\end{eqnarray}
+and assuming that the images  are independent, we combine them by inverse-variance weighting
+to produce the maximum-likelihood estimate for $F$:
+\begin{eqnarray}
+  \hat{F} &=& 
+  %\frac{\sum_j D_j \, f_j \, \sigdj^{-2}}%
+  %     {\sum_j f_j^2 \, \sigdj^{-2}}
+  \frac{\displaystyle\sum_j \frac{D_j}{f_j} \, \frac{f_j^2}{\sigdj^2}}%
+       {\displaystyle\sum_j \frac{f_j^2}{\sigdj^2}}
+       = 
+       \frac{\displaystyle\sum_j D_j \, f_j \, \sigdj^{-2}}%
+            {\displaystyle\sum_j f_j^2 \, \sigdj^{-2}}
 \end{eqnarray}
 with per-pixel error
 \begin{eqnarray}
-  \hat{\sigma}_C &=& \left( \sum_j f_j^2 \sigdj^{-2} \right)^{-\frac{1}{2}}
+  \hat{\sigma}_F &=& \left( \sum_j f_j^2 \sigdj^{-2} \right)^{-\frac{1}{2}}
   \quad .
 \end{eqnarray}
 
 
 For example, if we treat $r$ band as the canonical band and our
-objects of interest have color $r-i = 1$, then we will scale our
-$i$-band detection map $D_i$ by $f_i = (2.5)^{-(r-i = 1)}$; the
+objects of interest have color $r-i = 1$, then we 
+expect the flux in $i$ to be a factor of $2.5$ greater than the
+flux in $r$; $f_i = 2.5$, and we
+will scale our
+$i$-band detection map $D_i$ by $1/f_i = 0.4$.  Since the
 sources are expected to be brighter in $i$ band so we must \emph{scale
   down} the $i$-band estimate to produce an $r$-band estimate.  The
 $i$-band variance is also reduced in a corresponding way, so this does
 not dilute the weight of high-precision measurements.
 
 
+FIXME -- we need to talk here about this idea of ``priors'', and
+perhaps at this point say that we recommend running with a number of
+SEDs and taking the union of detections.
+
+\subsection{Comments}
+
+\paragraph{Chi-squared coadd} And how it is different than this.
+
+\paragraph{You always have a prior} And if you don't think you have a prior,
+you're probably using a dumb prior.
+
+\paragraph{How much does it hurt if the SED is wrong?} (It's just like having a wrong PSF model.)
 
 
 \section{Experiments}
@@ -566,12 +753,11 @@ We find that there is considerable spatially-coherent structure in our
 combined \detmap s, which we suspect is due to slightly biased
 background subtraction in the SDSS pipeline code.  We estimate and
 remove a residual background as follows.  After masking all pixels
-above 5 sigma, we compute the
-median value within each cell of a $\sim 100 \times 100$-pixel grid,
-and interpolate between these values with a third-order B-spline.  The
-resulting background-subtracted \detmap s have no apparent background
-structure and their pixel distributions are closer to Gaussian.  See
-\figref{fig:bg}.
+above 5 sigma, we compute the median value within each cell of a $\sim
+100 \times 100$-pixel grid, and interpolate between these values with
+a third-order B-spline.  The resulting background-subtracted \detmap s
+have no apparent background structure (by eye) and their pixel
+distributions are closer to Gaussian.  See \figref{fig:bg}.
 
 \paragraph{Detection}
 In this \doctype\ we are not concerning ourselves with blended
@@ -608,7 +794,10 @@ SDSS catalog are detected more strongly by our SED-matched Red filter
 than a Flat SED (which corresponds to the traditional multi-band
 detection approach).  There are very few objects that the Blue
 SED-matched filter detects more strongly than the Flat or Red filters;
-astrophysical objects with very blue colors are rare.
+astrophysical objects with blue colors (bluer than 0 in the AB system)
+are rare.
+
+% (in the AB system of SDSS)
 
 In \figref{fig:colorcolor} we show, in color-color space, the sources
 detected by each of our SED-matched filters.  As expected, each filter
@@ -797,6 +986,14 @@ threshold.
 
 [[Practicalities: bad pixels / masks, interpolation, etc]]
 
+\acknowledgements
+
+Ben Weiner (University of Arizona),
+Julianne Dalcanton (University of Washington),
+Brad Holden (UCO/Lick Observatories),
+Micha Gorelick (Fast Forward Labs),
+Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
+
 
 %\bibliographystyle{plain}
 %\bibliography{coadd}
@@ -813,14 +1010,14 @@ threshold.
 Let us assume that there exists a linear filter whose output allows
 optimal detection of isolated point sources.  That is, we seek a
 (two-dimensional) set of coefficients $a_{\ivec}$ that, when
-correlated with the image $S_{\jvec}$, produces a map $M_{\jvec}$
+correlated with the image $C_{\jvec}$, produces a map $M_{\jvec}$
 whose peak is the likely location of the point source.  See
 \figref{fig:detmap}.
 
 
 The linear filtering (correlation) operation is
 \begin{equation}
-M_{\jvec} = \sum_{\iina} a_{\ivec} \, S_{\ivec + \jvec}
+M_{\jvec} = \sum_{\iina} a_{\ivec} \, C_{\ivec + \jvec}
 \label{eq:detmap1}
 \end{equation}
 where $\mathcal{A}$ is the support of $\avec$ (integer pixel
@@ -830,15 +1027,15 @@ demand that the elements of $\avec$ are non-negative and sum to unity.
 Inserting \eqnref{eq:modelimg}, we get
 \begin{eqnarray}
 M_{\jvec} &\drawnfrom& \sum_{\iina}
-  C_k \, a_{\ivec} \, \psi(\ivec + \jvec - \kvec) + \gaussx{0, \sigma_1^2}
+  C_k \, a_{\ivec} \, \psfat{\ivec + \jvec - \kvec} + \gaussx{0}{\sigma_1^2}
   \\
-&\drawnfrom& \gaussx{ C_k \sum_{\iina} a_{\ivec} \, \psi(\ivec + \jvec - \kvec),
-    \sum_{\iina} a_{\ivec}^2 \, \sigma_1^2}
+&\drawnfrom& \gaussx{ C_k \sum_{\iina} a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}%
+    {\sum_{\iina} a_{\ivec}^2 \, \sigma_1^2}
 \end{eqnarray}
 and the per-pixel signal-to-noise in the map is
 \begin{equation}
-%  \signoise_{D_{\jvec}} = \frac{C_k \, \sum_{\iina} a_{\ivec} \, \psi(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\iina} a_{\ivec}^2}}
-  \snr{M_{\jvec}} = \frac{C_k \, \sum a_{\ivec} \, \psi(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\ivec} a_{\ivec}^2}} \quad .
+%  \signoise_{D_{\jvec}} = \frac{C_k \, \sum_{\iina} a_{\ivec} \, \psfat(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\iina} a_{\ivec}^2}}
+  \snr{M_{\jvec}} = \frac{C_k \, \sum a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}{\sigma_1 \sqrt{\sum_{\ivec} a_{\ivec}^2}} \quad .
   \label{eq:detmapsn1}
 \end{equation}
 
@@ -847,45 +1044,75 @@ signal-to-noise at the true pixel position of the source,
 $\kvec$.  Rewriting the expression using dot-products and
 norms\footnote{All norms in this \doctype\ are $\ell_2$ norms: $\norm{X} =
   \sqrt{\sum_i X_i^2}$.}, treating the two-dimensional images
-$a_{\ivec}$ and $\psi(\ivec + \jvec - \kvec)$ as vectors indexed by
+$a_{\ivec}$ and $\psfat{\ivec + \jvec - \kvec}$ as vectors indexed by
 $\ivec$, we have:
 \begin{eqnarray}
-  %\signoise_{D_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psi(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
-  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psi(j-k)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
- &=& \frac{C_k \, \norm{\avec} \norm{\bm{\psi(j-k)}} \cos \theta}{\sigma_1 \norm{\avec}} \\
- &=& \frac{C_k \, \norm{\bm{\psi(j-k)}} \cos \theta}{\sigma_1}
+  %\signoise_{D_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat{j-k}}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+ &=& \frac{C_k \, \norm{\avec} \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1 \norm{\avec}} \\
+ &=& \frac{C_k \, \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1}
 \end{eqnarray}
-where $\theta$ is a generalized angle between $\avec$ and $\bm{\psi(j-k)}$.
+where $\theta$ is a generalized angle between $\avec$ and $\bm{\psfat{j-k}}$.
 At the pixel position of the source, $\kvec$,
 \begin{equation}
-\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psi(0)}} \cos \theta}{\sigma_1}
+\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psfat{0}}} \cos \theta}{\sigma_1}
 \label{eqn:sndsingle}
 \end{equation}
 Clearly this is maximized when $\theta = 0$, \ie, when $\avec$ is a
-multiple of $\bm{\psi(0)}$, the PSF evaluated at a grid of integer
+multiple of $\bm{\psfat{0}}$, the PSF evaluated at a grid of integer
 pixel positions.  Since we have defined both the PSF and coefficients
 $a$ to sum to unity, we find that the optimal linear filter for
 detection is given by:
 \begin{equation}
-%  a_{\ivec} = \psi_{\ivec} \quad ,
-\avec = \bm{\psi(0)} \quad ,
+%  a_{\ivec} = \psfat{\ivec} \quad ,
+\avec = \bm{\psfat{0}} \quad ,
 \end{equation}
 which means that the operation of \emph{correlating} the image with
 its PSF produces a map with optimal signal-to-noise.  Repeating
 equation \ref{eq:detmap1}, we have found that the map $M_{\jvec}$ can
 be computed by correlating the image with its PSF:
 \begin{equation}
-M_{\jvec} = \sum_{\iina} \psi_{\ivec} \, S_{\ivec + \jvec} \quad ,
+M_{\jvec} = \sum_{\iina} \psfat{\ivec} \, C_{\ivec + \jvec} \quad ,
 \end{equation}
-where, as before, $\mathcal{A}$ is the support of the PSF and
-$\psfat{\ivec} = \psi(\ivec)$ is an image of the PSF evaluated at
-integer pixel positions $\ivec$.
+where, as before, $\mathcal{A}$ is the support of the PSF.
+% and
+%$\psfat{\ivec} = \psfat{\ivec}$ is an image of the PSF evaluated at
+%integer pixel positions $\ivec$.
 
 The signal-to-noise in this map at the true source pixel
 position $\kvec$ is
 \begin{equation}
-\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psi}}}{\sigma_1} \quad .
+\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psfat{}}}}{\sigma_1} \quad .
 \end{equation}
+
+
+\subsubsection{Optimality}
+
+We compute the variance of the detection map estimator
+(\eqnref{eq:detmap}), and show that is equal to the Cram\'er--Rao
+bound.  Substituting our image model into the detection map,
+\begin{eqnarray}
+D_{\jvec} &=& \frac{1}{\psfnorm^2} \sum_{i} \psfat{\ivec} \,
+C_{\ivec + \jvec}
+\\
+& \drawnfrom & \frac{1}{\psfnorm^2} \sum_{i} \psfat{\ivec} \,
+\gaussx{F \, \psfat{\ivec + \jvec - \kvec}}{\sigma_1^2}
+\end{eqnarray}
+and at the true source position, $j=k$;
+\begin{eqnarray}
+%D_{\jvec} &\drawnfrom& 
+%\frac{1}{\psfnorm^2} \sum_{i}
+%\gaussx{F \, \psfat{\ivec}^2}{\psfat{\ivec}^2 \sigma_1^2}
+%
+D_{\jvec} &\drawnfrom& \frac{1}{\psfnorm^2} \gaussx%
+{F \, \sum_{i} \psfat{\ivec}^2}%
+{\sum_{i} \psfat{\ivec}^2 \sigma_1^2}
+\\
+D_{\jvec} &\drawnfrom& \gaussx%
+{F}{\frac{\sigma_1^2}{\psfnorm^2}}
+\end{eqnarray}
+
+
 
 
 
@@ -909,7 +1136,7 @@ so the \detmap\ has signal-to-noise at the true source position $\kvec$,
 \end{equation}
 
 Note, however, that we have defined the point-spread function
-$\psi(\cdot)$ to be the \emph{pixel-convolved} response, so it cannot
+$\psfat(\cdot)$ to be the \emph{pixel-convolved} response, so it cannot
 be exactly Gaussian if the pixel response is assumed to be a boxcar
 function.  In practice, however, a two-dimensional Gaussian with
 variance $v^2$ correlated with a two-dimensional boxcar function is
