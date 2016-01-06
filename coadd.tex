@@ -1,3 +1,10 @@
+% To-do:
+
+% -- go very carefully through the text and appendices, checking for
+%    consistency in notation -- eg C_j vs S_j, ``flux'' vs ``source counts''
+
+% -- reference for brighter-fatter?
+
 %% Peaks in the MAP or in SIGNAL-TO-NOISE ???
 
 %% Back up statements about completeness / purity -- more details
@@ -296,15 +303,20 @@ We consider idealized astronomical images such as those obtained from
 a CCD in broadband optical imaging.
 %
 We will assume that the image is well calibrated: the flat-field or
-per-pixel sensitivities are known, as is the astrometric calibration
-and the point-spread function.
+per-pixel sensitivities are known, as is the astrometric and
+photometric calibration and the point-spread function model.
+%
+We assume a perfectly linear device with no saturation, and we ignore
+detector effects such as brightness-dependent PSFs
+(``brighter-fatter'').
 %
 We assume the image pixels contain additive, independent, Gaussian
 noise.  This is reasonable for images with significant background or
 ``sky'' noise and read noise, where the mean sky level has been
 estimated and subtracted.  (Background flux is typically Poisson
 distributed, which at high count levels is well approximated by the
-Gaussian.)
+Gaussian.)  We ignore cosmic rays, bad pixels and columns, and other
+artifacts.
 %
 
 Importantly, we will assume the PSF function $\psi(\cdot)$ is the
@@ -466,7 +478,8 @@ maximum-likelihood estimate of the total \emph{counts} contributed by
 the source, in the arbitrary units of the original image.  In order to
 combine information from multiple images, we must calibrate them so
 that they are in the same units.  Since this calibration is simply a
-linear scaling, it can be applied to the original image or to the
+linear scaling given our assumptions,
+it can be applied to the original image or to the
 \detmap.  Similarly, if the images are on different pixel
 grids---either from different pointings of the same CCD, or from
 different CCDs---then we must \emph{resample} the \detmap s to a
@@ -498,22 +511,22 @@ inverse-variance-weighted sum of the individual estimates.
 
 If the calibration factor $\kappa_i$ scales image $i$ to flux in
 common units, and $R_i$ represents resampling to the common pixel grid,
-then the flux estimate $E_i$ is
+then the flux estimate $F_i$ is
 \begin{eqnarray}
-E_i &=& R_i(\kappa_i \, D_i)
+F_i &=& R_i(\kappa_i \, D_i)
 \end{eqnarray}
 with per-pixel error
 \begin{eqnarray}
-\sigma_{E, i} &=& \frac{\kappa_i \, \sigma_{1,i}}{\psfnorm_i}
+\sigma_{F, i} &=& \frac{\kappa_i \, \sigma_{1,i}}{\psfnorm_i}
 \end{eqnarray}
 and we combine the estimates from multiple images via
 \begin{eqnarray}
-E^{\star} &=& \frac{\displaystyle\sum_i E_i \, \sigma^{-2}_{E,i}}{\displaystyle\sum_i \sigma^{-2}_{E_i}}
+F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F,i}}{\displaystyle\sum_i \sigma^{-2}_{F,i}}
 \label{eq:onebandmap}
 \end{eqnarray}
 which has per-pixel error
 \begin{eqnarray}
-\sigma_{E, \star} &=& \left( \sum_i \sigma^{-2}_{E,i} \right)^{-\frac{1}{2}}    \quad .
+\sigma_{F, \star} &=& \left( \sum_i \sigma^{-2}_{F,i} \right)^{-\frac{1}{2}}    \quad .
 \end{eqnarray}
 This is simply the maximum-likelihood estimate of the flux based on a
 set of independent Gaussian estimates.
@@ -523,7 +536,7 @@ set of independent Gaussian estimates.
 \subsection{Different bandpass filters}
 
 Everything we have said up to now has been based on facts about
-statistical distributions and is uncontroversial.  In this section we
+statistical distributions and should be uncontroversial.  In this section we
 propose a method that is, to our knowledge, new to astronomy.  While
 it is fully defensible, it involves \emph{priors} so we expect will be
 slightly controversial.  We argue that other proposed methods presume
