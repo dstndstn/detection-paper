@@ -375,27 +375,25 @@ The per-pixel error in the \detmap\ is given by
 
 
 We have scaled the \detmap\ so that each pixel contains the
-maximum-likelihood total counts of a source centered at that pixel.
-That is, computing at pixel $\jvec$ the total source counts
-$C^{\ast}_{\jvec}$ to minimizes the chi-squared ($\chi^2$) residual
+maximum-likelihood flux of a source centered at that pixel.
+That is, computing at pixel $\jvec$ the total flux
+$F^{\ast}_{\jvec}$ to minimizes the chi-squared ($\chi^2$) residual
 within the support of the PSF:
 \begin{equation}
-  C^{\ast}_{\jvec} = \arg\min_{c} \sum_{\ivec} \left( \frac{C_{\ivec+\jvec} - c \, \psi_{\ivec}}{\sigma_1} \right)^2
+  F^{\ast}_{\jvec} = \arg\min_{c} \sum_{\ivec} \left( \frac{C_{\ivec+\jvec} - c \, \psi_{\ivec}}{\sigma_1} \right)^2
 \end{equation}
 we find
 \begin{eqnarray}
-  C^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} S_{\ivec+\jvec} \, \psi_{\ivec}}{\sum_{\ivec} \psi_{\ivec}^2}
+  F^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} C_{\ivec+\jvec} \, \psi_{\ivec}}{\sum_{\ivec} \psi_{\ivec}^2}
   \\
-  C^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
+  F^{\ast}_{\jvec} &=& D_{\jvec}
 \end{eqnarray}
 as defined above.
 %
 That is, a significant peak in the \detmap\ indicates the likely
 position of a point source, and the value of the \detmap\ at a pixel
-is the maximum-likelihood estimate of the total source counts for a
+is the maximum-likelihood estimate of the total flux of a
 source centered at that pixel.
-%Recall that we have assumed that the
-%image contains only a single isolated point source.
 
 
 The intuition behind creating a \detmap\ is that the point-spread
@@ -403,9 +401,8 @@ function spreads the signal from a point-source over a number of
 pixels.  By correlating with the PSF, we ``gather up'' that spread-out
 signal, weighting the pixels over which the signal has been spread by
 the fraction of the signal that went into each pixel.  By scaling the
-\detmap\ by the inverse PSF norm, we convert it to units of total
-source counts; this will make it easier to combine \detmap s in what
-follows.
+\detmap\ by the inverse PSF norm, we convert it to units of total flux;
+this will make it easier to combine \detmap s in what follows.
 
 % The signal-to-noise in the detection map at the true source pixel
 % position $\kvec$ is
