@@ -354,7 +354,7 @@ its PSF results in an optimal detector for isolated point sources.
 We define the \emph{\detmap} $D_{\jvec}$ as the correlation of
 the image with its PSF model, scaled to be in convenient units:
 \begin{equation}
-D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \, S_{\ivec + \jvec} \quad ,
+D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \, C_{\ivec + \jvec} \quad ,
 \label{eq:detmap}
 \end{equation}
 where $\mathcal{A}$ is the support of the PSF and
@@ -380,7 +380,7 @@ That is, computing at pixel $\jvec$ the total source counts
 $C^{\ast}_{\jvec}$ to minimizes the chi-squared ($\chi^2$) residual
 within the support of the PSF:
 \begin{equation}
-  C^{\ast}_{\jvec} = \arg\min_{c} \sum_{\ivec} \left( \frac{S_{\ivec+\jvec} - c \, \psi_{\ivec}}{\sigma_1} \right)^2
+  C^{\ast}_{\jvec} = \arg\min_{c} \sum_{\ivec} \left( \frac{C_{\ivec+\jvec} - c \, \psi_{\ivec}}{\sigma_1} \right)^2
 \end{equation}
 we find
 \begin{eqnarray}
@@ -1293,14 +1293,14 @@ York,~D.~G. \etal, 2000, \aj, 120, 1579
 Let us assume that there exists a linear filter whose output allows
 optimal detection of isolated point sources.  That is, we seek a
 (two-dimensional) set of coefficients $a_{\ivec}$ that, when
-correlated with the image $S_{\jvec}$, produces a map $M_{\jvec}$
+correlated with the image $C_{\jvec}$, produces a map $M_{\jvec}$
 whose peak is the likely location of the point source.  See
 \figref{fig:detmap}.
 
 
 The linear filtering (correlation) operation is
 \begin{equation}
-M_{\jvec} = \sum_{\iina} a_{\ivec} \, S_{\ivec + \jvec}
+M_{\jvec} = \sum_{\iina} a_{\ivec} \, C_{\ivec + \jvec}
 \label{eq:detmap1}
 \end{equation}
 where $\mathcal{A}$ is the support of $\avec$ (integer pixel
