@@ -252,18 +252,26 @@ if __name__ == '__main__':
                                 T.decam_flux[:,2] +
                                 T.decam_flux[:,4]) - 9)
     
-    plt.clf()
-    loghist(T.gmag - T.rmag, T.rmag - T.zmag, nbins=100,
-            range=((-2,2),(-2,2)))
-    plt.xlabel('g - r (mag)')
-    plt.ylabel('r - z (mag)')
-    ps.savefig()
+    # plt.clf()
+    # loghist(T.gmag - T.rmag, T.rmag - T.zmag, nbins=100,
+    #         range=((-2,2),(-2,2)))
+    # plt.xlabel('g - r (mag)')
+    # plt.ylabel('r - z (mag)')
+    # ps.savefig()
 
     plt.clf()
-    loghist(T.gmag - T.grzmag, T.rmag - T.grzmag, nbins=100,
-            range=((-1,5),(-1,5)))
-    plt.xlabel('g - grz (mag)')
-    plt.ylabel('r - grz (mag)')
+    loghist(T.zmag - T.gmag, T.zmag - T.rmag, nbins=100,
+            range=((-5,5),(-5,5)))
+    plt.xlabel('z - g (mag)')
+    plt.ylabel('z - r (mag)')
+    ps.savefig()
+
+    
+    plt.clf()
+    loghist(T.grzmag - T.gmag, T.grzmag - T.rmag, nbins=100,
+            range=((-5,5),(-5,5)))
+    plt.xlabel('grz - g (mag)')
+    plt.ylabel('grz - r (mag)')
     ps.savefig()
 
     

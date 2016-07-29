@@ -122,6 +122,9 @@ measurements.
   shows roughly 2 million sources from the DECam Legacy Survey
   measured in $g$, $r$, and $z$ bands.  The SED space is then the
   3-dimensional simplex, so a 2-dimensional plane embedded in 3-d.
+  Sources that emit in only $g$ band are at $(1,0)$, source that emit
+  in only $r$ band are at $(0,1)$, and sources that emit in only $z$
+  band are at $(0,0)$.
   This is akin to a $grz - g$, $grz - r$ color space, where $grz$ is
   the sum of the fluxes in the three bands (ie, a broad filter).
   \label{Sgrz}}
@@ -149,8 +152,11 @@ acceptable loss of signal-to-noise due to mismatches.
 \figref{Sgrz} shows in this SED space the fluxes of sources measured
 in the DECam Legacy Survey (DECaLS) Data Release 2, from $240 <
 \textrm{RA} < 250$ and $5 < \textrm{Dec} < 10$, with fluxes measured
-in $g$, $r$, and $z$ bands.  In astronomical parlance, this can be
-seen as something like a $grz - g$, $grz - r$ color space.
+in $g$, $r$, and $z$ bands.  The three-dimensional SED space is a
+simplex, a plane in a 3-d space.  In astronomical parlance, this can
+be seen as something like a compressed $z - g$, $z - r$ color space,
+or like $grz - g$, $grz - r$, where $grz$ is the sum of fluxes (broad
+filter).
 
 
 
