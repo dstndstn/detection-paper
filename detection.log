@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  3 JUN 2016 13:36
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014) (preloaded format=pdflatex 2014.5.25)  3 JUN 2016 13:40
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -313,7 +313,7 @@ Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 )
 \c@address=\count122
 
-No file detection.aux.
+(./detection.aux)
 \openout1 = `detection.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 87.
@@ -330,6 +330,7 @@ LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 87.
 LaTeX Font Info:    ... okay on input line 87.
 LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 87.
 LaTeX Font Info:    ... okay on input line 87.
+
 (/usr/local/texlive/2014/texmf-dist/tex/context/base/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count123
@@ -372,6 +373,8 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 87.
 LaTeX Info: Redefining \pageref on input line 87.
 LaTeX Info: Redefining \nameref on input line 87.
+
+(./detection.out) (./detection.out)
 \@outlinefile=\write3
 \openout3 = `detection.out'.
 
@@ -409,26 +412,11 @@ File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 286.
- [3]
-
-LaTeX Warning: Reference `eqn:image' on page 4 undefined on input line 365.
-
-
-LaTeX Warning: Reference `app:lindet' on page 4 undefined on input line 385.
-
-
-LaTeX Warning: Reference `app:gaussnorm' on page 4 undefined on input line 407.
-
-
-[4]
+ [3] [4]
 
 LaTeX Warning: Reference `XXX' on page 5 undefined on input line 480.
 
-[5]
-
-LaTeX Warning: Reference `eq:detmap' on page 6 undefined on input line 525.
-
-[6] [7] [8] [9]
+[5] [6] [7] [8] [9]
 
 Package natbib Warning: Citation `sdss' on page 10 undefined on input line 709.
 
@@ -437,87 +425,161 @@ Package natbib Warning: Citation `sdss' on page 10 undefined on input line 709.
 Package natbib Warning: Citation `dr9' on page 10 undefined on input line 715.
 
 
-LaTeX Warning: Reference `tab:fields' on page 10 undefined on input line 719.
-
-
 Package natbib Warning: Citation `photo' on page 10 undefined on input line 723
-.
-
-
-LaTeX Warning: Reference `eq:onebandmap' on page 10 undefined on input line 739
 .
 
 
 Package natbib Warning: Citation `wcs' on page 10 undefined on input line 742.
 
-
-LaTeX Warning: Reference `eq:onebandmap' on page 10 undefined on input line 746
-.
-
-
-LaTeX Warning: Reference `fig:bg' on page 10 undefined on input line 760.
-
-[10]
-
-LaTeX Warning: Reference `fig:redblue' on page 11 undefined on input line 792.
-
-
-LaTeX Warning: Reference `fig:colorcolor' on page 11 undefined on input line 80
-2.
-
-
-LaTeX Warning: Reference `fig:missed' on page 11 undefined on input line 808.
-
-
-LaTeX Warning: Reference `fig:added' on page 11 undefined on input line 810.
-
-<detect-r-00.png, id=117, 722.7pt x 361.35pt>
+[10] <detect-r-00.png, id=196, 722.7pt x 361.35pt>
 File: detect-r-00.png Graphic file (type png)
  <use detect-r-00.png>
 Package pdftex.def Info: detect-r-00.png used on input line 873.
 (pdftex.def)             Requested size: 328.82706pt x 164.4145pt.
 
+<detect-r-01.png, id=198, 722.7pt x 361.35pt>
+File: detect-r-01.png Graphic file (type png)
+ <use detect-r-01.png>
+Package pdftex.def Info: detect-r-01.png used on input line 874.
+(pdftex.def)             Requested size: 328.82706pt x 164.4145pt.
 
-! LaTeX Error: File `detect-r-01' not found.
+<detect-r-02.pdf, id=199, 722.7pt x 361.35pt>
+File: detect-r-02.pdf Graphic file (type pdf)
+ <use detect-r-02.pdf>
+Package pdftex.def Info: detect-r-02.pdf used on input line 875.
+(pdftex.def)             Requested size: 375.80542pt x 187.90308pt.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.874 ...raphics[width=0.7\textwidth]{detect-r-01}
-                                                   \\
-? x
- 
+
+LaTeX Warning: Float too large for page by 10.02325pt on input line 885.
+
+<mdetect-11.pdf, id=200, 578.16pt x 433.62pt>
+File: mdetect-11.pdf Graphic file (type pdf)
+ <use mdetect-11.pdf>
+Package pdftex.def Info: mdetect-11.pdf used on input line 890.
+(pdftex.def)             Requested size: 375.80542pt x 281.84966pt.
+
+
+Package natbib Warning: Citation `annis' on page 11 undefined on input line 898
+.
+
+<mdetect-17.pdf, id=201, 578.16pt x 433.62pt>
+File: mdetect-17.pdf Graphic file (type pdf)
+ <use mdetect-17.pdf>
+Package pdftex.def Info: mdetect-17.pdf used on input line 905.
+(pdftex.def)             Requested size: 375.80542pt x 281.84966pt.
+
+
+Package natbib Warning: Citation `annis' on page 11 undefined on input line 918
+.
+
+<mdetect-14.pdf, id=202, 578.16pt x 289.08pt>
+File: mdetect-14.pdf Graphic file (type pdf)
+ <use mdetect-14.pdf>
+Package pdftex.def Info: mdetect-14.pdf used on input line 925.
+(pdftex.def)             Requested size: 375.80542pt x 187.89977pt.
+
+<mdetect-15.pdf, id=203, 578.16pt x 289.08pt>
+File: mdetect-15.pdf Graphic file (type pdf)
+ <use mdetect-15.pdf>
+Package pdftex.def Info: mdetect-15.pdf used on input line 926.
+(pdftex.def)             Requested size: 375.80542pt x 187.89977pt.
+
+<mdetect-16.pdf, id=204, 578.16pt x 289.08pt>
+File: mdetect-16.pdf Graphic file (type pdf)
+ <use mdetect-16.pdf>
+Package pdftex.def Info: mdetect-16.pdf used on input line 927.
+(pdftex.def)             Requested size: 375.80542pt x 187.89977pt.
+
+
+LaTeX Warning: Float too large for page by 12.11021pt on input line 931.
+
+<mdetect-18.pdf, id=205, 578.16pt x 433.62pt>
+File: mdetect-18.pdf Graphic file (type pdf)
+ <use mdetect-18.pdf>
+Package pdftex.def Info: mdetect-18.pdf used on input line 950.
+(pdftex.def)             Requested size: 375.80542pt x 281.84966pt.
+ [11]
+[12] [13 <./detect-r-00.png> <./detect-r-01.png> <./detect-r-02.pdf>] [14 <./md
+etect-11.pdf>] [15 <./mdetect-17.pdf>] [16 <./mdetect-14.pdf> <./mdetect-15.pdf
+
+
+pdfTeX warning: pdflatex (file ./mdetect-15.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
+> <./mdetect-16.pdf
+
+pdfTeX warning: pdflatex (file ./mdetect-16.pdf): PDF inclusion: multiple pdfs 
+with page group included in a single page
+>] [17pdfTeX warning (ext4): destination with the same identifier (name{figure.
+4}) has been already used, duplicate ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.971 -
+       -galaxy detection? <./mdetect-18.pdf>]
+
+LaTeX Warning: Reference `fig:detmap' on page 18 undefined on input line 1015.
+
+
+LaTeX Warning: Reference `eq:modelimg' on page 18 undefined on input line 1027.
+
+
+[18] [19] [20]
+
+Package natbib Warning: There were undefined citations.
+
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 1216.
+[21]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 1216.
+ (./detection.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 1216.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 1216.
+
+Package rerunfilecheck Info: File `detection.out' has not changed.
+(rerunfilecheck)             Checksum: 04EA0C09A2D7CF8697033109739EC483;1214.
+
+
+LaTeX Warning: There were undefined references.
+
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 1216.
+ ) 
 Here is how much of TeX's memory you used:
- 7198 strings out of 493117
- 99791 string characters out of 6135433
- 194015 words of memory out of 5000000
- 10493 multiletter control sequences out of 15000+600000
+ 7308 strings out of 493117
+ 101314 string characters out of 6135433
+ 201935 words of memory out of 5000000
+ 10555 multiletter control sequences out of 15000+600000
  17191 words of font info for 67 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 34i,12n,28p,258b,405s stack positions out of 5000i,500n,10000p,200000b,80000s
-</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb><
-/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></
-usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb></u
-sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/lo
-cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></usr/lo
-cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8.pfb></us
-r/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/
-local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb></usr/loc
-al/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/local/
-texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/tex
-live/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl9.pfb></usr/local/texli
-ve/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texliv
-e/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local/texlive/
-2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/20
-14/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/201
-4/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb>
-Output written on detection.pdf (10 pages, 236444 bytes).
+ 34i,14n,28p,740b,405s stack positions out of 5000i,500n,10000p,200000b,80000s
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmbsy
+8.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10
+.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.
+pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx8.pf
+b></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb
+></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmex9.
+pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.p
+fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi6.pfb
+></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi8.pfb><
+/usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi9.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmmib10.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib6.pfb
+></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cmextra/cmmib8
+.pfb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.p
+fb></usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr6.pfb>
+</usr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></u
+sr/local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/
+local/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsl9.pfb></usr/lo
+cal/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/loc
+al/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy6.pfb></usr/local
+/texlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/t
+exlive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/local/tex
+live/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texl
+ive/2014/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texliv
+e/2014/texmf-dist/fonts/type1/public/amsfonts/symbols/msam10.pfb></usr/local/te
+xlive/2014/texmf-dist/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on detection.pdf (21 pages, 1925377 bytes).
 PDF statistics:
- 191 PDF objects out of 1000 (max. 8388607)
- 157 compressed objects within 2 object streams
- 60 named destinations out of 1000 (max. 500000)
- 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1245 PDF objects out of 1440 (max. 8388607)
+ 676 compressed objects within 7 object streams
+ 106 named destinations out of 1000 (max. 500000)
+ 198 words of extra memory for PDF output out of 10000 (max. 10000000)
 
