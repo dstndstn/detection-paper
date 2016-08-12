@@ -23,8 +23,29 @@ from scipy.ndimage.filters import *
 #     for flux,psf_sigma,sig1 in zip(fluxes, psf_sigmas,sig1s):
 #         imgs.ap
 
+def hot_pixels(img, thresh, peaks):
+    from scipy.ndimage.measurements import label, find_objects
+    if not peaks:
+        return img > thresh
+
+    # Return only the maximum pixel in each blob above threshold.
+    peaks = np.zeros(img.shape, bool)
+    labels,nlabels = label(img > thresh)
+    # max label == n labels; 0 means not an object
+    #print('Max label:', labels.max(), 'nlabels', nlabels)
+    for i,slices in enumerate(find_objects(labels, max_label=nlabels)):
+        if slices is None:
+            continue
+        slicey,slicex = slices
+        subimg = img[slicey,slicex]
+        imax = np.argmax(subimg * (labels[slicey,slicex] == (i+1)))
+        iy,ix = np.unravel_index(imax, subimg.shape)
+        x0,y0 = slicex.start, slicey.start
+        peaks[y0+iy, x0+ix] = True
+    return peaks
+
 def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
-                  fluxgrid):
+                  fluxgrid=None, peaks=False):
     '''
     fluxgrid: [ (grid for band 1), (grid for band 2), ... ]
           grid for band 1 = NY x NX flux values
@@ -93,7 +114,7 @@ def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
     chisq = 0.
     for detmap,detsig1 in zip(detmaps,detsigs):
         chisq = chisq + (detmap / detsig1)**2
-    hot = (chisq > thresh**2)
+    hot = hot_pixels(chisq, thresh**2, peaks)
     print('N hot pixels (chisq):', np.sum(hot))
     nhots.append(np.sum(hot))
     if ps is not None:
@@ -113,7 +134,7 @@ def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
             sediv  = sediv  + detiv / sed[iband]**2
         sedmap /= sediv
         sedsn = sedmap * np.sqrt(sediv)
-        hot = (sedsn > thresh)
+        hot = hot_pixels(sedsn, thresh, peaks)
         print('N hot pixels (%s):' % sedname, np.sum(hot))
         nhots.append(np.sum(hot))
         if anyhot is None:
@@ -152,7 +173,7 @@ flux_g *= 3.
 flux_r *= 3.
 
 R = falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
-                  (flux_g, flux_r))
+                  fluxgrid=(flux_g, flux_r), peaks=True)
 
 plt.legend(loc='upper right')
 
