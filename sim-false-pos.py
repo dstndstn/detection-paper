@@ -23,15 +23,51 @@ from scipy.ndimage.filters import *
 #     for flux,psf_sigma,sig1 in zip(fluxes, psf_sigmas,sig1s):
 #         imgs.ap
 
-
-def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps):
+def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
+                  fluxgrid):
+    '''
+    fluxgrid: [ (grid for band 1), (grid for band 2), ... ]
+          grid for band 1 = NY x NX flux values
+    '''
     H,W = 1000,1000
     psf_norms = 1. / (2. * np.sqrt(np.pi) * psf_sigmas)
 
     imgs = []
-    for psf_sigma,sig1 in zip(psf_sigmas,sig1s):
+    for sig1 in zip(sig1s):
         img = np.random.normal(scale=sig1, size=(H,W)).astype(np.float32)
         imgs.append(img)
+
+    if fluxgrid is not None:
+        NY,NX = None,None
+        xx,yy = None,None
+        for iband,(img, fluxes, psf_sigma) in enumerate(
+                zip(imgs, fluxgrid, psf_sigmas)):
+            if fluxes is None:
+                continue
+            # grids must be the same shape in each band
+            ny,nx = fluxes.shape
+            if NY is None:
+                NY = ny
+                NX = nx
+                spacex = int(W / float(NX))
+                spacey = int(H / float(NY))
+                xx,yy = np.meshgrid(np.arange(NX) * spacex,
+                                    np.arange(NY) * spacey)
+            else:
+                assert(NY == ny)
+                assert(NX == nx)
+
+            # Create PSF postage stamp of fixed size...
+            P = 12
+            px,py = np.meshgrid(np.arange(-P,P+1), np.arange(-P,P+1))
+            pp = np.exp(-0.5 * (px**2 + py**2) / psf_sigma**2)
+            pp /= np.sum(pp)
+            ph,pw = pp.shape
+            assert(xx.shape == yy.shape)
+            assert(xx.shape == fluxes.shape)
+            for x,y,flux in zip(xx.ravel(), yy.ravel(), fluxes.ravel()):
+                print('Adding flux', flux, 'at (%i, %i) in band' % (x,y), iband)
+                img[y:y+ph, x:x+pw] += flux * pp
 
     detmaps = []
     for img,psf_sigma,psf_norm in zip(imgs, psf_sigmas, psf_norms):
@@ -39,6 +75,13 @@ def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps):
         detmaps.append(detim)
     detsigs = sig1s / psf_norms
 
+    if ps is not None:
+        for detmap,detsig in zip(detmaps,detsigs):
+            plt.clf()
+            plt.imshow(detmap, interpolation='nearest', origin='lower',
+                       vmin=-3*detsig, vmax=10*detsig)
+            ps.savefig()
+    
     print('1 / detsigs =', 1./detsigs)
     
     nhots = []
@@ -84,23 +127,47 @@ def falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps):
     nhot = np.sum(anyhot)
     print('N hot pixels (any SED):', nhot)
     nhots.append(nhot)
-    
+    if ps is not None:
+        allhots.append(('Any SED', anyhot))
+
     return dict(rates=np.array(nhots) / float(H*W),
                 allhots=allhots, detmaps=detmaps, detsigs=detsigs)
 
-psf_sigmas = np.array([1.0, 2.0])
+psf_sigmas = np.array([1.5, 1.5])
 sig1s = np.array([1.0, 1.0])
 thresh = 3.
-seds = [('g', [0., 1.]),
-        ('r', [1., 0.]),
+seds = [('g', [1., 0.]),
+        ('r', [0., 1.]),
         ('flat', [1., 1.]),
         ('red',  [1., 2.5]),
         ]
 
 ps = PlotSequence('fp')
 
-R = falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps)
+#R = falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
+#                  [])
+
+flux_g,flux_r = np.meshgrid(np.arange(1, 21), np.arange(1,21))
+flux_g *= 3.
+flux_r *= 3.
+
+R = falsepos_rate(psf_sigmas, sig1s, thresh, seds, ps,
+                  (flux_g, flux_r))
+
 plt.legend(loc='upper right')
+
+import scipy.stats
+# xl,xh = plt.xlim()
+# xx = np.linspace(xl, xh, 300)
+df = len(psf_sigmas)
+# yy = scipy.stats.chi2.pdf(xx, df)
+# yl,yh = plt.ylim()
+# plt.plot(xx, yh * yy / yy.max(), 'k--')
+print('Expected number of chisq: %.1f' %
+      ((1 - scipy.stats.chi2.cdf(thresh**2, df))*1000000))
+print('Expected number of SED: %.1f' %
+      ((1 - scipy.stats.norm.cdf(thresh))*1000000))
+
 ps.savefig()
 
 allhots = R['allhots']
@@ -115,5 +182,6 @@ for name,hot in allhots:
     plt.ylabel('r band S/N')
     plt.title(name)
     plt.axis('scaled')
-    plt.axis([-5,5,-5,5])
+    #plt.axis([-5,5,-5,5])
+    plt.axis([-5,20,-5,20])
     ps.savefig()
