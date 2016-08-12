@@ -15,7 +15,7 @@ def sim_multi_epoch():
     flux = 10.
     cx,cy = W/2, H/2
     
-    N = 100000
+    N = 10000
 
     fdet = []
     fco = []
