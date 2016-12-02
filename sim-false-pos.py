@@ -223,9 +223,8 @@ class find_thresh(object):
         return np.log10(pd) - (np.log10(ph0) + self.logodds)
         
 
-if __name__ == '__main__':
 
-
+def main():
     # Going Bayesian... did I do my math right?
 
 
@@ -247,9 +246,11 @@ if __name__ == '__main__':
     f = np.array(f)
 
     plt.clf()
-    plt.plot(g*f, r*f, 'k-')
-    plt.xlabel('g flux')    
-    plt.ylabel('r flux')    
+    plt.plot(g*f, r*f, 'b-')
+    plt.plot(g*6., r*6., 'k--', alpha=0.5)
+    plt.xlabel('g flux')
+    plt.ylabel('r flux')
+    plt.axis('scaled')
     plt.savefig('thresh.png')
 
     thresh_g = g*f
@@ -392,6 +393,11 @@ if __name__ == '__main__':
 
 
 
+def empirical_sed_priors():
+    alpha = 0.5
+    f = np.linspace(0, 20, 300)
+    d = np.array([2., 6.5,])
+    sig = np.array([1., 1.])
 
     T = fits_table('sweep-240p005-250p010-cut.fits')
     print(len(T), 'sources')
@@ -432,6 +438,12 @@ if __name__ == '__main__':
     plt.xlabel('g flux')
     plt.ylabel('r flux')
     plt.savefig('fluxes2.png')
+
+    plt.clf()
+    loghist(T.gflux, T.rflux, 200, range=((0,10),(0,10)))
+    plt.xlabel('g flux')
+    plt.ylabel('r flux')
+    plt.savefig('fluxes3.png')
 
 
     #### SED prior computed from "sed_n" above -- histogram.
@@ -679,3 +691,9 @@ if __name__ == '__main__':
         #plt.axis([-5,5,-5,5])
         plt.axis([-5,20,-5,20])
         ps.savefig()
+
+
+if __name__ == '__main__':
+    empirical_sed_priors()
+
+    # main()
