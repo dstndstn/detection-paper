@@ -694,6 +694,16 @@ def empirical_sed_priors():
 
 
 if __name__ == '__main__':
+    # plt.clf()
+    # f = np.logspace(0, 1, 50)
+    # plt.semilogy(np.exp(f * -1), 'k-', label='exp(-f)')
+    # plt.semilogy(np.exp(f * -2), 'b-', label='exp(-2f)')
+    # plt.semilogy(f**-1, 'r-', label='1/f')
+    # plt.semilogy(f**-2, 'g-', label='1/f^2')
+    # plt.legend()
+    # plt.savefig('pf.png')
+    # sys.exit(0)
+
     empirical_sed_priors()
 
     # main()

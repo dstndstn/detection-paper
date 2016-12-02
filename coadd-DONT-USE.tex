@@ -13,6 +13,10 @@
 %% Back up statements about completeness / purity -- more details
 %% about multiple SED tests.
 
+% Are we going to advocate iterating over a set of SEDs, or going
+% Bayesian?  Are they much different?
+
+%% Use ``s'' for SED-matched filter SED rather than f_j.
 
 %% Matched filter:
 
@@ -81,6 +85,8 @@
 \newcommand{\appref}[1]{\mbox{Appendix~\ref{#1}}}
 \newcommand{\Appref}[1]{\mbox{Appendix~\ref{#1}}}
 \newcommand{\tabref}[1]{\mbox{Table~\ref{#1}}}
+
+\newcommand{\erf}{\textrm{erf}}
 
 \newcommand{\niceurl}[1]{\mbox{\href{#1}{\textsl{#1}}}}
 
@@ -536,7 +542,7 @@ set of independent Gaussian estimates.
 
 
 
-\subsection{Different bandpass filters}
+\subsection{Different bandpass filters: the \emph{SED-matched filter}}
 
 Everything we have said up to now has been based on facts about
 statistical distributions and should be uncontroversial.  In this section we
@@ -665,6 +671,117 @@ subspaces and using their chi-squared approach in those subspaces,
 which means that the issues identified above still hold.
 
 % Szalay et al. 1999 AJ, 117, 68, often referred to as the "chi squared" method.
+
+\subsection{Going Bayesian}
+
+The \emph{SED-matched filter} presented above tells us how to find
+likely source positions given a source spectral energy distribution.
+It is then natural (in a Bayesian framework) to \emph{marginalize}
+over the SED using a prior distribution.  We can also marginalize over
+the flux of the source, allowing us to compare the hypothesis that a
+source exists, versus the hypothesis that the observed flux is due to
+a fluctuation in the image noise.
+
+The likelihood for a single pixel in the set of detection maps $d_j$,
+given the existence of a source, is
+\begin{equation}
+  p_S(\{ d_j \}) = \iint p(\{ d_j \} | f, s) \, p(f) \, p(s) \, \dd f \dd s
+\end{equation}
+where $f$ is the flux of the source in some canonical band, and $s$ is
+the SED of the source.  We will assume that the SED prior $p(s)$ is
+represented as a weighted sum of discrete SEDs: a gridding of SED
+space, for example.  We then have
+\begin{eqnarray}
+  p_S(\{ d_j \})
+  &=&
+  \sum_{i} w_i \int p(\{ d_j \} | f, s) \, p(f) \, \dd f
+  \\
+  &=&
+  \sum_i w_i \int \prod_j \gaussian{d_j \,|\, f \cdot s_{i,j}, \sigma_j^2} \, p(f) \, \dd f
+  \\
+  &=&
+  \sum_i w_i 
+  \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
+  \int 
+    \exp{ \left( \sum_j \frac{(d_j - f \cdot s_{i,j})^2}{-2 \, \sigma_j^2} \right) }
+    \, p(f) \, \dd f
+\end{eqnarray}
+where we have written out the detection map's Gaussian likelihood.
+
+We must now specify a prior over the flux to make progress.  A
+not-unreasonable choice that leads to a relatively tractable result is
+an exponential prior, $p(f) \propto \alpha \exp(-\alpha f)$ and $f >
+0$.  For the purposes of source detection, where we will be competing
+this ``foreground'' model for a source against a ``background''
+(noise) model, the flux prior has little influence; the likelihoods
+dominate.  With this flux prior, we have
+\begin{eqnarray}
+  p_S(\{ d_j \})
+  &=&
+  \sum_i w_i 
+  %\left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
+  %\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
+  \, K %k \, \chi^2 \,
+  \int 
+    \exp{ \left( f \sum_j \frac{d_j s_{i,j}}{\sigma_j^2} \right)}
+    \exp{ \left( -f \alpha \right)}
+    \exp{ \left( f^2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2} \right)}
+    \, \dd f
+\end{eqnarray}
+%where we have introduced the constants
+%\begin{eqnarray}
+%k &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2}
+%\\
+%\chi^2 &=& \exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
+%\end{eqnarray}
+where we have pulled out the constant
+\begin{eqnarray}
+K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} 
+\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
+\\
+&=& \gaussian{d_j | 0, \sigma_j^2}
+\end{eqnarray}
+which will be recognized as the zero-mean Gaussian probability of
+$\{ d_j \}$.
+
+Defining variables
+\begin{eqnarray}
+  a_i &=& \alpha - \sum_j \frac{d_j s_{i,j}}{\sigma_j^2} \\
+  b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_j^2}
+\end{eqnarray}
+we get
+\begin{eqnarray}
+  p_S(\{ d_j \})
+  &=&
+  \sum_i w_i 
+  \, K
+  \int_0^{\infty}
+    \exp(-a_i f) \exp(-b_i f^2)
+    \, \dd f
+    \\
+&=&
+  \sum_i w_i 
+  \, K
+  \frac{\sqrt{\pi}}{2 \sqrt{b_i}}
+  \exp \left(\frac{a_i^2}{4 b_i} \right)
+  \left(1 - \erf\left( \frac{a_i}{2 \sqrt{b_i}} \right) \right)
+\end{eqnarray}
+and defining variables
+\begin{eqnarray}
+  \beta_i &=& 2 \sqrt{b_i} = \sqrt{2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2}}
+  \\
+  %c_i &=& \frac{a_i}{2 \sqrt{b_i}}
+  c_i &=& \frac{a_i}{\beta_i}
+\end{eqnarray}
+we can write
+\begin{eqnarray}
+  p_S(\{ d_j \})
+  &=&
+  \sum_i w_i 
+  \, K
+  \frac{\sqrt{\pi}}{\beta_i}
+  \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
+\end{eqnarray}
 
 
 
