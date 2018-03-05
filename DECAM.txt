@@ -1,0 +1,85 @@
+DES SN X3 field is at (36.45, -4.6)
+https://portal.nersc.gov/des-sn/
+target:
+exptime   g           r          i            z
+Deep	3 x 200s	3 x 400s	5 x 360s	11 x 330s
+
+Query NOAO Science Archive for calibrated DECam images within 1 degree of
+(36.45, -4.6) public before Mar 5, 2018.
+http://archive.noao.edu/search/query
+votabletofits -> snx3.fits
+(16724 rows)
+
+-almost all exposures ~ exactly at 36.45, -4.6
+
+-prodtype:
+Counter({'dqmask': 5579, 'image ': 5576, 'wtmap ': 5569})
+
+-filters:
+Counter({'Y DECam c0005 10095.0 1130.0    ': 141,
+         'g DECam SDSS c0001 4720.0 1520.0': 2830,
+         'i DECam SDSS c0003 7835.0 1470.0': 2944,
+         'r DECam SDSS c0002 6415.0 1480.0': 2727,
+         'u DECam c0006 3500.0 1000.0     ': 156,
+         'z DECam SDSS c0004 9260.0 1520.0': 7926})
+
+SELECT reference, date_obs, ra, dec, filter, exposure, prodtype, seeing, dtacqnam, release_date, start_date, filesize, dtpropid, md5sum, reference AS archive_file FROM voi.siap WHERE release_date <= '2018-03-01' AND ((dec >= -5.1 AND dec <= -4.1) AND (ra >= 35.948384234651556 AND ra <= 36.95161576534845)) AND (proctype = 'InstCal') AND (prodtype IS NULL OR prodtype <> 'png') AND ((telescope = 'ct4m' AND instrument = 'decam')) 
+AND ((filter like 'g %') OR (filter like 'r %') OR (filter like 'i %')) AND (exposure > 199) ORDER BY date_obs ASC LIMIT 50000
+(6523 rows)
+votabletofits -> snx3.fits
+
+
+
+#fitscopy 
+
+CP data we have at NERSC:
+cori:~/cosmo/staging/decam
+> find . -name "c4d*_o?i_*.fits.fz" > ~/decam.lst
+
+-> No overlap on filenames
+
+SELECT reference, date_obs, ra, dec, filter, exposure, prodtype, seeing, dtacqnam, release_date, start_date, filesize, dtpropid, md5sum, reference AS archive_file FROM voi.siap WHERE release_date <= '2018-03-01' AND ((dec >= -5.1 AND dec <= -4.1) AND (ra >= 35.948384234651556 AND ra <= 36.95161576534845)) AND (proctype = 'InstCal') AND (prodtype IS NULL OR prodtype <> 'png') AND ((telescope = 'ct4m' AND instrument = 'decam')) 
+AND ((filter like 'g %' AND exposure = 200) OR (filter like 'r %' AND exposure = 400) OR (filter like 'i %' AND exposure = 360)) ORDER BY date_obs ASC LIMIT 50000
+-> snx3.fits
+6328 rows
+
+-> But there are duplicates on DATE_OBS: 3,6,9, 7, etc values
+eg
+T[T.date_obs == '2015-01-07 01:06:23.817'].archive_file
+'c4d_150107_011031_oow_g_d2.fits.fz',
+       'tu4556124.fits.fz                 ',
+       'c4d_150107_011031_ood_g_d2.fits.fz',
+       'c4d_150107_011031_oow_g_v1.fits.fz',
+       'c4d_150107_011031_ooi_g_d2.fits.fz',
+       'c4d_150107_011031_ood_g_v1.fits.fz',
+       'c4d_150107_011031_ooi_g_v1.fits.fz',
+       'c4d_150107_011031_oow_g_a1.fits.fz',
+       'c4d_150107_011031_ood_g_a1.fits.fz',
+       'c4d_150107_011031_ooi_g_a1.fits.fz',
+       'tu4556866.fits.fz                 ',
+       'tu4556065.fits.fz                 '
+len(np.unique(T.date_obs))
+-> 1184
+
+Startswith 'c4d': 6189
+
+CP version tags:
+Counter({'a1': 609, 'd1': 552, 'd2': 1539, 'v1': 3084, 'v2': 405})
+
+Unique dates: 1164
+'g DECam SDSS c0001 4720.0 1520.0': 330,
+'i DECam SDSS c0003 7835.0 1470.0': 502,
+'r DECam SDSS c0002 6415.0 1480.0': 332})
+
+194 unique nights
+
+111 g, 110 r, 102 i
+
+SELECT reference, dtpropid, surveyid, release_date, start_date, date_obs, dtpi, ra, dec, telescope, instrument, filter, exposure, obstype, obsmode, proctype, prodtype, seeing, depth, dtacqnam, reference AS archive_file, filesize, md5sum FROM voi.siap 
+WHERE reference IN
+('c4d_160825_062109_ooi_g_v1.fits.fz','c4d_160831_061614_ooi_g_v1.fits.fz','c4d_160905_053747_ooi_g_v2.fits.fz','c4d_160911_072801_ooi_g_v2.fits.fz','c4d_160914_063810_ooi_g_v2.fits.fz','c4d_160922_042717_ooi_g_v2.fits.fz','c4d_160926_062619_ooi_g_v2.fits.fz','c4d_161002_034809_ooi_g_v2.fits.fz','c4d_161009_023340_ooi_g_v2.fits.fz','c4d_161020_023748_ooi_g_v2.fits.fz','c4d_161025_030033_ooi_g_v2.fits.fz','c4d_161102_014802_ooi_g_v1.fits.fz','c4d_161109_020025_ooi_g_v1.fits.fz','c4d_161117_011311_ooi_g_v1.fits.fz','c4d_161122_044720_ooi_g_v1.fits.fz','c4d_161126_020400_ooi_g_v1.fits.fz','c4d_161201_005409_ooi_g_v1.fits.fz','c4d_161208_014128_ooi_g_v1.fits.fz','c4d_161217_035306_ooi_g_v1.fits.fz','c4d_161222_015251_ooi_g_v1.fits.fz','c4d_161228_014204_ooi_g_v1.fits.fz','c4d_170103_021606_ooi_g_v2.fits.fz','c4d_170117_010414_ooi_g_v1.fits.fz','c4d_170125_005949_ooi_g_v1.fits.fz','c4d_170129_010824_ooi_g_v1.fits.fz','c4d_160905_061034_ooi_r_v2.fits.fz','c4d_160911_080833_ooi_r_v2.fits.fz','c4d_160914_070409_ooi_r_v2.fits.fz','c4d_160922_044336_ooi_r_v2.fits.fz','c4d_160924_041540_ooi_r_v2.fits.fz','c4d_160929_084249_ooi_r_v2.fits.fz','c4d_161003_033717_ooi_r_v2.fits.fz','c4d_161010_024149_ooi_r_v2.fits.fz','c4d_161020_050137_ooi_r_v2.fits.fz','c4d_161025_031648_ooi_r_v2.fits.fz','c4d_161102_020431_ooi_r_v1.fits.fz','c4d_161109_021639_ooi_r_v1.fits.fz','c4d_161116_023814_ooi_r_v1.fits.fz','c4d_161117_012925_ooi_r_v1.fits.fz','c4d_161123_010119_ooi_r_v1.fits.fz','c4d_161128_044900_ooi_r_v1.fits.fz','c4d_161203_005355_ooi_r_v1.fits.fz','c4d_161208_043515_ooi_r_v1.fits.fz','c4d_161218_015027_ooi_r_v1.fits.fz','c4d_161225_015224_ooi_r_v1.fits.fz','c4d_161230_021140_ooi_r_v1.fits.fz','c4d_170108_020538_ooi_r_v2.fits.fz','c4d_170110_011738_ooi_r_v2.fits.fz','c4d_170120_015427_ooi_r_v1.fits.fz','c4d_170128_014059_ooi_r_v1.fits.fz','c4d_160906_055935_ooi_i_v1.fits.fz','c4d_160912_054112_ooi_i_v1.fits.fz','c4d_160914_083353_ooi_i_v1.fits.fz','c4d_160922_050558_ooi_i_v1.fits.fz','c4d_160924_043757_ooi_i_v1.fits.fz','c4d_161001_034441_ooi_i_v1.fits.fz','c4d_161008_030729_ooi_i_v1.fits.fz','c4d_161012_072747_ooi_i_v1.fits.fz','c4d_161020_065109_ooi_i_v1.fits.fz','c4d_161025_062345_ooi_i_v1.fits.fz','c4d_161102_022642_ooi_i_v1.fits.fz','c4d_161109_023903_ooi_i_v1.fits.fz','c4d_161116_030040_ooi_i_v1.fits.fz','c4d_161122_015030_ooi_i_v1.fits.fz','c4d_161126_035047_ooi_i_v1.fits.fz','c4d_161201_010953_ooi_i_v1.fits.fz','c4d_161208_015707_ooi_i_v1.fits.fz','c4d_161218_021249_ooi_i_v1.fits.fz','c4d_161225_021441_ooi_i_v1.fits.fz','c4d_161230_025052_ooi_i_v1.fits.fz','c4d_170108_022802_ooi_i_v1.fits.fz','c4d_170109_013725_ooi_i_v1.fits.fz','c4d_170119_012443_ooi_i_v1.fits.fz','c4d_170127_014020_ooi_i_v1.fits.fz','c4d_170207_005508_ooi_i_v1.fits.fz','c4d_160825_062109_ood_g_v1.fits.fz','c4d_160831_061614_ood_g_v1.fits.fz','c4d_160905_053747_ood_g_v2.fits.fz','c4d_160911_072801_ood_g_v2.fits.fz','c4d_160914_063810_ood_g_v2.fits.fz','c4d_160922_042717_ood_g_v2.fits.fz','c4d_160926_062619_ood_g_v2.fits.fz','c4d_161002_034809_ood_g_v2.fits.fz','c4d_161009_023340_ood_g_v2.fits.fz','c4d_161020_023748_ood_g_v2.fits.fz','c4d_161025_030033_ood_g_v2.fits.fz','c4d_161102_014802_ood_g_v1.fits.fz','c4d_161109_020025_ood_g_v1.fits.fz','c4d_161117_011311_ood_g_v1.fits.fz','c4d_161122_044720_ood_g_v1.fits.fz','c4d_161126_020400_ood_g_v1.fits.fz','c4d_161201_005409_ood_g_v1.fits.fz','c4d_161208_014128_ood_g_v1.fits.fz','c4d_161217_035306_ood_g_v1.fits.fz','c4d_161222_015251_ood_g_v1.fits.fz','c4d_161228_014204_ood_g_v1.fits.fz','c4d_170103_021606_ood_g_v2.fits.fz','c4d_170117_010414_ood_g_v1.fits.fz','c4d_170125_005949_ood_g_v1.fits.fz','c4d_170129_010824_ood_g_v1.fits.fz','c4d_160905_061034_ood_r_v2.fits.fz','c4d_160911_080833_ood_r_v2.fits.fz','c4d_160914_070409_ood_r_v2.fits.fz','c4d_160922_044336_ood_r_v2.fits.fz','c4d_160924_041540_ood_r_v2.fits.fz','c4d_160929_084249_ood_r_v2.fits.fz','c4d_161003_033717_ood_r_v2.fits.fz','c4d_161010_024149_ood_r_v2.fits.fz','c4d_161020_050137_ood_r_v2.fits.fz','c4d_161025_031648_ood_r_v2.fits.fz','c4d_161102_020431_ood_r_v1.fits.fz','c4d_161109_021639_ood_r_v1.fits.fz','c4d_161116_023814_ood_r_v1.fits.fz','c4d_161117_012925_ood_r_v1.fits.fz','c4d_161123_010119_ood_r_v1.fits.fz','c4d_161128_044900_ood_r_v1.fits.fz','c4d_161203_005355_ood_r_v1.fits.fz','c4d_161208_043515_ood_r_v1.fits.fz','c4d_161218_015027_ood_r_v1.fits.fz','c4d_161225_015224_ood_r_v1.fits.fz','c4d_161230_021140_ood_r_v1.fits.fz','c4d_170108_020538_ood_r_v2.fits.fz','c4d_170110_011738_ood_r_v2.fits.fz','c4d_170120_015427_ood_r_v1.fits.fz','c4d_170128_014059_ood_r_v1.fits.fz','c4d_160906_055935_ood_i_v1.fits.fz','c4d_160912_054112_ood_i_v1.fits.fz','c4d_160914_083353_ood_i_v1.fits.fz','c4d_160922_050558_ood_i_v1.fits.fz','c4d_160924_043757_ood_i_v1.fits.fz','c4d_161001_034441_ood_i_v1.fits.fz','c4d_161008_030729_ood_i_v1.fits.fz','c4d_161012_072747_ood_i_v1.fits.fz','c4d_161020_065109_ood_i_v1.fits.fz','c4d_161025_062345_ood_i_v1.fits.fz','c4d_161102_022642_ood_i_v1.fits.fz','c4d_161109_023903_ood_i_v1.fits.fz','c4d_161116_030040_ood_i_v1.fits.fz','c4d_161122_015030_ood_i_v1.fits.fz','c4d_161126_035047_ood_i_v1.fits.fz','c4d_161201_010953_ood_i_v1.fits.fz','c4d_161208_015707_ood_i_v1.fits.fz','c4d_161218_021249_ood_i_v1.fits.fz','c4d_161225_021441_ood_i_v1.fits.fz','c4d_161230_025052_ood_i_v1.fits.fz','c4d_170108_022802_ood_i_v1.fits.fz','c4d_170109_013725_ood_i_v1.fits.fz','c4d_170119_012443_ood_i_v1.fits.fz','c4d_170127_014020_ood_i_v1.fits.fz','c4d_170207_005508_ood_i_v1.fits.fz','c4d_160825_062109_oow_g_v1.fits.fz','c4d_160831_061614_oow_g_v1.fits.fz','c4d_160905_053747_oow_g_v2.fits.fz','c4d_160911_072801_oow_g_v2.fits.fz','c4d_160914_063810_oow_g_v2.fits.fz','c4d_160922_042717_oow_g_v2.fits.fz','c4d_160926_062619_oow_g_v2.fits.fz','c4d_161002_034809_oow_g_v2.fits.fz','c4d_161009_023340_oow_g_v2.fits.fz','c4d_161020_023748_oow_g_v2.fits.fz','c4d_161025_030033_oow_g_v2.fits.fz','c4d_161102_014802_oow_g_v1.fits.fz','c4d_161109_020025_oow_g_v1.fits.fz','c4d_161117_011311_oow_g_v1.fits.fz','c4d_161122_044720_oow_g_v1.fits.fz','c4d_161126_020400_oow_g_v1.fits.fz','c4d_161201_005409_oow_g_v1.fits.fz','c4d_161208_014128_oow_g_v1.fits.fz','c4d_161217_035306_oow_g_v1.fits.fz','c4d_161222_015251_oow_g_v1.fits.fz','c4d_161228_014204_oow_g_v1.fits.fz','c4d_170103_021606_oow_g_v2.fits.fz','c4d_170117_010414_oow_g_v1.fits.fz','c4d_170125_005949_oow_g_v1.fits.fz','c4d_170129_010824_oow_g_v1.fits.fz','c4d_160905_061034_oow_r_v2.fits.fz','c4d_160911_080833_oow_r_v2.fits.fz','c4d_160914_070409_oow_r_v2.fits.fz','c4d_160922_044336_oow_r_v2.fits.fz','c4d_160924_041540_oow_r_v2.fits.fz','c4d_160929_084249_oow_r_v2.fits.fz','c4d_161003_033717_oow_r_v2.fits.fz','c4d_161010_024149_oow_r_v2.fits.fz','c4d_161020_050137_oow_r_v2.fits.fz','c4d_161025_031648_oow_r_v2.fits.fz','c4d_161102_020431_oow_r_v1.fits.fz','c4d_161109_021639_oow_r_v1.fits.fz','c4d_161116_023814_oow_r_v1.fits.fz','c4d_161117_012925_oow_r_v1.fits.fz','c4d_161123_010119_oow_r_v1.fits.fz','c4d_161128_044900_oow_r_v1.fits.fz','c4d_161203_005355_oow_r_v1.fits.fz','c4d_161208_043515_oow_r_v1.fits.fz','c4d_161218_015027_oow_r_v1.fits.fz','c4d_161225_015224_oow_r_v1.fits.fz','c4d_161230_021140_oow_r_v1.fits.fz','c4d_170108_020538_oow_r_v2.fits.fz','c4d_170110_011738_oow_r_v2.fits.fz','c4d_170120_015427_oow_r_v1.fits.fz','c4d_170128_014059_oow_r_v1.fits.fz','c4d_160906_055935_oow_i_v1.fits.fz','c4d_160912_054112_oow_i_v1.fits.fz','c4d_160914_083353_oow_i_v1.fits.fz','c4d_160922_050558_oow_i_v1.fits.fz','c4d_160924_043757_oow_i_v1.fits.fz','c4d_161001_034441_oow_i_v1.fits.fz','c4d_161008_030729_oow_i_v1.fits.fz','c4d_161012_072747_oow_i_v1.fits.fz','c4d_161020_065109_oow_i_v1.fits.fz','c4d_161025_062345_oow_i_v1.fits.fz','c4d_161102_022642_oow_i_v1.fits.fz','c4d_161109_023903_oow_i_v1.fits.fz','c4d_161116_030040_oow_i_v1.fits.fz','c4d_161122_015030_oow_i_v1.fits.fz','c4d_161126_035047_oow_i_v1.fits.fz','c4d_161201_010953_oow_i_v1.fits.fz','c4d_161208_015707_oow_i_v1.fits.fz','c4d_161218_021249_oow_i_v1.fits.fz','c4d_161225_021441_oow_i_v1.fits.fz','c4d_161230_025052_oow_i_v1.fits.fz','c4d_170108_022802_oow_i_v1.fits.fz','c4d_170109_013725_oow_i_v1.fits.fz','c4d_170119_012443_oow_i_v1.fits.fz','c4d_170127_014020_oow_i_v1.fits.fz','c4d_170207_005508_oow_i_v1.fits.fz')
+LIMIT 1000
+
+mkdir -p $CSCRATCH/detection/decam
+wget -r ftp://archive.noao.edu/user_7316/
+
