@@ -4,6 +4,8 @@ target:
 exptime   g           r          i            z
 Deep	3 x 200s	3 x 400s	5 x 360s	11 x 330s
 
+OBJECT header: "DES supernova hex SN-X3 tiling 23"
+
 Query NOAO Science Archive for calibrated DECam images within 1 degree of
 (36.45, -4.6) public before Mar 5, 2018.
 http://archive.noao.edu/search/query
@@ -82,4 +84,6 @@ LIMIT 1000
 
 mkdir -p $CSCRATCH/detection/decam
 wget -r ftp://archive.noao.edu/user_7316/
+
+~/software/bin/lftp  -u anonymous,lftp archive.noao.edu
 
