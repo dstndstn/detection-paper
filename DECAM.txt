@@ -75,7 +75,10 @@ Unique dates: 1164
 
 194 unique nights
 
-111 g, 110 r, 102 i
+In decam.ipynb, we select out one exposure per night, yielding:
+  111 g, 110 r, 102 i
+
+And then select the latest 30 each from NOAO for staging:
 
 SELECT reference, dtpropid, surveyid, release_date, start_date, date_obs, dtpi, ra, dec, telescope, instrument, filter, exposure, obstype, obsmode, proctype, prodtype, seeing, depth, dtacqnam, reference AS archive_file, filesize, md5sum FROM voi.siap 
 WHERE reference IN
@@ -86,4 +89,45 @@ mkdir -p $CSCRATCH/detection/decam
 wget -r ftp://archive.noao.edu/user_7316/
 
 ~/software/bin/lftp  -u anonymous,lftp archive.noao.edu
+
+Then produce zeropoints for them...
+
+ls decam/cp/*_ooi* | qdo load zp -
+qdo launch zp 1 --cores_per_worker=1 --keep_env --batchqueue shared --walltime 4:00:00 --script ./zpt.sh --batchopts "-a 0-14"
+
+ls -1 decam/zpts/*-annotated.fits > ann.txt
+python legacyzpts/legacy_zeropoints_merge.py --file_list ann.txt --nproc 0 --outname ccds-annotated.fits --cut
+
+ls -1 decam/zpts/*-legacypipe.fits > lp.txt
+python legacyzpts/legacy_zeropoints_merge.py --file_list lp.txt --nproc 0 --outname survey-ccds-snx3.fits --cut
+
+And create coadds with subsets of 1, 4, 5, 16, 25 exposures per band.
+subs.py to select subsets.
+run-pipe.py to create coadds and (single-band) detection maps.
+
+python -u legacypipe/runbrick.py --radec 36.45 -4.6 --width 4000 --height 4400 --stage image_coadds --early-coadds --skip-calibs --bands g,r,i --threads 8 > log 2>&1 &
+
+ln -s ../calib 1/
+ln -s ../images 1/
+ln -s ../tycho2.fits.gz 1/
+
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-1-%(brick)s-%%(stage)s.pickle' --survey-dir 1/ --outdir 1/ >> 1.log 2>&1 &
+
+ln -s ../calib 5/
+ln -s ../images 5/
+ln -s ../tycho2.fits.gz 5/
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-5-%(brick)s-%%(stage)s.pickle' --survey-dir 5/ --outdir 5/ >> 5.log 2>&1 &
+
+
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-4-%(brick)s-%%(stage)s.pickle' --survey-dir 4/ --outdir 4/ >> 4.log 2>&1 &
+
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-16-%(brick)s-%%(stage)s.pickle' --survey-dir 16/ --outdir 16/ >> 16.log 2>&1 &
+
+ln -s ../calib 25/
+ln -s ../images 25/
+ln -s ../tycho2.fits.gz 25/
+
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-25-%(brick)s-%%(stage)s.pickle' --survey-dir 25/ --outdir 25/ >> 25.log 2>&1 &
+
+
 
