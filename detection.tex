@@ -627,22 +627,22 @@ inverse-variance-weighted sum of the individual estimates.
 
 If the calibration factor $\kappa_i$ scales image $i$ to flux in
 common units, and $R_i$ represents resampling to the common pixel grid,
-then the flux estimate $E_i$ is
+then the flux estimate $F_i$ is
 \begin{eqnarray}
-E_i &=& R_i(\kappa_i \, D_i)
+F_i &=& R_i(\kappa_i \, D_i)
 \end{eqnarray}
 with per-pixel error
 \begin{eqnarray}
-\sigma_{E, i} &=& \frac{\kappa_i \, \sigma_{1,i}}{\psfnorm_i}
+\sigma_{F, i} &=& \frac{\kappa_i \, \sigma_{1,i}}{\psfnorm_i}
 \end{eqnarray}
 and we combine the estimates from multiple images via
 \begin{eqnarray}
-E^{\star} &=& \frac{\displaystyle\sum_i E_i \, \sigma^{-2}_{E,i}}{\displaystyle\sum_i \sigma^{-2}_{E_i}}
+F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F,i}}{\displaystyle\sum_i \sigma^{-2}_{F_i}}
 \label{eq:onebandmap}
 \end{eqnarray}
 which has per-pixel error
 \begin{eqnarray}
-\sigma_{E, \star} &=& \left( \sum_i \sigma^{-2}_{E,i} \right)^{-\frac{1}{2}}    \quad .
+\sigma_{F, \star} &=& \left( \sum_i \sigma^{-2}_{F,i} \right)^{-\frac{1}{2}}    \quad .
 \end{eqnarray}
 This is simply the maximum-likelihood estimate of the flux based on a
 set of independent Gaussian estimates.
