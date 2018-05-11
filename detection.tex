@@ -673,14 +673,38 @@ filter to produce \emph{detection maps} which are then coadded.
 \subsection{Comments}
 
 \paragraph{Optimality}
-We show that the estimator $F^{\star}$ saturates the Cram\'er--Rao
-bound in appendix \ref{app:multiopt} and is therefore statistically
+In appendix \ref{app:multiopt} we show that the estimator $F^{\star}$
+saturates the Cram\'er--Rao bound and is therefore statistically
 optimal.
 
+\paragraph{Coadds}
+Occasionally, astronomers attempt to construct image coadds and then
+detect sources by correlating the coadd with an estimate of its PSF.
+It is straightforward to show that this is necessarily sub-optimal
+unless the images have the same PSF.
 
-%\paragraph{Other things that people do and why they are bad}
+\begin{figure}[h]
+  \begin{center}
+  \includegraphics[width=0.5\textwidth]{dont-coadd}
+  \caption{Loss of signal-to-noise in computing a coadd and detecting
+    sources in the codad, rather than computing the detection map on
+    the individual images.  Two images, with PSF widths differing by a
+    factor of two, and exposure times such that the depths are
+    similar, are coadded and sources detected.  Regardless of the
+    weighting used to coadd the images, detection efficiency is lost
+    compared to the method presented in this paper.\label{fig:dontcoadd}}
+  \end{center}
+\end{figure}
 
-
+%
+As an illustration, we simulated two images with similar detection
+signal-to-noise but Gaussian PSFs that differed by a factor of two.
+We computed the detection map, and also created a series of coadds
+(trying different weights for the two images), computing the detection
+map for each, using the correct coadded PSF.  As shown in Figure
+\ref{fig:dontcoadd}, regardless of the coadd weight chosen, detecting
+on the coadd results in a loss of efficiency compared to the detection
+map.
 
 
 \subsection{Different bandpass filters}
