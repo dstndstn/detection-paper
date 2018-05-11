@@ -681,7 +681,10 @@ optimal.
 Occasionally, astronomers attempt to construct image coadds and then
 detect sources by correlating the coadd with an estimate of its PSF.
 It is straightforward to show that this is necessarily sub-optimal
-unless the images have the same PSF.
+unless the images have the same PSF.  Intuitively, the PSF of the
+coadd is not equal to the PSF of either image, therefore this approach
+uses a ``mismatched filter'' rather than a matched filter, resulting
+in loss of signal-to-noise or detection efficiency.
 
 \begin{figure}[h]
   \begin{center}
