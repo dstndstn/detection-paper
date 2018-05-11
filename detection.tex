@@ -313,7 +313,7 @@ distribution of each pixel value, which allows us to prove the
 optimality of the methods we present.
 %
 We will consider a discrete image made up of a square array of pixels
-$\jvec$, each of which has signal (or counts) $C_{\jvec}$, where we
+$\jvec$, each of which has value $I_{\jvec}$, where we
 use $\jvec$ as a two-dimensional focal-plane position, measured in
 integer pixel units.
 %
@@ -321,7 +321,7 @@ If the image contains a single point source, centered on
 the pixel at position $\kvec$ and with constant flux resulting in a
 total number of counts $F$, then the image is
 \begin{eqnarray}
-  C_{\jvec} &=& F \, \psfat{\jvec - \kvec} + \noise_{\jvec} \quad ,
+  I_{\jvec} &=& F \, \psfat{\jvec - \kvec} + \noise_{\jvec} \quad ,
   \label{eqn:image}
 \end{eqnarray}
 where $\psi(\jvec-\kvec)$ is the point-spread function evaluated at
@@ -330,10 +330,10 @@ from a zero-mean Gaussian with known, constant, per-pixel variance $\sigma_1^2$.
 %
 We can also write this as
 \begin{eqnarray}
-  C_{\jvec} &\drawnfrom& \gaussx{F \, \psfat{\jvec - \kvec}}{\sigma_1^2}
+  I_{\jvec} &\drawnfrom& \gaussx{F \, \psfat{\jvec - \kvec}}{\sigma_1^2}
   \quad ,
 \end{eqnarray}
-meaning that $C_{\jvec}$ is drawn from a Gaussian distribution with
+meaning that $I_{\jvec}$ is drawn from a Gaussian distribution with
 mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
 
 
@@ -358,7 +358,7 @@ the PSF'' or ``correlating by the PSF''\footnote{
   Or, often, ``convolving by the PSF'', being slightly careless with terminology.}
 can be written as
 \begin{eqnarray}
-  M_{\jvec} &=& \sum_{\iina} \psfat{\ivec} \, C_{\ivec + \jvec} \quad ,
+  M_{\jvec} &=& \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec} \quad ,
 \end{eqnarray}
 where $\mathcal{A}$ is the support of the PSF and $\psfat{\ivec} =
 \psf(\ivec)$ is an image of the PSF evaluated at integer pixel
@@ -378,7 +378,7 @@ saturates the Cram\'er--Rao bound.
 We define the \emph{\detmap} $D_{\jvec}$ as the matched filter, scaled to be in convenient units:
 \begin{equation}
 D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \,
-C_{\ivec + \jvec} \quad ,
+I_{\ivec + \jvec} \quad ,
 \label{eq:detmap}
 \end{equation}
 %where $\mathcal{A}$ is the support of the PSF and
@@ -405,11 +405,11 @@ at that pixel.  That is, if we compute at pixel $\jvec$ the total
 source counts $F^{\ast}_{\jvec}$ to minimizes the chi-squared
 ($\chi^2$) residual within the support of the PSF:
 \begin{equation}
-  F^{\ast}_{\jvec} = \arg\min_{f} \sum_{\ivec} \left( \frac{C_{\ivec+\jvec} - f \, \psfat{\ivec}}{\sigma_1} \right)^2
+  F^{\ast}_{\jvec} = \arg\min_{f} \sum_{\ivec} \left( \frac{I_{\ivec+\jvec} - f \, \psfat{\ivec}}{\sigma_1} \right)^2
 \end{equation}
 we find
 \begin{eqnarray}
-  F^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} C_{\ivec+\jvec} \, \psfat{\ivec}}{\sum_{\ivec} \psfat{\ivec}^2}
+  F^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} I_{\ivec+\jvec} \, \psfat{\ivec}}{\sum_{\ivec} \psfat{\ivec}^2}
   \\
   F^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
 \end{eqnarray}
@@ -1074,14 +1074,14 @@ Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
 Let us assume that there exists a linear filter whose output allows
 optimal detection of isolated point sources.  That is, we seek a
 (two-dimensional) set of coefficients $a_{\ivec}$ that, when
-correlated with the image $C_{\jvec}$, produces a map $M_{\jvec}$
+correlated with the image $I_{\jvec}$, produces a map $M_{\jvec}$
 whose peak is the likely location of the point source.  See
 \figref{fig:detmap}.
 
 
 The linear filtering (correlation) operation is
 \begin{equation}
-M_{\jvec} = \sum_{\iina} a_{\ivec} \, C_{\ivec + \jvec}
+M_{\jvec} = \sum_{\iina} a_{\ivec} \, I_{\ivec + \jvec}
 \label{eq:detmap1}
 \end{equation}
 where $\mathcal{A}$ is the support of $\avec$ (integer pixel
@@ -1091,15 +1091,15 @@ demand that the elements of $\avec$ are non-negative and sum to unity.
 Inserting \eqnref{eq:modelimg}, we get
 \begin{eqnarray}
 M_{\jvec} &\drawnfrom& \sum_{\iina}
-  C_k \, a_{\ivec} \, \psfat{\ivec + \jvec - \kvec} + \gaussx{0}{\sigma_1^2}
+  I_k \, a_{\ivec} \, \psfat{\ivec + \jvec - \kvec} + \gaussx{0}{\sigma_1^2}
   \\
-&\drawnfrom& \gaussx{ C_k \sum_{\iina} a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}%
+&\drawnfrom& \gaussx{ I_k \sum_{\iina} a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}%
     {\sum_{\iina} a_{\ivec}^2 \, \sigma_1^2}
 \end{eqnarray}
 and the per-pixel signal-to-noise in the map is
 \begin{equation}
-%  \signoise_{D_{\jvec}} = \frac{C_k \, \sum_{\iina} a_{\ivec} \, \psfat(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\iina} a_{\ivec}^2}}
-  \snr{M_{\jvec}} = \frac{C_k \, \sum a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}{\sigma_1 \sqrt{\sum_{\ivec} a_{\ivec}^2}} \quad .
+%  \signoise_{D_{\jvec}} = \frac{I_k \, \sum_{\iina} a_{\ivec} \, \psfat(\ivec + \jvec - \kvec)}{\sigma_1 \sqrt{\sum_{\iina} a_{\ivec}^2}}
+  \snr{M_{\jvec}} = \frac{I_k \, \sum a_{\ivec} \, \psfat{\ivec + \jvec - \kvec}}{\sigma_1 \sqrt{\sum_{\ivec} a_{\ivec}^2}} \quad .
   \label{eq:detmapsn1}
 \end{equation}
 
@@ -1111,15 +1111,15 @@ norms\footnote{All norms in this \doctype\ are $\ell_2$ norms: $\norm{X} =
 $a_{\ivec}$ and $\psfat{\ivec + \jvec - \kvec}$ as vectors indexed by
 $\ivec$, we have:
 \begin{eqnarray}
-  %\signoise_{D_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
-  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat{j-k}}}{\sigma_1 \sqrt{\avec \cdot \avec}} \label{eqn:psfdotprod} \\
- &=& \frac{C_k \, \norm{\avec} \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1 \norm{\avec}} \\
- &=& \frac{C_k \, \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1}
+  %\signoise_{D_{\jvec}} &=& \frac{I_k \, \avec \cdot \bm{\psfat(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+  \snr{M_{\jvec}} &=& \frac{I_k \, \avec \cdot \bm{\psfat{j-k}}}{\sigma_1 \sqrt{\avec \cdot \avec}} \label{eqn:psfdotprod} \\
+ &=& \frac{I_k \, \norm{\avec} \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1 \norm{\avec}} \\
+ &=& \frac{I_k \, \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1}
 \end{eqnarray}
 where $\theta$ is a generalized angle between $\avec$ and $\bm{\psfat{j-k}}$.
 At the pixel position of the source, $\kvec$,
 \begin{equation}
-\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psfat{0}}} \cos \theta}{\sigma_1}
+\snr{M_{\kvec}} = \frac{I_k \, \norm{\bm{\psfat{0}}} \cos \theta}{\sigma_1}
 \label{eqn:sndsingle}
 \end{equation}
 Clearly this is maximized when $\theta = 0$, \ie, when $\avec$ is a
@@ -1136,7 +1136,7 @@ its PSF produces a map with optimal signal-to-noise.  Repeating
 equation \ref{eq:detmap1}, we have found that the map $M_{\jvec}$ can
 be computed by correlating the image with its PSF:
 \begin{equation}
-M_{\jvec} = \sum_{\iina} \psfat{\ivec} \, C_{\ivec + \jvec} \quad ,
+M_{\jvec} = \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec} \quad ,
 \end{equation}
 where, as before, $\mathcal{A}$ is the support of the PSF.
 % and
@@ -1146,7 +1146,7 @@ where, as before, $\mathcal{A}$ is the support of the PSF.
 The signal-to-noise in this map at the true source pixel
 position $\kvec$ is
 \begin{equation}
-\snr{M_{\kvec}} = \frac{C_k \, \norm{\bm{\psfat{}}}}{\sigma_1} \quad .
+\snr{M_{\kvec}} = \frac{I_k \, \norm{\bm{\psfat{}}}}{\sigma_1} \quad .
 \end{equation}
 
 
@@ -1157,7 +1157,7 @@ We compute the variance of the detection map estimator
 bound.  Substituting our image model into the detection map,
 \begin{eqnarray}
 D_{\jvec} &=& \frac{1}{\psfnorm^2} \sum_{i} \psfat{\ivec} \,
-C_{\ivec + \jvec}
+I_{\ivec + \jvec}
 \\
 & \drawnfrom & \frac{1}{\psfnorm^2} \sum_{i} \psfat{\ivec} \,
 \gaussx{F \, \psfat{\ivec + \jvec - \kvec}}{\sigma_1^2}
@@ -1177,19 +1177,19 @@ D_{\kvec} &\drawnfrom& \gaussx%
 \end{eqnarray}
 so the variance of the estimator is $\var{D} = \frac{\sigma_1^2}{\psfnorm^2}$.
 
-Meanwhile, the Fisher Information for $F$ given pixel values $C_{\jvec}$ is
+Meanwhile, the Fisher Information for $F$ given pixel values $I_{\jvec}$ is
 \begin{eqnarray}
-  I(F) &=& -\mathbb{E}_{C_{\jvec}} \left[ \frac{\partial^2 \log P(\{ C_{\jvec} \} | F)}{\partial F^2} \right]
+  I(F) &=& -\mathbb{E}_{I_{\jvec}} \left[ \frac{\partial^2 \log P(\{ I_{\jvec} \} | F)}{\partial F^2} \right]
 \end{eqnarray}
-and with pixel values $C_{\jvec}$ the likelihood is
+and with pixel values $I_{\jvec}$ the likelihood is
 \begin{eqnarray}
-  C_{\jvec} &\drawnfrom& \gaussx{F \psf_{\jvec}}{\sigma_1^2} \\
-  P(\{ C_{\jvec} \} | F) &=& \prod_{\jvec} \frac{1}{\sqrt{2 \pi \sigma_1^2}} \exp \left( -\frac{(C_{\jvec} - F \psf_{\jvec})^2}{2 \sigma_1^2} \right) \\
-  %\log P(\{ C_{\jvec} \} | F) &=& \sum_{\jvec} \log \frac{1}{\sqrt{2 \pi \sigma_1^2}} + \sum_{\jvec} -\frac{(C_{\jvec} - F \psf_{\jvec})^2}{2 \sigma_1^2} \\
-  %\frac{\partial}{\partial F} \log P(\{ C_{\jvec} \} | F) &=& \sum_{\jvec} \frac{(C_{\jvec} - F \psf_{\jvec}) \psf_{\jvec}}{\sigma_1^2} \\
-  \frac{\partial^2}{\partial F^2} \log P(\{ C_{\jvec} \} | F) &=& \sum_{\jvec} -\frac{\psf_{\jvec}^2}{\sigma_1^2}
+  I_{\jvec} &\drawnfrom& \gaussx{F \psf_{\jvec}}{\sigma_1^2} \\
+  P(\{ I_{\jvec} \} | F) &=& \prod_{\jvec} \frac{1}{\sqrt{2 \pi \sigma_1^2}} \exp \left( -\frac{(I_{\jvec} - F \psf_{\jvec})^2}{2 \sigma_1^2} \right) \\
+  %\log P(\{ I_{\jvec} \} | F) &=& \sum_{\jvec} \log \frac{1}{\sqrt{2 \pi \sigma_1^2}} + \sum_{\jvec} -\frac{(I_{\jvec} - F \psf_{\jvec})^2}{2 \sigma_1^2} \\
+  %\frac{\partial}{\partial F} \log P(\{ I_{\jvec} \} | F) &=& \sum_{\jvec} \frac{(I_{\jvec} - F \psf_{\jvec}) \psf_{\jvec}}{\sigma_1^2} \\
+  \frac{\partial^2}{\partial F^2} \log P(\{ I_{\jvec} \} | F) &=& \sum_{\jvec} -\frac{\psf_{\jvec}^2}{\sigma_1^2}
 \end{eqnarray}
-which is independent of $C_{\jvec}$, so
+which is independent of $I_{\jvec}$, so
 \begin{eqnarray}
   I(F) &=& \frac{\norm{\psf}^2}{\sigma_1^2}
 \end{eqnarray}
@@ -1210,7 +1210,7 @@ the norm is% approximately:
 \end{eqnarray}
 so the \detmap\ has signal-to-noise at the true source position $\kvec$,
 \begin{equation}
-\snr{D_{\kvec}^G} = \frac{C_k}{2 \sqrt{\pi} \psfw \sigma_1 } \quad .
+\snr{D_{\kvec}^G} = \frac{I_k}{2 \sqrt{\pi} \psfw \sigma_1 } \quad .
 \label{eqn:sndsinglegauss}
 \end{equation}
 
@@ -1233,22 +1233,22 @@ In correlating the image with the PSF, it looks like the
 signal-to-noise \emph{squared}.  This apparent conflict can be
 resolved by scaling the pixel values so that each pixel is an estimate
 of the same quantity.  That is, we want to estimate the total source
-counts $C$, but the pixels contain estimates of the source counts
-scaled by the PSF, $C \psf$; we must undo this scaling by multiplying
+counts $F$, but the pixels contain estimates of the source counts
+scaled by the PSF, $F \psf$; we must undo this scaling by multiplying
 the pixels by $1/\psf$.
 
 Given a source at position $\kvec$, we define the image $K$ whose
 pixels each contain an estimate of the total source counts:
 \begin{eqnarray}
   K_{\jvec} &=& \frac{1}{\psfat{\jvec-\kvec}} S_{\jvec}  \\
-  K_{\jvec} &\drawnfrom& \frac{1}{\psfat{\jvec-\kvec}} \, \gaussian{C_k \, \psfat{\jvec-\kvec}\, , \, \sigma_1^2} \\
-  K_{\jvec} &\drawnfrom& \gaussian{C_k \, , \, \frac{\sigma_1^2}{\psfat{\jvec-\kvec}^2}} \quad .
+  K_{\jvec} &\drawnfrom& \frac{1}{\psfat{\jvec-\kvec}} \, \gaussian{I_k \, \psfat{\jvec-\kvec}\, , \, \sigma_1^2} \\
+  K_{\jvec} &\drawnfrom& \gaussian{I_k \, , \, \frac{\sigma_1^2}{\psfat{\jvec-\kvec}^2}} \quad .
 \end{eqnarray}
 
 The signal-to-noise remains the same, since we have just scaled the
 values:
 \begin{eqnarray}
-\snr{K_{\jvec}} &=& \frac{C_k \, \psfat{\jvec-\kvec}}{\sigma_1} \\
+\snr{K_{\jvec}} &=& \frac{I_k \, \psfat{\jvec-\kvec}}{\sigma_1} \\
 \snr{K_{\jvec}} &=& \snr{S_{\jvec}} \quad .
 \end{eqnarray}
 
@@ -1257,12 +1257,12 @@ As before, the \detmap\ pixels are a linear combination of the
 (shifted) pixels of the $K$ image with weights $b_{\ivec}$:
 \begin{eqnarray}
 D_{\jvec}^\star &=& \sum_{\ivec} b_{\ivec} \, K_{\ivec+\jvec} \\
-&\drawnfrom& \sum_{\ivec} b_{\ivec} \, \gaussian{C_k \,,\, \frac{\sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}} \\
-&\drawnfrom& \gaussian{C_k \sum_{\ivec} b_{\ivec} \,,\, \sum_{\ivec} \frac{b_{\ivec}^2 \sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}}
+&\drawnfrom& \sum_{\ivec} b_{\ivec} \, \gaussian{I_k \,,\, \frac{\sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}} \\
+&\drawnfrom& \gaussian{I_k \sum_{\ivec} b_{\ivec} \,,\, \sum_{\ivec} \frac{b_{\ivec}^2 \sigma_1^2}{\psfat{\ivec+\jvec-\kvec}^2}}
 \end{eqnarray}
 and the signal-to-noise in that \detmap\ at pixel $\kvec$ is
 \begin{eqnarray}
-\snr{D_{\kvec}^\star} &=& \frac{C_k \sum_{\ivec} b_{\ivec}}{\sigma_1 \sqrt{\sum_{\ivec} \frac{b_{\ivec}^2}{\psfat{\ivec}^2}}}
+\snr{D_{\kvec}^\star} &=& \frac{I_k \sum_{\ivec} b_{\ivec}}{\sigma_1 \sqrt{\sum_{\ivec} \frac{b_{\ivec}^2}{\psfat{\ivec}^2}}}
 \end{eqnarray}
 which is maximized by setting the $b_{\ivec}$
 \begin{equation}
