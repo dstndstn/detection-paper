@@ -419,11 +419,97 @@ That is, a significant peak in the \detmap\ indicates the likely
 position of a point source, and the value of the \detmap\ at a pixel
 is the maximum-likelihood estimate of the total source counts for a
 source centered at that pixel.
-%Recall that we have assumed that the
-%image contains only a single isolated point source.
 
+
+\subsection{Threshold and Peaks}
+
+% In astronomical imaging, and in particular in large-scale surveys, it
+
+Once we have computed a detection map, we typically wish to produce a
+list of detected sources.  Standard practice is to apply a threshold
+at, say, $5 \sigma_D$, and accept any peak above that threshold as a
+source (or a blended group of sources).\footnote{%
+  ``Deblending'' nearby groups of sources is a challenging task that
+  is beyond the scope of this paper.}
+In regions containing no
+sources, the detection map contains Gaussian noise.  Due to the
+correlation operation, the detection map pixels are not pixelwise
+independent, but as weighted sums of Gaussian samples they remain
+Gaussian.  As such, the expected number of pixels above a threshold
+$\tau$ is the integral of the high tail of the normal distribution.
+For $\tau = 5 \sigma_D$, the fraction of pixels above threshold due to
+noise is about $2.9\times10^{-7}$, which seems tiny except that we
+will be evaluating millions of pixels; in a 4k$\times$4k image we
+would expect approximately $5$ false positive detections.
+
+There is nothing special about $5 \sigma$ as a detection threshold; it
+is simply a choice of tradeoff between allowing some false positives
+while preventing too many false negatives (lost detections).  In
+different situations, higher or lower thresholds could be preferable.
 
 \subsection{Comments}
+
+\paragraph{PSF model}
+Computing the detection map requires correlation of the image by a
+model of its point-spread function.  In practice, the PSF model is
+never known exactly, and since correlation by large pixelized models
+can be expensive, it is common to approximate the PSF by a Gaussian
+for the purposes of detecting sources.  The impact this approximation
+of the PSF has on detection efficiency is apparent in the derivation
+of the matched filter; in equation \ref{eqn:psfdotprod}, the detection
+map signal-to-noise is proportional to the cosine distance between the
+true PSF and the correlation kernel.  In typical ground-based images,
+this results in only a few percent loss in signal-to-noise.  For
+example, in our Legacy Surveys images, if we assume that our pixelized
+model of the PSF is correct, then a Gaussian approximation typically
+yields above $97\%$ efficiency.
+
+\paragraph{Biases}
+In this paper, we have assumed that backgrounds due to atmospheric
+emission (``sky'') and detector effects such as bias and dark current
+have been perfectly estimated and subtracted.  In real images,
+however, errors in these estimates can leave spatially coherent
+residual biases, and these can have a considerable effect on source
+detection.  For example, a background that is elevated by $0.05
+\sigma_1$ per pixel can double the $5\sigma$ false positive rate in
+good seeing, and has an even greater effect in worse seeing.
+
+% Specifically, sky bias on detection:
+% D_j / sigma_D = 1/||psf||^2 (\sum_i \psf_i (C_i + b)) / (sigma_1/||psf||)
+%               = 1/(||psf|| sigma_1) (\sum_i \psf_i C_i + b)
+% if b = \beta \sigma_1, D_j / sigma_D is offset by
+%  \beta / ||psf||
+
+% ||psf_G(width = 1)|| ~ 0.282
+% so a sky bias of 0.05 sigma per pixel yields a shift of 0.177 sigma;
+%
+%scipy.special.erfc((5. - 0.05/0.282)/np.sqrt(2.))/2.
+%-> 7.081571486838887e-07
+% Which is over twice the 5-sigma FP rate.
+
+% Peak statistics in Gaussian fields
+% Rice 1944, 1945
+% Longuet-Higgins 1957 (2-d)
+
+% scipy.special.erf = 2/sqrt(pi)*integral(exp(-t**2), t=0..z)
+
+% vs normal 1/sqrt(2 pi sigma^2) exp(-(x-mu)^2/(2 sigma^2))
+
+% Fraction in high tail of N(1,0) above tau:
+% f = (1.-scipy.special.erf(tau / np.sqrt(2.))) / 2
+% f = scipy.special.erfc(tau /np.sqrt(2.))/2.
+
+% 5 sigma:
+% scipy.special.erfc(5./np.sqrt(2.))/2.
+% 2.866515718791945e-07
+
+% 4.9 sigma: scipy.special.erfc(4.9/np.sqrt(2.))/2.
+% 4.791832765903203e-07
+
+% 4.5 sigma: scipy.special.erfc(4.5/np.sqrt(2.))/2.
+% 3.3976731247300607e-06
+
+
 
 % \paragraph{Convolution.}  It is common to hear the statement
 % that \emph{convolving} an image by its PSF model yields an optimal
@@ -441,33 +527,47 @@ source centered at that pixel.
 
 % -- Sub-pixel peak location...
 
-\paragraph{Peaks.}  We have not yet said anything about \emph{how} to
-detect peaks at integer pixel or sub-pixel locations; we discuss this
-in \ref{XXX}.
+\paragraph{Sub-pixel peaks}  The detection map defined above
+is computed by correlating the image with its PSF, on the image pixel
+grid.  As the PSF becomes narrow, the detection efficiency varies
+depending on the position of a source within the pixel.  The detection
+map is maximized when the image is a scaled version of the PSF
+(matched filter), but if the image is shifted within a pixel relative
+to the PSF model, then the peak value attained by the detection map is
+lower (because the filter is slightly mismatched).  For example, with
+a Gaussian PSF with standard deviation of 1 pixel, the detection map
+drops as low as 88\% efficiency for a source midway between pixels in
+both dimensions.
 
-FIXME -- should I talk about peaks and detection thresholds here?
+To reduce this effect, one could compute multiple detection maps,
+using for each a different subpixel-shifted versions of the PSF model.
+Alternatively, one could lower the detection threshold to compensate,
+then fit for the best source position and drop sources with best-fit
+values below threshold.
 
-\paragraph{Sufficient statistic.}  Correlation by the PSF summarizes
-all relevant information regarding the presence of a source at
-each pixel; the detection map and its variance are sufficient to
-describe our knowledge.  In some astronomical source detection
-packages (including SourceExtractor), there is a notion of requiring
-more than one neighboring pixel to exceed a detection threshold.  This
-is not necessary or useful; in effect it imposes a larger detection
-threshold that varies based on the source morphology and PSF, which is
+
+\paragraph{Sufficient statistic}  Correlation by the PSF summarizes
+all relevant information regarding the presence of a source at each
+pixel; the detection map and its variance are sufficient to describe
+our knowledge.  In some astronomical source detection packages
+(including SourceExtractor), there is a notion of requiring more than
+one neighboring pixel to exceed a detection threshold.  This is not
+necessary or useful; in effect it imposes a larger detection threshold
+that varies based on the source morphology and PSF, which is
 undesirable.
 
-\paragraph{PSF model} FIXME -- how sensitive is this to the PSF model?
-(This is related to the way the peak value dips as the source shifts
-across a pixel, and ties in with the practicalities of what one does
-with a detection map.)
 
-\paragraph{What would Bayes do?}  FIXME -- We haven't really explained that
-we are producing and evaluating an estimate for each pixel.  Could
-also point out that one could instantiate and test the generative
-model (with position and flux) at each pixel, and that this basically
-just short-cuts that process, telling you places where that test is
-going to give significant results.
+% \paragraph{What would Bayes do?}  FIXME -- We haven't really explained that
+% we are producing and evaluating an estimate for each pixel.  Could
+% also point out that one could instantiate and test the generative
+% model (with position and flux) at each pixel, and that this basically
+% just short-cuts that process, telling you places where that test is
+% going to give significant results.
+
+
+
+
+
 
 
 \section{Detecting a point source in multiple images}
@@ -503,7 +603,7 @@ so resampling to a pixel grid of the same or finer resolution results
 in no loss of information.
 %
 Since the pixel values in the \detmap\ represent the \emph{total} flux
-from the source, the \detmap\ does not need to be rescaled when
+from a point source, the \detmap\ does not need to be rescaled when
 resampled to a different pixel scale.
 
 
@@ -515,7 +615,7 @@ each with a known standard deviation and Gaussian statistics.  That
 is, we have multiple Gaussian likelihood functions that we wish to
 combine.  Since they are independent, the combined likelihood is the
 product of the individual likelihoods.  For Gaussian distributions,
-the resulting aggregate maximum likelihood estimate is simply the
+the resulting aggregate maximum likelihood estimate is the
 inverse-variance-weighted sum of the individual estimates.
 
 If the calibration factor $\kappa_i$ scales image $i$ to flux in
@@ -1012,7 +1112,7 @@ $a_{\ivec}$ and $\psfat{\ivec + \jvec - \kvec}$ as vectors indexed by
 $\ivec$, we have:
 \begin{eqnarray}
   %\signoise_{D_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat(\jvec-\kvec)}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
-  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat{j-k}}}{\sigma_1 \sqrt{\avec \cdot \avec}} \\
+  \snr{M_{\jvec}} &=& \frac{C_k \, \avec \cdot \bm{\psfat{j-k}}}{\sigma_1 \sqrt{\avec \cdot \avec}} \label{eqn:psfdotprod} \\
  &=& \frac{C_k \, \norm{\avec} \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1 \norm{\avec}} \\
  &=& \frac{C_k \, \norm{\bm{\psfat{j-k}}} \cos \theta}{\sigma_1}
 \end{eqnarray}
