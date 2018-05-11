@@ -746,8 +746,8 @@ into pixels by the point-spread function.
 
 \newcommand{\sigdj}{\sigma_{j}}
 
-Assume we have detection maps $D_j$, with per-pixel standard deviation
-$\sigdj$ for a number of different bandpasses.  Assume each
+Assume we have computed detection maps $D_j$, with per-pixel standard deviation
+$\sigdj$, for a number of different bandpasses.  Assume each
 bandpass has a known conversion factor $f_j$ to the canonical band;
 that is,
 \begin{eqnarray}
@@ -789,7 +789,7 @@ expect the flux in $i$ to be a factor of $2.5$ greater than the
 flux in $r$; $f_i = 2.5$, and we
 will scale our
 $i$-band detection map $D_i$ by $1/f_i = 0.4$.  Since the
-sources are expected to be brighter in $i$ band so we must \emph{scale
+sources are expected to be brighter in $i$ band, we must \emph{scale
   down} the $i$-band estimate to produce an $r$-band estimate.  The
 $i$-band variance is also reduced in a corresponding way, so this does
 not dilute the weight of high-precision measurements.
