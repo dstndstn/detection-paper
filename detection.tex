@@ -645,7 +645,8 @@ F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F,i}}{\displaystyle\
 \end{eqnarray}
 which has per-pixel error
 \begin{eqnarray}
-\sigma_{F, \star} &=& \left( \sum_i \sigma^{-2}_{F,i} \right)^{-\frac{1}{2}}    \quad .
+  \sigma_{F, \star} &=& \left( \sum_i \sigma^{-2}_{F,i} \right)^{-\frac{1}{2}}    \quad .
+  \label{eq:onebandstd}
 \end{eqnarray}
 This is simply the maximum-likelihood estimate of the flux based on a
 set of independent Gaussian estimates.
@@ -667,13 +668,19 @@ Assuming well-sampled images, the \emph{correlation},
 order.  Importantly, however, the \emph{coaddition} stage must occur
 \emph{after} correlation by the point-spread functions of the
 individual images; each image must be correlated by its own matched
-filter to produce \emph{detection maps} which are coadded.
+filter to produce \emph{detection maps} which are then coadded.
 
 \subsection{Comments}
 
-\paragraph{Optimality} FIXME -- write this!
+\paragraph{Optimality}
+We show that the estimator $F^{\star}$ saturates the Cram\'er--Rao
+bound in appendix \ref{app:multiopt} and is therefore statistically
+optimal.
 
-\paragraph{Dumb things that people do} FIXME -- how exactly do coadds suck?
+
+%\paragraph{Other things that people do and why they are bad}
+
+
 
 
 \subsection{Different bandpass filters}
@@ -1161,6 +1168,7 @@ position $\kvec$ is
 
 
 \subsubsection{Optimality}
+\label{sec:optsingle}
 
 We compute the variance of the detection map estimator
 (\eqnref{eq:detmap}), and show that is equal to the Cram\'er--Rao
@@ -1299,8 +1307,41 @@ proportional to the signal-to-noise \emph{squared}, as expected.
 
 
 
+\subsection{Multi-image detection}
+\label{app:multidet}
 
+\subsubsection{Optimality}
+\label{app:multiopt}
+As before, we will show that the estimator $F^{\star}$ in
+Equation \ref{eq:onebandmap} saturates the Cram\'er--Rao bound for $F$.
 
+We will consider two images, $A$ and $B$, with PSFs $\psi$ and $\phi$,
+respectively, and calibration factors $\kappa_A$ and $\kappa_B$ that
+scale image units to flux units.  Per-pixel noise in the two images
+will be $\sigma_A$ and $\sigma_B$.  We will assume that the pixel
+grids are aligned so that no resampling is necessary.
+
+Given all this, the pixel value for images $A$ and $B$ are drawn from
+the distributions
+\begin{eqnarray}
+  A & \drawnfrom & \gaussx{\frac{F}{\kappa_A} \psi_k}{\sigma_A^2} \\
+  B & \drawnfrom & \gaussx{\frac{F}{\kappa_B} \phi_k}{\sigma_B^2}
+  \quad .
+\end{eqnarray}
+The Fisher Information is
+\begin{eqnarray}
+  I(F) &=& -\mathbb{E}_{A,B} \left[ \frac{\partial^2 \log P(\{ A,B \} | F)}{\partial F^2} \right]
+\end{eqnarray}
+and assuming that images $A$ and $B$ are statistically independent,
+$P(A,B | F) = P(A|F) P(B|F)$.  Following the analysis in
+\ref{sec:optsingle}, we find that
+\begin{eqnarray}
+  I(F) &=& \frac{\norm{\psi}^2}{\kappa_A^2 \sigma_A^2} +
+  \frac{\norm{\phi}^2}{\kappa_B^2 \sigma_B^2}
+\end{eqnarray}
+which equals the variance of the $F^{\star}$ estimator,
+$\sigma_{F^{\star}}^2$ as given in Equation \ref{eq:onebandstd}.
+Therefore, the estimator saturates the Cram\'er--Rao bound.
 
 \end{document}
 
