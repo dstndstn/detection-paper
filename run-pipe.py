@@ -19,27 +19,16 @@ def stage_detect(targetrd=None, pixscale=None, targetwcs=None,
     from scipy.ndimage.morphology import binary_dilation
     from scipy.ndimage.measurements import label, find_objects, center_of_mass
 
-    # for N in [1,5,25]:
-    #     print('Rendering detection maps with', N, 'images per band...')
-    #     count = Counter()
-    #     keeptims = []
-    #     for i,tim in enumerate(tims):
-    #         key = (tim.ccdname, tim.filter)
-    #         print('Tim', tim)
-    #         print('Checking', k)
-    #         print('Found', count[k], 'existing')
-    #         if count[k] >= N:
-    #             continue
-    #         print('Keeping', tim)
-    #         keeptims.append(tim)
-
+    print('Computing detection maps...')
     detmaps, detivs, satmap = detection_maps(tims, targetwcs, bands, mp)
 
     for i,band in enumerate(bands):
-        fn = os.path.join(survey.survey_dir, 'detmap-%s.fits' % band)
+        fn = os.path.join(survey.output_dir, 'detmap-%s.fits' % band)
         fitsio.write(fn, detmaps[i].astype(np.float32), clobber=True)
-        fn = os.path.join(survey.survey_dir, 'detiv-%s.fits' % band)
+        print('Wrote', fn)
+        fn = os.path.join(survey.output_dir, 'detiv-%s.fits' % band)
         fitsio.write(fn, detivs[i].astype(np.float32), clobber=True)
+        print('Wrote', fn)
 
 
 def main():
@@ -64,6 +53,7 @@ def main():
     kwargs.update(stagefunc=stagefunc)
 
     kwargs.update(stages=['image_coadds', 'detect'])
+    #kwargs.update(stages=['detect'])
     #kwargs.update(stages=['detect',]) # 'srcs']) # with early_coadds, srcs:image_coadds
     #kwargs.update(stages=['srcs'])
 
