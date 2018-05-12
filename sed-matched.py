@@ -9,14 +9,24 @@ from scipy.ndimage.measurements import label, find_objects
 from scipy.ndimage.morphology import binary_dilation, binary_fill_holes
 import fitsio
 
-g_det = fitsio.read('16/detmap-g.fits')
-g_detiv = fitsio.read('16/detiv-g.fits')
-r_det = fitsio.read('16/detmap-r.fits')
-r_detiv = fitsio.read('16/detiv-r.fits')
+g_det = fitsio.read('25/detmap-g.fits')
+g_detiv = fitsio.read('25/detiv-g.fits')
+r_det = fitsio.read('25/detmap-r.fits')
+r_detiv = fitsio.read('25/detiv-r.fits')
 
-img = plt.imread('16/legacysurvey-custom-036450m04600-image.jpg')
-img = np.flipud(img)
-H,W,three = img.shape
+g_det1 = fitsio.read('1/detmap-g.fits')
+g_detiv1 = fitsio.read('1/detiv-g.fits')
+r_det1 = fitsio.read('1/detmap-r.fits')
+r_detiv1 = fitsio.read('1/detiv-r.fits')
+
+g_sn1 = g_det1 * np.sqrt(g_detiv1)
+r_sn1 = r_det1 * np.sqrt(r_detiv1)
+goodpix1 = np.logical_and(g_detiv1 > 0.5 * np.median(g_detiv1),
+                         r_detiv1 > 0.5 * np.median(r_detiv1))
+
+# img = plt.imread('16/legacysurvey-custom-036450m04600-image.jpg')
+# img = np.flipud(img)
+# H,W,three = img.shape
 
 # ra,dec = 36.45, -4.6
 # pixscale = 0.262 / 3600.
@@ -26,9 +36,9 @@ H,W,three = img.shape
 
 g_sn = g_det * np.sqrt(g_detiv)
 r_sn = r_det * np.sqrt(r_detiv)
-
-goodpix = np.logical_and(g_detiv > 0.5 * np.median(g_detiv),
-                         r_detiv > 0.5 * np.median(r_detiv))
+# 
+# goodpix = np.logical_and(g_detiv > 0.5 * np.median(g_detiv),
+#                          r_detiv > 0.5 * np.median(r_detiv))
 
 def sedsn(detmaps, detivs, sed):
     H,W = detmaps[0].shape
@@ -47,13 +57,13 @@ def sedsn(detmaps, detivs, sed):
     sedmap /= np.maximum(1e-16, sediv)
     sedsn   = sedmap * np.sqrt(sediv)
     return sedsn
-
-detmaps = [g_det, r_det]
-detivs = [g_detiv, r_detiv]
-flat_sn = sedsn(detmaps, detivs, [1., 1.])
+# 
+# detmaps = [g_det, r_det]
+# detivs = [g_detiv, r_detiv]
+# flat_sn = sedsn(detmaps, detivs, [1., 1.])
 red_sed = [2.5, 1.]
-red_sn  = sedsn(detmaps, detivs, red_sed)
-blue_sn = sedsn(detmaps, detivs, [1., 2.5])
+# red_sn  = sedsn(detmaps, detivs, red_sed)
+# blue_sn = sedsn(detmaps, detivs, [1., 2.5])
 
 def detect_sources(snmap, threshold, good=None):
     hot = (snmap > threshold)
@@ -88,7 +98,10 @@ def detect_sources(snmap, threshold, good=None):
 
 #c4x,c4y = detect_sources(np.hypot(g_sn, r_sn), 4., good=goodpix)
 
-c3x,c3y = detect_sources(np.hypot(g_sn, r_sn), 3., good=goodpix)
+#c3x,c3y = detect_sources(np.hypot(g_sn, r_sn), 3., good=goodpix)
+
+# Detect on the single image
+c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 3., good=goodpix1)
 
 # Compute the S/N required for g-only or r-only to trigger the "red" SED detector
 dm=[np.array([[1,0]]), np.array([[0,1]])]
@@ -104,19 +117,26 @@ plt.subplots_adjust(right=0.95, top=0.98)
 
 from matplotlib.patches import Circle
 plt.clf()
-plt.plot(g_sn[c3y,c3x], r_sn[c3y,c3x], '.', color='0.5', alpha=0.2, label='Chi-squared Peaks')
+
+# Annotate points as "true" or "false" based on deeper data.
+real = np.flatnonzero(np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) >  5.)
+fake = np.flatnonzero(np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) <= 5.)
+plt.plot(g_sn1[c3y,c3x][real], r_sn1[c3y,c3x][real], '.', color='0.5', alpha=0.2, label='Real Peaks')
+plt.plot(g_sn1[c3y,c3x][fake], r_sn1[c3y,c3x][fake], '.', color='k', alpha=0.5, label='False Peaks')
+
+#plt.plot(g_sn[c3y,c3x], r_sn[c3y,c3x], '.', color='0.5', alpha=0.2, label='Chi-squared Peaks')
 # cheat!
 #plt.gca().add_artist(Circle((0, 0), 3, color='0.5'))
 # chi2
 a = np.linspace(0, 2.*np.pi, 100)
-plt.plot(5.*np.sin(a), 5.*np.cos(a), 'k-', label='Chi-squared')
+plt.plot(5.*np.sin(a), 5.*np.cos(a), 'b-', label='Chi-squared detection')
 # r
-plt.axhline(5., color='r', linestyle=':', label='r-band only')
+plt.axhline(5., color='r', linestyle=':', label='r-band only detection')
 # red
 m=-sng/snr
 b=5./snr
 xx = np.array([-20,40])
-plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label='Red SED-matched')
+plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label='Red SED-matched detection')
 #plt.legend(loc='lower right')
 plt.legend(loc='upper right')
 plt.axis('square')
