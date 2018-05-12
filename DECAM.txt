@@ -135,6 +135,16 @@ mkdir 1b
 cp survey-ccds-snx3-1b.fits.gz 1b/
 ln -s ../calib 1b/
 ln -s ../images 1b/
-
 python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-1b-%(brick)s-%%(stage)s.pickle' --survey-dir 1b/ --outdir 1b/ >> 1b.log 2>&1 &
 
+mkdir 1c
+cp survey-ccds-snx3-1c.fits.gz 1c/
+ln -s ../calib 1c/
+ln -s ../images 1c/
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-1c-%(brick)s-%%(stage)s.pickle' --survey-dir 1c/ --outdir 1c/ >> 1c.log 2>&1 &
+
+mkdir 1d
+cp survey-ccds-snx3-1d.fits.gz 1d/
+ln -s ../calib 1d/
+ln -s ../images 1d/
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-1d-%(brick)s-%%(stage)s.pickle' --survey-dir 1d/ --outdir 1d/ >> 1d.log 2>&1 &
