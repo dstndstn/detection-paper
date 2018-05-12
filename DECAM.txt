@@ -131,3 +131,10 @@ python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calib
 
 
 
+mkdir 1b
+cp survey-ccds-snx3-1b.fits.gz 1b/
+ln -s ../calib 1b/
+ln -s ../images 1b/
+
+python -u run-pipe.py --radec 36.45 -4.6 --width 4000 --height 4400 --skip-calibs --bands g,r,i --early-coadds --pickle 'pickles/runbrick-1b-%(brick)s-%%(stage)s.pickle' --survey-dir 1b/ --outdir 1b/ >> 1b.log 2>&1 &
+
