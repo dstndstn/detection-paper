@@ -304,9 +304,6 @@ def main():
     plt.savefig('pfact2.png')
 
     
-    sys.exit(0)
-
-
 
 
     
@@ -401,14 +398,14 @@ def empirical_sed_priors():
 
     T = fits_table('sweep-240p005-250p010-cut.fits')
     print(len(T), 'sources')
-    T.cut((T.decam_nobs[:,1] > 0) * (T.decam_nobs[:,2] > 0))
+    T.cut((T.nobs_g > 0) * (T.nobs_r > 0))
     #    (T.decam_nobs[:,4] > 0))
     print(len(T), 'with all Nobs > 0')
     
-    T.gflux = np.maximum(0, T.decam_flux[:,1])
-    T.rflux = np.maximum(0, T.decam_flux[:,2])
-    T.gsn = T.decam_flux[:,1] * np.sqrt(T.decam_flux_ivar[:,1])
-    T.rsn = T.decam_flux[:,2] * np.sqrt(T.decam_flux_ivar[:,2])
+    T.gflux = np.maximum(0, T.flux_g)
+    T.rflux = np.maximum(0, T.flux_r)
+    T.gsn = T.flux_g * np.sqrt(T.flux_ivar_g)
+    T.rsn = T.flux_r * np.sqrt(T.flux_ivar_r)
     T.cut(np.hypot(T.gsn, T.rsn) >= 10.)
     print(len(T), 'SN>10')
 
@@ -706,4 +703,4 @@ if __name__ == '__main__':
 
     empirical_sed_priors()
 
-    # main()
+    #main()
