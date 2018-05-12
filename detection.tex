@@ -795,9 +795,37 @@ $i$-band variance is also reduced in a corresponding way, so this does
 not dilute the weight of high-precision measurements.
 
 
-FIXME -- we need to talk here about this idea of ``priors'', and
-perhaps at this point say that we recommend running with a number of
-SEDs and taking the union of detections.
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{sed-matched}
+    \caption{SED-matched and ``chi-squared'' detection filters.  The
+      faint points are (chi-squared) peaks above $3 \sigma$ detected
+      in a set of 16 images in each of $g$ and $r$ bands taken with
+      the Dark Energy Camera.  The dense set of points near zero are
+      primarily due to noise.  The main locus of points correspond to
+      real stars and galaxies with typical colors.  The points
+      clustered around the horizontal axis are primarily artifacts
+      such as cosmic rays affecting one of the $g$-band images.  The
+      points clustered around the vertical axis include $r$-band
+      artifacts as well as intrinsically red sources.  In theory, the
+      sources due to noise should be distributed symmetrically; in
+      practice, sky-estimation biases tend to leave the bands
+      correlated.  The Chi-squared detection method selects as sources
+      all sources outside the circle (including, in the naive
+      formulation, sources with negative flux in both bands).  A
+      single-band detection filter selects all sources above a
+      vertical or horizontal detection threshold.  Our ``red''
+      SED-matched filter selects sources where the fluxes in the two
+      bands are consistent with a red SED (in this case, a $g - r$
+      color of 1).  Note that the threshold line is roughly orthogonal
+      to the line between the false positives and the true positives;
+      it separated them efficiently.
+      \label{fig:sedmatched}
+    }
+  \end{center}
+\end{figure}
+
+
 
 \subsection{Comments}
 
