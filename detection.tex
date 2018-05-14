@@ -146,6 +146,10 @@ methods can be seen as instances of SED-matched filtering with implied
     techniques:~image~processing
 }
 
+
+\section{Introduction}
+
+
 FIXME -- are we going to talk about detecting galaxies?  Seems like we
 should!
 
@@ -157,8 +161,9 @@ sensible naming and careful use of ``flux'' and ``counts''.  Some
 notation for ``estimates for'' or ``maximum-likelihood point estimate
 of'' would be useful too.  Hats?
 
+FIXME -- Szalay+1999 actually talk about SED-matched detection!!
+Section 4.2, and they call it ``optimal subspace filtering''.
 
-\section{Introduction}
 
 There are few operations in astronomy more important than the
 detection of stars or point sources.
@@ -733,16 +738,17 @@ quantity such as the integrated intensity.
 
 
 The intuition here is that if we know that our sources of interest are
-twice as bright in bandpass A as in bandpass B, then we can convert
-an estimate of the brightness in band B into an estimate of the
+twice as bright in bandpass A as in bandpass B, then we can convert an
+estimate of the brightness in band B into an estimate of the
 brightness in band A by multiplying by two.  The variance of the
 scaled estimate increases appropriately (by a factor of four), so a
 bandpass in which a source is expected to be faint will contribute an
 estimate with a large variance and will be downweighted when the
 estimates are combined.  We can also view the problem as one of
 estimating a total flux that has been split into the different
-bandpasses, and in that view it is analogous to the way flux is spread
-into pixels by the point-spread function.
+bandpasses, and in that view the SED-matched filter is analogous to
+the way flux is spread into pixels by the point-spread function (and
+re-collected by correlating with the matched filter).
 
 \newcommand{\sigdj}{\sigma_{j}}
 
@@ -795,6 +801,20 @@ $i$-band variance is also reduced in a corresponding way, so this does
 not dilute the weight of high-precision measurements.
 
 
+\subsection{Comments}
+
+\paragraph{Chi-squared coadd.}
+Szalay \etal \citep{szalay1999} present the idea of using the $\chi^2$
+statistic of a set of images taken through different bandpass filters.
+That is, they take pixel-aligned and possibly PSF-filtered images
+(here we will use detection maps) and compute $\chi^2$ pixelwise,
+\begin{eqnarray}
+  \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
+\end{eqnarray}
+and a sufficiently large set of connected pixels with $\chi^2$ above a
+detection threshold is taken as evidence as a source.  See Figure
+\ref{fig:sedmatched}.
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.8\textwidth]{sed-matched}
@@ -821,11 +841,25 @@ not dilute the weight of high-precision measurements.
   \end{center}
 \end{figure}
 
+As \cite{szalay1999} state, the $\chi^2$ detection method represents
+the probability that a pixel is drawn from the Gaussian sky background
+distribution (independently in each band).  A large value is
+considered to reject this null hypothesis.  The ``source'' hypothesis
+is not stated, but implicitly, by choosing a constant $\chi^2$
+threshold, a source is assumed to have any non-zero flux uniformly
+distributed on the surface of the signal-to-noise (hyper-)sphere.  As
+noted in the paper, this includes sources with negative fluxes in
+every band.  While they suggest heuristics to trim such sources (for
+example, demanding $> -1 \sigma$ of flux in each band), their
+detection in the first place hints at the primary issue with this
+method: that the ``source'' hypothesis is not physical.
 
 
-\subsection{Comments}
 
-\paragraph{Chi-squared coadd} And how it is different than this.
+
+
+
+
 
 \paragraph{You always have a prior} And if you don't think you have a prior,
 you're probably using a dumb prior.
@@ -1097,7 +1131,7 @@ Run & Min field & Max field \\
 
 \section{Discussion}
 
---similarities and differences from Szalay et al 19999 -- SED-matched
+--similarities and differences from Szalay et al 1999 -- SED-matched
 filters $\sim$ ``optimal subspace filtering''
 
 --galaxy detection?
