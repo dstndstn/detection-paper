@@ -85,6 +85,8 @@
 \newcommand{\coord}[2]{(#1, #2)}
 \newcommand{\iina}{\ivec \,\, \mathrm{in} \,\, \mathcal{A}}
 
+\newcommand{\erf}{\textrm{erf}}
+
 \begin{document}
 \title{Principled point-source detection in collections of astronomical images}
 \author{Dustin Lang}
@@ -920,50 +922,56 @@ source exists, versus the hypothesis that the observed flux is due to
 a noise fluctuation.
 
 We can write the likelihood for a single pixel in the set of detection
-maps $d_j$, given the existence of a source, as
+maps $D_j$, given the existence of a source, as
 \begin{equation}
-  p_S(\{ d_j \}) = \iint p(\{ d_j \} | f, s) \, p(f) \, p(s) \, \dd f \dd s
+  p_S(\{ D_j \}) = \iint p(\{ D_j \} | F, s) \, p(F) \, p(s) \, \dd F \, \dd s
 \end{equation}
-where $f$ is the flux of the source in some canonical band, and $s$ is
+where $F$ is the flux of the source in some canonical band, and $s$ is
 the SED of the source.  We will assume that the SED prior $p(s)$ is
 represented as a weighted sum of discrete SEDs: a gridding of SED
 space, for example.  We then have
 \begin{eqnarray}
-  p_S(\{ d_j \})
+  p_S(\{ D_j \})
   &=&
-  \sum_{i} w_i \int p(\{ d_j \} | f, s) \, p(f) \, \dd f
+  \sum_{i} w_i \int p(\{ D_j \} | F, s) \, p(F) \, \dd F
   \\
   &=&
-  \sum_i w_i \int \prod_j \gaussian{d_j \,|\, f \cdot s_{i,j}, \sigma_j^2} \, p(f) \, \dd f
+  \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_j^2} \, p(F) \, \dd F
   \\
   &=&
   \sum_i w_i 
   \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
   \int 
-    \exp{ \left( \sum_j \frac{(d_j - f \cdot s_{i,j})^2}{-2 \, \sigma_j^2} \right) }
-    \, p(f) \, \dd f
+    \exp{ \left( \sum_j \frac{(D_j - F \cdot s_{i,j})^2}{-2 \, \sigma_j^2} \right) }
+    \, p(F) \, \dd F
 \end{eqnarray}
-where we have written out the detection map's Gaussian likelihood.
+%
+where we have written out the Gaussian likelihoods of the detection
+maps, and the SEDs are represented as scalings of the canonical flux
+$F$: for SED $i$, band $j$ is predicted to have flux $F \cdot
+s_{i,j}$.
 
 We must now specify a prior over the flux to make progress.  A
 not-unreasonable choice that leads to a relatively tractable result is
-an exponential prior, $p(f) \propto \alpha \exp(-\alpha f)$ and $f >
-0$.  For the purposes of source detection, where we will be competing
-this ``foreground'' model for a source against a ``background''
-(noise) model, the flux prior has little influence; the likelihoods
-dominate.  With this flux prior, we have
+an exponential prior, $p(F) \propto \alpha \exp(-\alpha F)$ and $F >
+0$, with $\alpha$ a constant to be chosen.  For the purposes of source
+detection, where we will be competing this ``foreground'' model for a
+source against a ``background'' (noise) model, this flux prior (with
+$alpha = 1$) has little influence; the likelihoods dominate.  With
+this flux prior, we have
 \begin{eqnarray}
-  p_S(\{ d_j \})
+  p_S(\{ D_j \})
   &=&
+  K
   \sum_i w_i 
   %\left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
   %\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
-  \, K %k \, \chi^2 \,
+  %\, K %k \, \chi^2 \,
   \int 
-    \exp{ \left( f \sum_j \frac{d_j s_{i,j}}{\sigma_j^2} \right)}
-    \exp{ \left( -f \alpha \right)}
-    \exp{ \left( f^2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2} \right)}
-    \, \dd f
+    \exp{ \left( F \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \right)}
+    \exp{ \left( -F \alpha \right)}
+    \exp{ \left( F^2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2} \right)}
+    \, \dd F
 \end{eqnarray}
 %where we have introduced the constants
 %\begin{eqnarray}
@@ -974,54 +982,68 @@ dominate.  With this flux prior, we have
 where we have pulled out the constant
 \begin{eqnarray}
 K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} 
-\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
-\\
-&=& \gaussian{d_j | 0, \sigma_j^2}
+\exp{\left( \sum_j -\frac{D_j^2}{2 \sigma_j^2} \right)}
+%\\
+%&=& \gaussian{D_j | 0, \sigma_j^2}
+= \gaussian{D_j \,|\, 0, \sigma_j^2}
 \end{eqnarray}
 which will be recognized as the zero-mean Gaussian probability of
-$\{ d_j \}$.
+$\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
+background distribution!
 
 Defining variables
 \begin{eqnarray}
-  a_i &=& \alpha - \sum_j \frac{d_j s_{i,j}}{\sigma_j^2} \\
+  a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \\
   b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_j^2}
 \end{eqnarray}
-we get
+we get an integral in which the flux prior can be integrated analytically:
 \begin{eqnarray}
-  p_S(\{ d_j \})
+  p_S(\{ D_j \})
   &=&
+  K
   \sum_i w_i 
-  \, K
   \int_0^{\infty}
-    \exp(-a_i f) \exp(-b_i f^2)
-    \, \dd f
+    \exp(-a_i F) \exp(-b_i F^2)
+    \, \dd F
     \\
 &=&
+  K
   \sum_i w_i 
-  \, K
   \frac{\sqrt{\pi}}{2 \sqrt{b_i}}
   \exp \left(\frac{a_i^2}{4 b_i} \right)
   \left(1 - \erf\left( \frac{a_i}{2 \sqrt{b_i}} \right) \right)
 \end{eqnarray}
-and defining variables
-\begin{eqnarray}
-  \beta_i &=& 2 \sqrt{b_i} = \sqrt{2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2}}
-  \\
-  %c_i &=& \frac{a_i}{2 \sqrt{b_i}}
-  c_i &=& \frac{a_i}{\beta_i}
-\end{eqnarray}
-we can write
-\begin{eqnarray}
-  p_S(\{ d_j \})
-  &=&
-  \sum_i w_i 
-  \, K
-  \frac{\sqrt{\pi}}{\beta_i}
-  \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
-\end{eqnarray}
+which can be evaluated numerically with modest computational cost as
+long as the number of SEDs $i$ is not too large.  In practice, a
+coarse gridding of SED space yields good results, as shown below.
+
+% and defining variables
+% \begin{eqnarray}
+%   \beta_i &=& 2 \sqrt{b_i} = \sqrt{2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2}}
+%   \\
+%   %c_i &=& \frac{a_i}{2 \sqrt{b_i}}
+%   c_i &=& \frac{a_i}{\beta_i}
+% \end{eqnarray}
+% we can write
+% \begin{eqnarray}
+%   p_S(\{ d_j \})
+%   &=&
+%   K
+%   \sum_i w_i 
+%   \frac{\sqrt{\pi}}{\beta_i}
+%   \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
+% \end{eqnarray}
 
 
+In order to select sources, we can compare this likelihood to the
+null-hypothesis likelihood: that there is no source and the observed
+values are due to noise.  Conveniently, the null-hypothesis likelihood
+is exactly the factor $K$ in the above expression.  Determining the
+threshold at which to accept a peak in the $p_S/K$ map as a source can
+be framed as a Bayesian decision theory problem, or can be tuned on
+simulations to yield an acceptable false positive rate.
 
+%% FIXME -- can we do it analytically?  Should be able to!!
 
 
 
@@ -1030,6 +1052,13 @@ we can write
 you're probably using a wrong prior.
 
 \paragraph{How much does it hurt if the SED is wrong?} (It's just like having a wrong PSF model.)
+
+
+
+
+
+
+
 
 
 \section{Experiments}
