@@ -112,7 +112,7 @@ sn = sedsn(dm, div, red_sed)
 sng = sn[0,0]
 snr = sn[0,1]
 
-plt.figure(figsize=(5,4))
+plt.figure(figsize=(6,4))
 plt.subplots_adjust(right=0.95, top=0.98)
 
 from matplotlib.patches import Circle
@@ -143,7 +143,7 @@ plt.legend(loc='upper right')
 plt.axis('square')
 #plt.axis('equal')
 #plt.axis([-10,20,-10,20])
-plt.axis([-10,30,-10,20])
+plt.axis([-10,40,-10,20])
 plt.xlabel('g band S/N')
 plt.ylabel('r band S/N')
 plt.axhline(0, color='k', alpha=0.25)
