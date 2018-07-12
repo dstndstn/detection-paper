@@ -953,16 +953,16 @@ s_{i,j}$.
 
 We must now specify a prior over the flux to make progress.  A
 not-unreasonable choice that leads to a relatively tractable result is
-an exponential prior, $p(F) \propto \alpha \exp(-\alpha F)$ and $F >
+an exponential prior, $p(F) = \alpha \exp(-\alpha F)$ and $F >
 0$, with $\alpha$ a constant to be chosen.  For the purposes of source
 detection, where we will be competing this ``foreground'' model for a
 source against a ``background'' (noise) model, this flux prior (with
-$alpha = 1$) has little influence; the likelihoods dominate.  With
+$\alpha = 1$) has little influence; the likelihoods dominate.  With
 this flux prior, we have
 \begin{eqnarray}
   p_S(\{ D_j \})
   &=&
-  K
+  K \alpha
   \sum_i w_i 
   %\left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
   %\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
@@ -986,6 +986,7 @@ K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2}
 %\\
 %&=& \gaussian{D_j | 0, \sigma_j^2}
 = \gaussian{D_j \,|\, 0, \sigma_j^2}
+\label{eq:pbg}
 \end{eqnarray}
 which will be recognized as the zero-mean Gaussian probability of
 $\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
@@ -997,21 +998,30 @@ Defining variables
   b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_j^2}
 \end{eqnarray}
 we get an integral in which the flux prior can be integrated analytically:
+% eg
+% http://www.wolframalpha.com/input/?i=integrate+e%5E-ax+e%5E-bx%5E2+dx+from+x%3D0+to+%2Binfinity
+% integral_0^(+∞) e^(-a x) e^(-b x^2) dx =
+% (sqrt(π) e^(a^2/(4 b)) erfc(a/(2 sqrt(b))))/(2 sqrt(b))
+% IFF b>0 OR (b>=0 AND a>0)
+% (phew, b>0 always)
+%
 \begin{eqnarray}
   p_S(\{ D_j \})
   &=&
-  K
+  K \alpha
   \sum_i w_i 
   \int_0^{\infty}
     \exp(-a_i F) \exp(-b_i F^2)
     \, \dd F
     \\
-&=&
-  K
+  p_S(\{ D_j \})
+  &=&
+  K \alpha
   \sum_i w_i 
   \frac{\sqrt{\pi}}{2 \sqrt{b_i}}
   \exp \left(\frac{a_i^2}{4 b_i} \right)
   \left(1 - \erf\left( \frac{a_i}{2 \sqrt{b_i}} \right) \right)
+  \label{eq:pfg}
 \end{eqnarray}
 which can be evaluated numerically with modest computational cost as
 long as the number of SEDs $i$ is not too large.  In practice, a
@@ -1028,7 +1038,7 @@ coarse gridding of SED space yields good results, as shown below.
 % \begin{eqnarray}
 %   p_S(\{ d_j \})
 %   &=&
-%   K
+%   K \alpha
 %   \sum_i w_i 
 %   \frac{\sqrt{\pi}}{\beta_i}
 %   \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
@@ -1045,6 +1055,48 @@ simulations to yield an acceptable false positive rate.
 
 %% FIXME -- can we do it analytically?  Should be able to!!
 
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-a}
+    \includegraphics[width=0.4\textwidth]{prob-rel-a}
+    \caption{ \emph{Left:} likelihood contours for the background
+      model (there is no source, only noise), and the foreground
+      model, where the SED prior is a single ``red'' SED with color $g
+      - r = 1$.  Note that the contours are inclined in the direction
+      of the SED (shown by a faint line).  The contours are at powers
+      of 10.  \emph{Right:} likelihood ratio contours for the
+      foreground divided by background model.  The contours are at
+      powers of 10.
+      \label{fig:cona}
+    }
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-b}
+    \includegraphics[width=0.4\textwidth]{prob-rel-b}
+    \caption{ \emph{Left:} likelihood contours for the background
+      model (there is no source, only noise), and the foreground
+      model, where the SED prior is a weight sum of three SEDs: 49\%
+      ``red'' (color $g-r=1$ mag), 49\% ``flat'' ($g=r$), and 2\%
+      $r$-band only ($g=0$).  Note that the contours have components
+      inclined in the direction of the SED components (shown by faint
+      lines).  The contours are at powers of 10.  \emph{Right:}
+      likelihood ratio contours for the foreground divided by
+      background model.  The contours are at powers of 10.
+      \label{fig:conb}
+    }
+    \end{center}
+\end{figure}
+
+To illustrate the method, we consider a case where we have two bands
+of imaging, $g$ and $r$ bands.  In \figref{fig:cona}, we plot the
+probability contours of the background model (equation \ref{eq:pbg})
+and the foreground model (equation \ref{eq:pfg}), for the simplest
+case where our SED prior $p(s)$ is a delta function at
+$s_{g} = \frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``red'' detection
+filter that assumes a $g - r$ color of 1 magnitude.
 
 
 
