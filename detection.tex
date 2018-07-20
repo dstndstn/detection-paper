@@ -953,10 +953,10 @@ s_{i,j}$.
 
 We must now specify a prior over the flux to make progress.  One
 option that leads to a closed-form result is an exponential prior,
-$p(F) = \alpha \exp(-\alpha F)$ and $F > 0$, with $\alpha$ a constant
-to be chosen.  We caution that this prior does have some undesirable
-properties, discussed below.  With this exponential flux prior, we
-have
+$p(F) = \alpha \exp(-\alpha F)$ and $F > 0$, with $\alpha$ a free
+variable (to be chosen).  We caution that this prior does have some
+undesirable properties, discussed below.  With this exponential flux
+prior, we have
 \begin{eqnarray}
   p_S(\{ D_j \})
   &=&
@@ -1133,13 +1133,14 @@ orthogonal to these three SED directions.
 
 
 As mentioned previously, there is an issue with the flux prior we are
-using: it is not scale-free.  That is, it is sensitive to the
-numerical values for the quantity $F$, the ``canonical flux'', which
-we have marginalized out of the expression.  We did not put any
-restrictions on the SED values $s_{i,j}$; we have simply stated that
-the predicted flux in band $j$ is given by $F \cdot s_{i,j}$.  If we
-were to scale up all our $s_{i,j}$ values, this would imply a decrease
-in $F$, which would have higher prior probability, leading to larger
+using: it is not scale-free, or rather, it is degenerate with the
+choice of $\alpha$.  That is, the posterior probability is sensitive
+to the numerical values for the quantity $F$, the ``canonical flux'',
+which we have marginalized out of the expression.  We did not put any
+restrictions on the SED values $s_{i,j}$; we only stated that the
+predicted flux in band $j$ is given by $F \cdot s_{i,j}$.  If we were
+to scale up all our $s_{i,j}$ values, this would imply a decrease in
+$F$, which would have higher prior probability, leading to larger
 posterior probability values.  This problem is illustrated in
 \figref{fig:scaling}.  This is obviously undesirable, but thus far we
 have not been able to find a scale-free prior that leads to tractable
