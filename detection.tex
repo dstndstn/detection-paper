@@ -85,6 +85,8 @@
 \newcommand{\coord}[2]{(#1, #2)}
 \newcommand{\iina}{\ivec \,\, \mathrm{in} \,\, \mathcal{A}}
 
+\newcommand{\erf}{\textrm{erf}}
+
 \begin{document}
 \title{Principled point-source detection in collections of astronomical images}
 \author{Dustin Lang}
@@ -146,6 +148,10 @@ methods can be seen as instances of SED-matched filtering with implied
     techniques:~image~processing
 }
 
+
+\section{Introduction}
+
+
 FIXME -- are we going to talk about detecting galaxies?  Seems like we
 should!
 
@@ -157,8 +163,9 @@ sensible naming and careful use of ``flux'' and ``counts''.  Some
 notation for ``estimates for'' or ``maximum-likelihood point estimate
 of'' would be useful too.  Hats?
 
+FIXME -- Szalay+1999 actually talk about SED-matched detection!!
+Section 4.2, and they call it ``optimal subspace filtering''.
 
-\section{Introduction}
 
 There are few operations in astronomy more important than the
 detection of stars or point sources.
@@ -690,7 +697,7 @@ in loss of signal-to-noise or detection efficiency.
   \begin{center}
   \includegraphics[width=0.5\textwidth]{dont-coadd}
   \caption{Loss of signal-to-noise in computing a coadd and detecting
-    sources in the codad, rather than computing the detection map on
+    sources in the coadd, rather than computing the detection map on
     the individual images.  Two images, with PSF widths differing by a
     factor of two, and exposure times such that the depths are
     similar, are coadded and sources detected.  Regardless of the
@@ -710,7 +717,14 @@ on the coadd results in a loss of efficiency compared to the detection
 map.
 
 
-\subsection{Different bandpass filters}
+\subsection{Different bandpass filters: the \emph{SED-matched filter}}
+
+Everything we have said up to now has been based on facts about
+statistical distributions and should be uncontroversial.  In this section we
+propose a method that is, to our knowledge, new to astronomy.  While
+it is fully defensible, it involves \emph{priors} so we expect will be
+slightly controversial.  We argue that other proposed methods presume
+\emph{stronger} and usually \emph{unstated} priors.
 
 As we saw in the single-bandpass case, we can combine multiple
 individual exposures into an aggregate estimate of the flux of a point
@@ -733,16 +747,17 @@ quantity such as the integrated intensity.
 
 
 The intuition here is that if we know that our sources of interest are
-twice as bright in bandpass A as in bandpass B, then we can convert
-an estimate of the brightness in band B into an estimate of the
+twice as bright in bandpass A as in bandpass B, then we can convert an
+estimate of the brightness in band B into an estimate of the
 brightness in band A by multiplying by two.  The variance of the
 scaled estimate increases appropriately (by a factor of four), so a
 bandpass in which a source is expected to be faint will contribute an
 estimate with a large variance and will be downweighted when the
 estimates are combined.  We can also view the problem as one of
 estimating a total flux that has been split into the different
-bandpasses, and in that view it is analogous to the way flux is spread
-into pixels by the point-spread function.
+bandpasses, and in that view the SED-matched filter is analogous to
+the way flux is spread into pixels by the point-spread function (and
+re-collected by correlating with the matched filter).
 
 \newcommand{\sigdj}{\sigma_{j}}
 
@@ -795,46 +810,346 @@ $i$-band variance is also reduced in a corresponding way, so this does
 not dilute the weight of high-precision measurements.
 
 
+In practice, we advocate computing such maps for a set of spectral
+energy distributions that sparsely sample the space of sources of
+interest.  By performing multiple significance tests, more false
+positives will be generated, but we argue that one can maintain the
+same false positive rate by slightly increasing the detection
+threshold.  Since we effectively extract more of the available
+signal-to-noise by weighting the bands appropriately, our method
+should still achieve superior completeness at a given purity.
+%
+More broadly, we argue that source detection should be used as in
+\emph{initial} seed of the likely positions of sources, but that only
+after \emph{inference} of the proposed source's properties using the
+individual images should one decide whether the source should be kept.
+This leads toward using slightly lower detection thresholds (that will
+produce more false positives due to noise), plus additional
+thresholding to determine which sources should be kept.
+
+
+\subsection{Comments}
+
+\paragraph{Chi-squared coadd.}
+Szalay \etal \citep{szalay1999} present the idea of using the $\chi^2$
+statistic of a set of images taken through different bandpass filters.
+That is, they take pixel-aligned and possibly PSF-filtered images
+(here we will use detection maps) and compute $\chi^2$ pixelwise,
+\begin{eqnarray}
+  \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
+\end{eqnarray}
+and a sufficiently large set of connected pixels with $\chi^2$ above a
+detection threshold is taken as evidence as a source.  See Figure
+\ref{fig:sedmatched}.
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.8\textwidth]{sed-matched}
     \caption{SED-matched and ``chi-squared'' detection filters.  The
-      faint points are (chi-squared) peaks above $3 \sigma$ detected
-      in a set of 16 images in each of $g$ and $r$ bands taken with
-      the Dark Energy Camera.  The dense set of points near zero are
-      primarily due to noise.  The main locus of points correspond to
-      real stars and galaxies with typical colors.  The points
-      clustered around the horizontal axis are primarily artifacts
-      such as cosmic rays affecting one of the $g$-band images.  The
-      points clustered around the vertical axis include $r$-band
-      artifacts as well as intrinsically red sources.  In theory, the
-      sources due to noise should be distributed symmetrically; in
-      practice, sky-estimation biases tend to leave the bands
-      correlated.  The Chi-squared detection method selects as sources
-      all sources outside the circle (including, in the naive
-      formulation, sources with negative flux in both bands).  A
-      single-band detection filter selects all sources above a
-      vertical or horizontal detection threshold.  Our ``red''
+      data points are (chi-squared) peaks above $3 \sigma$ detected in
+      $g$ and $r$ images taken with the Dark Energy Camera, plotted in
+      signal-to-noise space.  Points that are below $10 \sigma$ in
+      deeper data (25 exposures) are marked as ``False''; these are
+      mostly clustered around zero (due to noise), with some scattered
+      points near the axes due to artifacts such as cosmic rays. The
+      main locus of ``Real'' peaks correspond to real stars and
+      galaxies with typical colors.  The Chi-squared detection method
+      selects as sources all sources outside the circle (including, in
+      the naive formulation, sources with negative flux in both
+      bands).  A single-band detection filter selects all sources
+      above a vertical or horizontal detection threshold.  Our ``red''
       SED-matched filter selects sources where the fluxes in the two
       bands are consistent with a red SED (in this case, a $g - r$
       color of 1).  Note that the threshold line is roughly orthogonal
       to the line between the false positives and the true positives;
-      it separated them efficiently.
+      it separates them efficiently.  We have shown the chi-squared
+      detection filter with a threshold of $(5\sigma)^2$, which yields
+      a higher false positive rate than a $5\sigma$ threshold in a
+      single-band or SED-match filter.
       \label{fig:sedmatched}
     }
   \end{center}
 \end{figure}
 
+As \cite{szalay1999} state, the $\chi^2$ detection method represents
+the probability that a pixel is drawn from the Gaussian sky background
+distribution (independently in each band).  A large value is
+considered to reject this null hypothesis.  The ``source'' hypothesis
+is not stated, but implicitly, by choosing a constant $\chi^2$
+threshold, a source is assumed to have any non-zero flux uniformly
+distributed on the surface of the signal-to-noise (hyper-)sphere.  As
+noted in the paper, this includes sources with negative fluxes in
+every band.  While they suggest heuristics to trim such sources (for
+example, demanding $> -1 \sigma$ of flux in each band), the fact that
+these sources are detected in the first place hints at the primary
+issue with this method: that the ``source'' hypothesis is not
+physical.
+
+Lacking a source model means that it is not always helpful to add more
+data: Consider the case where we have one informative band and several
+noisy (but still somewhat informative) bands.  The chi-squared method
+treats all bands equally, thus mixes the one informative band with all
+the uninformative bands.  When using multiple bands, the detection
+threshold must be increased to maintain a constant false detection
+rate (as detailed below), and therefore the number of true detected
+sources will be lower.
+
+As shown in Figure \ref{fig:sedmatched}, there is one additional
+caveat for the chi-squared detection method: a $(5\sigma)^2$ threshold
+yields a larger false positive rate than a standard single-band
+detection filter with a threshold of $5\sigma$; in order to achieve a
+desired false positive rate, the detection threshold must be set by
+analysis (with two bands, the survival function of the chi
+distribution at the equivalent of $5 \sigma$ is roughly 5.5; with
+three bands it is roughly 5.75) or simulations (as suggested by
+\cite{szalay1999}).
+
+\cite{szalay1999} in fact also suggest a method for detecting objects
+of a specific color that is similar but not identical to the approach
+we present here; they suggest projecting the multiple bands into
+subspaces and using their chi-squared approach in those subspaces,
+which means that the issues identified above still hold.
 
 
-\subsection{Comments}
+\subsection{Going Bayesian}
 
-\paragraph{Chi-squared coadd} And how it is different than this.
+The \emph{SED-matched filter} presented above tells us how to find
+likely source positions given a source spectral energy distribution.
+It is then natural (in a Bayesian framework) to \emph{marginalize}
+over the SED using a prior distribution.  We can also marginalize over
+the flux of the source, allowing us to compare the hypothesis that a
+source exists, versus the hypothesis that the observed flux is due to
+a noise fluctuation.
 
-\paragraph{You always have a prior} And if you don't think you have a prior,
-you're probably using a dumb prior.
+We can write the likelihood for a single pixel in the set of detection
+maps $D_j$, given the existence of a source, as
+\begin{equation}
+  p_S(\{ D_j \}) = \iint p(\{ D_j \} | F, s) \, p(F) \, p(s) \, \dd F \, \dd s
+\end{equation}
+where $F$ is the flux of the source in some canonical band, and $s$ is
+the SED of the source.  We will assume that the SED prior $p(s)$ is
+represented as a weighted sum of discrete SEDs: a gridding of SED
+space, for example.  We then have
+\begin{eqnarray}
+  p_S(\{ D_j \})
+  &=&
+  \sum_{i} w_i \int p(\{ D_j \} | F, s) \, p(F) \, \dd F
+  \\
+  &=&
+  \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_j^2} \, p(F) \, \dd F
+  \\
+  &=&
+  \sum_i w_i 
+  \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
+  \int 
+    \exp{ \left( \sum_j \frac{(D_j - F \cdot s_{i,j})^2}{-2 \, \sigma_j^2} \right) }
+    \, p(F) \, \dd F
+\end{eqnarray}
+%
+where we have written out the Gaussian likelihoods of the detection
+maps, and the SEDs are represented as scalings of the canonical flux
+$F$: for SED $i$, band $j$ is predicted to have flux $F \cdot
+s_{i,j}$.
 
-\paragraph{How much does it hurt if the SED is wrong?} (It's just like having a wrong PSF model.)
+We must now specify a prior over the flux to make progress.  One
+option that leads to a closed-form result is an exponential prior,
+$p(F) = \alpha \exp(-\alpha F)$ and $F > 0$, with $\alpha$ a free
+variable (to be chosen).  We caution that this prior does have some
+undesirable properties, discussed below.  With this exponential flux
+prior, we have
+\begin{eqnarray}
+  p_S(\{ D_j \})
+  &=&
+  K \alpha
+  \sum_i w_i 
+  %\left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
+  %\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
+  %\, K %k \, \chi^2 \,
+  \int 
+    \exp{ \left( F \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \right)}
+    \exp{ \left( -F \alpha \right)}
+    \exp{ \left( F^2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2} \right)}
+    \, \dd F
+\end{eqnarray}
+%where we have introduced the constants
+%\begin{eqnarray}
+%k &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2}
+%\\
+%\chi^2 &=& \exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
+%\end{eqnarray}
+where we have pulled out the constant
+\begin{eqnarray}
+K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} 
+\exp{\left( \sum_j -\frac{D_j^2}{2 \sigma_j^2} \right)}
+%\\
+%&=& \gaussian{D_j | 0, \sigma_j^2}
+= \gaussian{D_j \,|\, 0, \sigma_j^2}
+\label{eq:pbg}
+\end{eqnarray}
+which will be recognized as the zero-mean Gaussian probability of
+$\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
+background distribution!
+
+Defining variables
+\begin{eqnarray}
+  a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \\
+  b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_j^2}
+\end{eqnarray}
+we get an integral in which the flux prior can be integrated analytically:
+% eg
+% http://www.wolframalpha.com/input/?i=integrate+e%5E-ax+e%5E-bx%5E2+dx+from+x%3D0+to+%2Binfinity
+% integral_0^(+∞) e^(-a x) e^(-b x^2) dx =
+% (sqrt(π) e^(a^2/(4 b)) erfc(a/(2 sqrt(b))))/(2 sqrt(b))
+% IFF b>0 OR (b>=0 AND a>0)
+% (phew, b>0 always)
+%
+\begin{eqnarray}
+  p_S(\{ D_j \})
+  &=&
+  K \alpha
+  \sum_i w_i 
+  \int_0^{\infty}
+    \exp(-a_i F) \exp(-b_i F^2)
+    \, \dd F
+    \\
+  p_S(\{ D_j \})
+  &=&
+  K \alpha
+  \sum_i w_i 
+  \frac{\sqrt{\pi}}{2 \sqrt{b_i}}
+  \exp \left(\frac{a_i^2}{4 b_i} \right)
+  \left(1 - \erf\left( \frac{a_i}{2 \sqrt{b_i}} \right) \right)
+  \label{eq:pfg}
+\end{eqnarray}
+which can be evaluated numerically with modest computational cost as
+long as the number of SEDs $i$ is not too large.  In practice, a
+coarse gridding of SED space yields good results, as shown below.
+
+% and defining variables
+% \begin{eqnarray}
+%   \beta_i &=& 2 \sqrt{b_i} = \sqrt{2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2}}
+%   \\
+%   %c_i &=& \frac{a_i}{2 \sqrt{b_i}}
+%   c_i &=& \frac{a_i}{\beta_i}
+% \end{eqnarray}
+% we can write
+% \begin{eqnarray}
+%   p_S(\{ d_j \})
+%   &=&
+%   K \alpha
+%   \sum_i w_i 
+%   \frac{\sqrt{\pi}}{\beta_i}
+%   \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
+% \end{eqnarray}
+
+
+In order to select sources, we can compare this likelihood to the
+null-hypothesis likelihood: that there is no source and the observed
+values are due to noise.  Conveniently, the null-hypothesis likelihood
+is exactly the factor $K$ in the above expression.  Determining the
+threshold at which to accept a peak in the $p_S/K$ map as a source can
+be framed as a Bayesian decision theory problem, or can be tuned on
+simulations to yield an acceptable false positive rate.
+
+%% FIXME -- can we do it analytically?
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-a}
+    \includegraphics[width=0.4\textwidth]{prob-rel-a}
+    \caption{ \emph{Left:} likelihood contours for the background
+      model (there is no source, only noise), and the foreground
+      model, where the SED prior is a single ``red'' SED with color $g
+      - r = 1$.  Note that the contours are inclined in the direction
+      of the SED (shown by a faint line).  The contours are at powers
+      of 10.  \emph{Right:} likelihood ratio contours for the
+      foreground divided by background model.  The contours are at
+      powers of 10.
+      \label{fig:cona}
+    }
+    \end{center}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-b}
+    \includegraphics[width=0.4\textwidth]{prob-rel-b}
+    \caption{ \emph{Left:} likelihood contours for the background
+      model (there is no source, only noise), and the foreground
+      model, where the SED prior is a weight sum of three SEDs: 49\%
+      ``red'' (color $g-r=1$ mag), 49\% ``flat'' (color $g-r=0$), and
+      2\% $r$-band only ($g$ flux is zero).  Note that the contours
+      have components inclined in the directions of the SED components
+      (shown by faint lines).  The contours are at powers of 10.
+      \emph{Right:} likelihood ratio contours for the foreground
+      divided by background model.  The contours are at powers of 10.
+      \label{fig:conb}
+    }
+    \end{center}
+\end{figure}
+
+To illustrate the method, we consider a case where we have two bands
+of imaging, $g$ and $r$ bands.  In \figref{fig:cona}, we plot the
+probability contours of the background model (equation \ref{eq:pbg})
+and the foreground model (equation \ref{eq:pfg}), for the simplest
+case where our SED prior $p(s)$ is a delta function at $s_{g} =
+\frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``red'' detection
+filter that assumes a $g - r$ color of 1 magnitude.  As expected, the
+probability contours of the foreground model shift away from negative
+fluxes and toward fluxes that are consistent with the expected color.
+The exponential prior on flux causes the foreground model to prefer
+sources with small fluxes, and therefore the probability mass of the
+foreground model is clustered around zero.  The probability ratio
+contours---which are what would be used to accept or reject a proposed
+source---are, as expected, orthogonal to the expected SED vector.
+
+In \figref{fig:conb}, we show probability contours for a three-SED
+model, including the ``red'' SED and a ``flat'' SED ($r$ flux equals
+$g$ flux) with equal weights of $0.49$, plus an SED that has only flux
+in the $r$ band, with weight $0.02$.  The probability contours of this
+model are, as before, extended in the directions of these SEDs.  The
+probability ratio contours transition smoothly between being
+orthogonal to these three SED directions.
+
+
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-c}
+    \includegraphics[width=0.4\textwidth]{prob-1d}
+    \caption{ \emph{Left:} Likelihood contours for the ``red''
+      foreground model, as before, and with the SED scaled by a factor
+      of two.  When the SED factors are scaled up, the underlying flux
+      prior is stretched out---larger observed fluxes are considered
+      more probable.  \emph{Right:} A one-dimensional example showing
+      the effect of scaling the SED by a factor of two.  The scaled
+      model (dashed) places more prior belief in larger fluxes, and
+      therefore must produce smaller probabilites at low flux levels.
+      This illustrates that care must be taken with the units of $F$
+      when using this prior.
+      \label{fig:scaling}
+    }
+    \end{center}
+\end{figure}
+
+
+As mentioned previously, there is an issue with the flux prior we are
+using: it is not scale-free, or rather, it is degenerate with the
+choice of $\alpha$.  That is, the posterior probability is sensitive
+to the numerical values for the quantity $F$, the ``canonical flux'',
+which we have marginalized out of the expression.  We did not put any
+restrictions on the SED values $s_{i,j}$; we only stated that the
+predicted flux in band $j$ is given by $F \cdot s_{i,j}$.  If we were
+to scale up all our $s_{i,j}$ values, this would imply a decrease in
+$F$, which would have higher prior probability, leading to larger
+posterior probability values.  This problem is illustrated in
+\figref{fig:scaling}.  This is obviously undesirable, but thus far we
+have not been able to find a scale-free prior that leads to tractable
+integrals.
+
+
+
+
+
 
 
 \section{Experiments}
@@ -1101,7 +1416,7 @@ Run & Min field & Max field \\
 
 \section{Discussion}
 
---similarities and differences from Szalay et al 19999 -- SED-matched
+--similarities and differences from Szalay et al 1999 -- SED-matched
 filters $\sim$ ``optimal subspace filtering''
 
 --galaxy detection?

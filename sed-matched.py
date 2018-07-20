@@ -14,10 +14,10 @@ g_detiv = fitsio.read('25/detiv-g.fits')
 r_det = fitsio.read('25/detmap-r.fits')
 r_detiv = fitsio.read('25/detiv-r.fits')
 
-g_det1 = fitsio.read('1/detmap-g.fits')
-g_detiv1 = fitsio.read('1/detiv-g.fits')
-r_det1 = fitsio.read('1/detmap-r.fits')
-r_detiv1 = fitsio.read('1/detiv-r.fits')
+g_det1 = fitsio.read('1d/detmap-g.fits')
+g_detiv1 = fitsio.read('1d/detiv-g.fits')
+r_det1 = fitsio.read('1d/detmap-r.fits')
+r_detiv1 = fitsio.read('1d/detiv-r.fits')
 
 g_sn1 = g_det1 * np.sqrt(g_detiv1)
 r_sn1 = r_det1 * np.sqrt(r_detiv1)
@@ -112,15 +112,16 @@ sn = sedsn(dm, div, red_sed)
 sng = sn[0,0]
 snr = sn[0,1]
 
-plt.figure(figsize=(5,4))
+plt.figure(figsize=(6,4))
 plt.subplots_adjust(right=0.95, top=0.98)
 
 from matplotlib.patches import Circle
 plt.clf()
 
 # Annotate points as "true" or "false" based on deeper data.
-real = np.flatnonzero(np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) >  5.)
-fake = np.flatnonzero(np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) <= 5.)
+real = (np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) >  10.)
+#fake = np.flatnonzero(np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) <= 10.)
+fake = np.logical_not(real)
 plt.plot(g_sn1[c3y,c3x][real], r_sn1[c3y,c3x][real], '.', color='0.5', alpha=0.2, label='Real Peaks')
 plt.plot(g_sn1[c3y,c3x][fake], r_sn1[c3y,c3x][fake], '.', color='k', alpha=0.5, label='False Peaks')
 
@@ -136,16 +137,17 @@ plt.axhline(5., color='r', linestyle=':', label='r-band only detection')
 m=-sng/snr
 b=5./snr
 xx = np.array([-20,40])
-plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label='Red SED-matched detection')
+plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label="``Red'' SED-matched detection")
 #plt.legend(loc='lower right')
 plt.legend(loc='upper right')
 plt.axis('square')
 #plt.axis('equal')
 #plt.axis([-10,20,-10,20])
-plt.axis([-10,30,-10,20])
+plt.axis([-10,40,-10,20])
 plt.xlabel('g band S/N')
 plt.ylabel('r band S/N')
 plt.axhline(0, color='k', alpha=0.25)
 plt.axvline(0, color='k', alpha=0.25);
 plt.savefig('sed-matched.pdf')
+plt.savefig('sed-matched.png')
 
