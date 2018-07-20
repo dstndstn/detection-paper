@@ -951,14 +951,12 @@ maps, and the SEDs are represented as scalings of the canonical flux
 $F$: for SED $i$, band $j$ is predicted to have flux $F \cdot
 s_{i,j}$.
 
-We must now specify a prior over the flux to make progress.  A
-not-unreasonable choice that leads to a relatively tractable result is
-an exponential prior, $p(F) = \alpha \exp(-\alpha F)$ and $F >
-0$, with $\alpha$ a constant to be chosen.  For the purposes of source
-detection, where we will be competing this ``foreground'' model for a
-source against a ``background'' (noise) model, this flux prior (with
-$\alpha = 1$) has little influence; the likelihoods dominate.  With
-this flux prior, we have
+We must now specify a prior over the flux to make progress.  One
+option that leads to a closed-form result is an exponential prior,
+$p(F) = \alpha \exp(-\alpha F)$ and $F > 0$, with $\alpha$ a constant
+to be chosen.  We caution that this prior does have some undesirable
+properties, discussed below.  With this exponential flux prior, we
+have
 \begin{eqnarray}
   p_S(\{ D_j \})
   &=&
@@ -1053,7 +1051,7 @@ threshold at which to accept a peak in the $p_S/K$ map as a source can
 be framed as a Bayesian decision theory problem, or can be tuned on
 simulations to yield an acceptable false positive rate.
 
-%% FIXME -- can we do it analytically?  Should be able to!!
+%% FIXME -- can we do it analytically?
 
 \begin{figure}
     \begin{center}
@@ -1079,12 +1077,12 @@ simulations to yield an acceptable false positive rate.
     \caption{ \emph{Left:} likelihood contours for the background
       model (there is no source, only noise), and the foreground
       model, where the SED prior is a weight sum of three SEDs: 49\%
-      ``red'' (color $g-r=1$ mag), 49\% ``flat'' ($g=r$), and 2\%
-      $r$-band only ($g=0$).  Note that the contours have components
-      inclined in the direction of the SED components (shown by faint
-      lines).  The contours are at powers of 10.  \emph{Right:}
-      likelihood ratio contours for the foreground divided by
-      background model.  The contours are at powers of 10.
+      ``red'' (color $g-r=1$ mag), 49\% ``flat'' (color $g-r=0$), and
+      2\% $r$-band only ($g$ flux is zero).  Note that the contours
+      have components inclined in the directions of the SED components
+      (shown by faint lines).  The contours are at powers of 10.
+      \emph{Right:} likelihood ratio contours for the foreground
+      divided by background model.  The contours are at powers of 10.
       \label{fig:conb}
     }
     \end{center}
@@ -1094,18 +1092,58 @@ To illustrate the method, we consider a case where we have two bands
 of imaging, $g$ and $r$ bands.  In \figref{fig:cona}, we plot the
 probability contours of the background model (equation \ref{eq:pbg})
 and the foreground model (equation \ref{eq:pfg}), for the simplest
-case where our SED prior $p(s)$ is a delta function at
-$s_{g} = \frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``red'' detection
-filter that assumes a $g - r$ color of 1 magnitude.
+case where our SED prior $p(s)$ is a delta function at $s_{g} =
+\frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``red'' detection
+filter that assumes a $g - r$ color of 1 magnitude.  As expected, the
+probability contours of the foreground model shift away from negative
+fluxes and toward fluxes that are consistent with the expected color.
+The exponential prior on flux causes the foreground model to prefer
+sources with small fluxes, and therefore the probability mass of the
+foreground model is clustered around zero.  The probability ratio
+contours---which are what would be used to accept or reject a proposed
+source---are, as expected, orthogonal to the expected SED vector.
+
+In \figref{fig:conb}, we show probability contours for a three-SED
+model, including the ``red'' SED and a ``flat'' SED ($r$ flux equals
+$g$ flux) with equal weights of $0.49$, plus an SED that has only flux
+in the $r$ band, with weight $0.02$.  The probability contours of this
+model are, as before, extended in the directions of these SEDs.  The
+probability ratio contours transition smoothly between being
+orthogonal to these three SED directions.
 
 
+\begin{figure}
+    \begin{center}
+    \includegraphics[width=0.4\textwidth]{prob-contours-c}
+    \includegraphics[width=0.4\textwidth]{prob-1d}
+    \caption{ \emph{Left:} Likelihood contours for the ``red''
+      foreground model, as before, and with the SED scaled by a factor
+      of two.  When the SED factors are scaled up, the underlying flux
+      prior is stretched out---larger observed fluxes are considered
+      more probable.  \emph{Right:} A one-dimensional example showing
+      the effect of scaling the SED by a factor of two.  The scaled
+      model (dashed) places more prior belief in larger fluxes, and
+      therefore must produce smaller probabilites at low flux levels.
+      This illustrates that care must be taken with the units of $F$
+      when using this prior.
+      \label{fig:scaling}
+    }
+    \end{center}
+\end{figure}
 
-\paragraph{You always have a prior} And if you don't think you have a prior,
-you're probably using a wrong prior.
 
-\paragraph{How much does it hurt if the SED is wrong?} (It's just like having a wrong PSF model.)
-
-
+As mentioned previously, there is an issue with the flux prior we are
+using: it is not scale-free.  That is, it is sensitive to the
+numerical values for the quantity $F$, the ``canonical flux'', which
+we have marginalized out of the expression.  We did not put any
+restrictions on the SED values $s_{i,j}$; we have simply stated that
+the predicted flux in band $j$ is given by $F \cdot s_{i,j}$.  If we
+were to scale up all our $s_{i,j}$ values, this would imply a decrease
+in $F$, which would have higher prior probability, leading to larger
+posterior probability values.  This problem is illustrated in
+\figref{fig:scaling}.  This is obviously undesirable, but thus far we
+have not been able to find a scale-free prior that leads to tractable
+integrals.
 
 
 

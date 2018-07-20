@@ -30,30 +30,26 @@ sig_g = 1.
 sig_r = 1.
 sig_j = np.array([sig_g, sig_r])
 
-sed_red_g = 1./3.5
-sed_red_r = 2.5/3.5
-#sed_red_g = 1.
-#sed_red_r = 2.5
-sed_red = np.array([sed_red_g, sed_red_r])
+sed_red = np.array([1., 2.5])
+sed_red /= np.sum(sed_red)
 
 sed_ronly = np.array([0., 1.])
 
-sed_flat_g = 0.5
-sed_flat_r = 0.5
-sed_flat = np.array([sed_flat_g, sed_flat_r])
+sed_flat = np.array([1., 1.])
+sed_flat /= np.sum(sed_flat)
 
 # Grid of detection-map values
 #dextent = [-5,10,-5,10]
 #dextent = [-5,11,-5,11]
 dextent = [-5.5,11,-5.5,11]
-dgvals = np.linspace(dextent[0], dextent[1], 160)
-drvals = np.linspace(dextent[2], dextent[3], 160)
+dgvals = np.linspace(dextent[0], dextent[1], 320)
+drvals = np.linspace(dextent[2], dextent[3], 320)
 d_j = np.array(np.meshgrid(dgvals, drvals))
 # d_j: shape (2, N, N)
 # Plotting axes for some plots
 ax1 = [-2,10,-2,10]
 
-def get_pratio(d_j, sig_j, sed_i, alpha = 2.):
+def get_pratio(d_j, sig_j, sed_i, alpha = 1.):
     '''
     Get the probability ratio (fg/bg) for given data points and SED.
 
@@ -82,10 +78,15 @@ p_fg_a = p_bg * pratio_a
 # print(falsepos)
 # print(falsepos * 4e3*4e3, 'false positives per 4k x 4k image')
 
-def contour_plot(p_bg, p_fg, seds):
+def contour_plot(p_bg, p_fg, seds,
+                 style1=dict(linestyles='-', alpha=0.3, linewidths=3, colors='k'),
+                 style2=dict(linestyles='-', colors='b'),
+                 label1='Background (noise) model',
+                 label2='Foreground (source) model'):
     levs = np.arange(-6, 0)
-    c1 = plt.contour(np.log10(p_bg), levels=levs, linestyles='-', alpha=0.3, linewidths=3, extent=dextent, colors='k')
-    c2 = plt.contour(np.log10(p_fg), levels=levs, linestyles='-', extent=dextent, colors='b')
+    c1 = plt.contour(np.log10(p_bg), levels=levs, extent=dextent, **style1)
+    c2 = plt.contour(np.log10(p_fg), levels=levs, extent=dextent, **style2)
+    
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
     plt.axhline(0, color='k', alpha=0.5)
@@ -95,7 +96,7 @@ def contour_plot(p_bg, p_fg, seds):
         plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.1)
     plt.axis('square')
     plt.legend([c1.collections[0], c2.collections[0]],
-               ['Background (noise) model', 'Foreground (source) model'],
+               [label1, label2],
                loc='lower right')
 
 def rel_contour_plot(pratio, seds):
@@ -135,324 +136,106 @@ rel_contour_plot(pratio_b, plotseds)
 plt.axis(axa)
 plt.savefig('prob-rel-b.pdf')
 
-sys.exit(0)
+######
 
-levs = np.arange(-6, 0)
-c1 = plt.contour(np.log10(p_bg), levels=levs, linestyles='-', alpha=0.3, linewidths=3, extent=dextent, colors='k')
-c2 = plt.contour(np.log10(p_fg_b), levels=levs, linestyles='-', extent=dextent, colors='b')
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N')
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5)
-xx = np.array([0,100]);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-#plt.axis(ax);
-plt.axis('square');
-#plt.axis(dextent);
-axa = [-5.5,11, -5.5,11]
-plt.axis(axa);
-plt.legend([c1.collections[0], c2.collections[0]],
-           ['Background (noise) model', 'Foreground (source) model'],
-    loc='lower right')
-#plt.title('Likelihood contours for single-SED prior')
-plt.savefig('prob-contours-a.pdf')
+#sed_red2 = np.array([1., 2.5])
+sed_red2 = sed_red * 2
 
-levs = np.arange(0, 11)
+pratio_red2   = get_pratio(d_j, sig_j, sed_red2)
+pratio_c = pratio_red2
+p_fg_c = p_bg * pratio_c
+
+# plt.clf()
+# contour_plot(p_bg, p_fg_c, [(sed_red2, 'r')])
+# axa = [-5.5,11, -5.5,11]
+# plt.axis(axa)
+# plt.savefig('prob-contours-c.pdf')
+
+
 plt.clf()
-plt.contour(np.log10(pratio_a), levels=levs, linestyles='-', extent=dextent, colors='k')
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-xx = np.array([0,100]);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-#plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-');
-#plt.plot(xx * sed_3[0], xx * sed_3[1], 'm-');
-plt.axis('square');
-plt.axis(axa);
-#plt.title('Likelihood ratio conours for single-SED prior')
-plt.savefig('prob-rel-a.pdf')
-
-
-sys.exit(0)
-
-# In[180]:
-
-
-
-# In[181]:
-
-a_2 = alpha - np.sum(d_j * sed_red[:,np.newaxis,np.newaxis] / sig_j[:,np.newaxis,np.newaxis]**2, axis=0)
-b_2 = 0.5 * np.sum(sed_red**2 / sig_j**2)
-beta_2 = 2 * np.sqrt(b_2)
-c_2 = a_2 / beta_2
-pratio_2 = np.sqrt(np.pi) / beta_2 * np.exp(c_2**2) * (1. - erf(c_2))
-
-
-# In[182]:
-
-pratio_b = pratio_1 * 0.5 + pratio_2 * 0.5
-
-
-# In[183]:
-
-plt.imshow(np.log10(pratio_2), interpolation='nearest', origin='lower', extent=dextent, vmin=-1, vmax=9)
-plt.colorbar();
-plt.contour(np.log10(pratio_2), levels=[-np.log10(falsepos)], colors=['k'], extent=dextent);
-
-
-# In[184]:
-
-plt.imshow(np.log10(pratio_b), interpolation='nearest', origin='lower', extent=dextent, vmin=-1, vmax=9)
-plt.colorbar();
-plt.contour(np.log10(pratio_b), levels=[-np.log10(falsepos)], colors=['k'], extent=dextent);
-sc = 5. / np.sqrt(np.sum(sed_flat**2))
-plt.plot(sc * sed_flat[0], sc * sed_flat[1], 'ko');
-sc = 5. / np.sqrt(np.sum(sed_red**2))
-plt.plot(sc * sed_red[0], sc * sed_red[1], 'ro');
-plt.xlabel('g-band detection map')
-plt.ylabel('r-band detection map');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-
-
-# In[229]:
-
-pratio_c = pratio_1 * 0.2 + pratio_2 * 0.8
-#plt.imshow(np.log10(pratio), interpolation='nearest', origin='lower', extent=dextent, vmin=-1, vmax=9)
-#plt.colorbar();
-c0 = plt.contour(np.log10(pratio_a), levels=[-np.log10(falsepos)], colors=['k'], linestyles=['--'], extent=dextent)
-c1 = plt.contour(np.log10(pratio_b), levels=[-np.log10(falsepos)], colors=['k'], extent=dextent)
-c2 = plt.contour(np.log10(pratio_c), levels=[-np.log10(falsepos)], colors=['b'], extent=dextent);
-#sc = 5. / np.sqrt(np.sum(sed_flat**2))
-#plt.plot(sc * sed_flat[0], sc * sed_flat[1], 'ko');
-#sc = 5. / np.sqrt(np.sum(sed_red**2))
-#plt.plot(sc * sed_red[0], sc * sed_red[1], 'ro');
-xx = np.array([0,100]);
-plt.plot(xx * sed_flat[0], xx * sed_flat[1], 'b-', alpha=0.1);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-plt.axis('square');
-plt.axis(ax1);
-plt.legend([c0.collections[0], c1.collections[0], c2.collections[0]],
-           ['100% flat SED', '50% flat + 50% red SED', '20% flat + 80% red SED'], loc='upper right')
-plt.title('Likelihood-ratio contours for two-SED model');
-plt.savefig('prob-rel-b.png')
-
-
-# In[186]:
-
-sed_3_g = 0.
-sed_3_r = 1.
-sed_3 = np.array([sed_3_g, sed_3_r])
-
-
-# In[187]:
-
-a_3 = alpha - np.sum(d_j * sed_3[:,np.newaxis,np.newaxis] / sig_j[:,np.newaxis,np.newaxis]**2, axis=0)
-b_3 = 0.5 * np.sum(sed_3**2 / sig_j**2)
-beta_3 = 2 * np.sqrt(b_3)
-c_3 = a_3 / beta_3
-pratio_3 = np.sqrt(np.pi) / beta_3 * np.exp(c_3**2) * (1. - erf(c_3))
-
-
-# In[231]:
-
-pratio_d = pratio_1 * 0.49 + pratio_2 * 0.49 + pratio_3 * 0.02
-
-
-# In[232]:
-
-plt.imshow(np.log10(pratio_d), interpolation='nearest', origin='lower', extent=dextent, vmin=-1, vmax=9)
-plt.colorbar();
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-#plt.contour(np.log10(pratio_d), levels=[-np.log10(falsepos)], colors=['k'], extent=dextent);
-plt.contour(pratio_d, levels=[1./falsepos], colors=['k'], extent=dextent);
-sc = 5. / np.sqrt(np.sum(sed_flat**2))
-plt.plot(sc * sed_flat[0], sc * sed_flat[1], 'ko');
-sc = 5. / np.sqrt(np.sum(sed_red**2))
-plt.plot(sc * sed_red[0], sc * sed_red[1], 'ro');
-sc = 5. / np.sqrt(np.sum(sed_3**2))
-plt.plot(sc * sed_3[0], sc * sed_3[1], 'mo');
-plt.xlabel('g-band detection map')
-plt.ylabel('r-band detection map');
-
-
-# In[233]:
-
-np.sum(pratio_d)
-
-
-# In[234]:
-
-p_fg_d = p_bg * pratio_d
-
-
-# In[235]:
-
-plt.imshow(p_bg, extent=dextent, interpolation='nearest', origin='lower');
-plt.colorbar();
-
-
-# In[236]:
-
-plt.imshow(p_fg_d, extent=dextent, interpolation='nearest', origin='lower');
-plt.colorbar();
-
-
-# In[237]:
-
-p_fg_a = p_bg * pratio_a
-plt.imshow(p_fg_a, extent=dextent, interpolation='nearest', origin='lower');
-plt.colorbar();
-
-
-# In[238]:
-
-plt.imshow(np.log10(p_fg_a), extent=dextent, interpolation='nearest', origin='lower');
-plt.colorbar();
-
-
-# In[242]:
-
-levs = np.arange(-6, 0)
-plt.contour(np.log10(p_bg), levels=levs, linestyles='-', extent=dextent, colors='k',
-           label='Background model')
-plt.contour(np.log10(p_fg_d), levels=levs, linestyles='-', extent=dextent, colors='r',
-           label='Foreground model (3-SED)');
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-ax = plt.axis()
-xx = np.array([0,100]);
-plt.plot(xx * sed_flat[0], xx * sed_flat[1], 'b-', alpha=0.1);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-plt.plot(xx * sed_3[0], xx * sed_3[1], 'm-', alpha=0.1);
-plt.axis(ax);
-plt.axis('square');
-plt.axis(ax);
-plt.title('Likelihood contours for 3-SED model');
-plt.savefig('prob-countours-d.png')
-
-
-# In[205]:
-
-print(np.sum(p_bg), np.sum(p_fg_d))
-(dgvals[1]-dgvals[0]) * (drvals[1]-drvals[0]) * np.sum(p_fg_d)
-
-
-# In[244]:
-
-levs = np.arange(0, 11)
-plt.contour(np.log10(pratio_d), levels=levs, linestyles='-', extent=dextent, colors='k')
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-ax = plt.axis()
-xx = np.array([0,100]);
-plt.plot(xx * sed_flat[0], xx * sed_flat[1], 'b-', alpha=0.1);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-plt.plot(xx * sed_3[0], xx * sed_3[1], 'm-', alpha=0.1);
-plt.axis(ax);
-plt.axis('square');
-plt.axis(ax);
-plt.title('Relative likelihood contours for 3-SED model')
-plt.savefig('prob-rel-d.png')
-
-
-# In[113]:
-
-d_j_random = np.random.normal(size=(2,4000,4000))
-
-
-# In[132]:
-
-pratio_r1 = get_pratio(d_j_random, sig_j, sed_flat)
-pratio_r2 = get_pratio(d_j_random, sig_j, sed_red)
-pratio_r3 = get_pratio(d_j_random, sig_j, sed_3)
-pratio_r_d = pratio_r1 * 0.45 + pratio_r2 * 0.45 + pratio_r3 * 0.1
-p_r_bg = 1./np.prod(np.sqrt(2.*np.pi)*sig_j) * np.exp(-0.5 * (d_j_random / sig_j[:,np.newaxis,np.newaxis])**2)
-p_r_fg = p_r_bg * pratio_r_d
-pratio_r_d.shape
-
-
-# In[139]:
-
-plt.hist(pratio_r_d.ravel(), bins=100, range=(0,30000), log=True);
-
-
-# In[246]:
-
-plt.hist(np.log10(pratio_r_d.ravel()), bins=100, range=(0,5), log=True);
-
-
-# In[247]:
-
-1./falsepos
-
-
-# In[248]:
-
-levs = np.arange(0, 11)
-plt.contour(np.log10(pratio_d), levels=levs, linestyles='-', extent=dextent, colors='k')
-plt.xlabel('g-band detection map S/N')
-plt.ylabel('r-band detection map S/N');
-plt.axhline(0, color='k', alpha=0.5)
-plt.axvline(0, color='k', alpha=0.5);
-ax = plt.axis()
-xx = np.array([0,100]);
-plt.plot(xx * sed_flat[0], xx * sed_flat[1], 'b-', alpha=0.1);
-plt.plot(xx * sed_red[0], xx * sed_red[1], 'r-', alpha=0.1);
-plt.plot(xx * sed_3[0], xx * sed_3[1], 'm-', alpha=0.1);
-plt.axis(ax);
-plt.axis('square');
-plt.axis(ax);
-plt.title('Relative likelihood contours for 3-SED model')
-
-plt.contour(np.log10(p_bg), levels=np.arange(-6, 0), linestyles='-', extent=dextent, colors='r')
-
-
-# In[250]:
-
-plt.hist(p_r_fg.ravel(), bins=100, log=True);
-
-
-# In[251]:
-
-p_bg.min()
-
-
-# In[252]:
-
-norm.isf(p_bg.min())
-
-
-# In[253]:
-
-logthreshs = np.linspace(0, 10, 100)
-lothreshs = logthreshs[:-1]
-hithreshs = logthreshs[1:]
-nbin = np.zeros_like(lothreshs)
-for i,(lo,hi) in enumerate(zip(lothreshs, hithreshs)):
-    N = np.sum((pratio_r_d >= 10.**lo) * (pratio_r_d < 10.**hi))
-    nbin[i] = N
-plt.plot((lothreshs+hithreshs)/2., nbin, 'b-')
-
-
-# In[256]:
-
-t = (lothreshs+hithreshs)/2.
-plt.semilogy(t, nbin, 'b.-')
-
-
-# In[ ]:
-
-
-
+contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
+             style1=dict(colors='b', linestyles='-'),
+             style2=dict(colors='r', linestyles='--'),
+             label1='Foreground model',
+             label2='Foreground model, s * 2')
+axa = [-5.5,11, -5.5,11]
+plt.axis(axa)
+plt.savefig('prob-contours-c.pdf')
+
+
+sed_1a = np.array([1.])
+sed_1b = np.array([2.])
+
+d_one = np.linspace(-10, +30, 500)
+sig_one = np.array([1.])
+p_bg_one = 1./np.prod(np.sqrt(2.*np.pi)*sig_one) * np.exp(-0.5 * (d_one / sig_one)**2)
+
+pratio_1a = get_pratio(d_one, sig_one, sed_1a)
+p_fg_1a = p_bg_one * pratio_1a
+pratio_1b = get_pratio(d_one, sig_one, sed_1b)
+p_fg_1b = p_bg_one * pratio_1b
+
+# plt.clf()
+# plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
+# plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Foreground model')
+# #plt.plot(d_one, np.exp(-d_one), 'b--')
+# plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Foreground model, s * 2')
+# #plt.plot(d_one, np.exp(-d_one/4.), 'r--')
+# #plt.ylim(0, p_bg_one.max())
+# plt.axvline(0., color='k', alpha=0.1)
+# plt.axhline(0., color='k', alpha=0.1)
+# plt.xlim(-4,12)
+# plt.legend()
+# plt.yticks(np.arange(0, 0.41, 0.1))
+# plt.xlabel('Detection map values')
+# plt.ylabel('Probability')
+# plt.savefig('prob-1a.pdf')
+# 
+# flux_1a = d_one / sed_1a
+# flux_1b = d_one / sed_1b
+# ia = np.argmax(p_fg_1a)
+# ib = np.argmax(p_fg_1b)
+# plt.clf()
+# plt.plot(flux_1a, p_fg_1a[0,:], 'b-', label='Foreground model')
+# plt.plot(flux_1b, p_fg_1b[0,:] * sed_1b, 'r--', label='Foreground model, s * 2')
+# plt.axvline(flux_1a[ia], color='b', alpha=0.1)
+# plt.axvline(flux_1b[ib], color='r', alpha=0.1)
+# plt.axvline(0., color='k', alpha=0.1)
+# plt.axhline(0., color='k', alpha=0.1)
+# plt.legend()
+# plt.xlabel('Flux (implied by detection map)')
+# plt.ylabel('Probability')
+# plt.xlim(-4,8)
+# plt.savefig('prob-1b.pdf')
+
+
+flux_1a = d_one / sed_1a
+flux_1b = d_one / sed_1b
+
+prior1a = np.exp(-flux_1a) * (flux_1a > 0)
+prior1b = np.exp(-flux_1b) * (flux_1b > 0)
+
+plt.clf()
+plt.subplots_adjust(hspace=0)
+ax1 = plt.subplot2grid((3,1), (0, 0), rowspan=2)
+plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
+plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Foreground model')
+plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Foreground model, s * 2')
+plt.axvline(0., color='k', alpha=0.1)
+plt.axhline(0., color='k', alpha=0.1)
+plt.xlim(-4,12)
+plt.yticks(np.arange(0, 0.41, 0.1))
+plt.legend()
+plt.ylabel('Probability')
+plt.xticks([])
+
+ax2 = plt.subplot2grid((3,1), (2, 0))
+plt.plot(d_one, prior1a, 'b-', label='Foreground prior')
+# /2 to normalize (~ d_d / d_flux)
+plt.plot(d_one, prior1b/2., 'r--', label='Foreground prior, s * 2')
+plt.axhline(0., color='k', alpha=0.1)
+plt.xlim(-4,12)
+plt.yticks([0, 0.5, 1.0])
+plt.xlabel('Detection map values')
+plt.legend();
+plt.savefig('prob-1d.pdf')
