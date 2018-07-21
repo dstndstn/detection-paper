@@ -15,6 +15,28 @@ from scipy.ndimage.filters import *
 from scipy.ndimage.measurements import label, find_objects
 from scipy.ndimage.morphology import binary_dilation, binary_fill_holes
 
+def sdss_rgb(imgs, bands, scales=None, m=0.03, Q=20):
+    rgbscales=dict(g=(2, 6.0),
+                   r=(1, 3.4),
+                   i=(0, 3.0),
+                   z=(0, 2.2))
+    if scales is not None:
+        rgbscales.update(scales)
+    I = 0
+    for img,band in zip(imgs, bands):
+        plane,scale = rgbscales[band]
+        img = np.maximum(0, img * scale + m)
+        I = I + img
+    I /= len(bands)
+    fI = np.arcsinh(Q * I) / np.sqrt(Q)
+    I += (I == 0.) * 1e-6
+    H,W = I.shape
+    rgb = np.zeros((H,W,3), np.float32)
+    for img,band in zip(imgs, bands):
+        plane,scale = rgbscales[band]
+        rgb[:,:,plane] = np.clip((img * scale + m) * fI / I, 0, 1)
+    return rgb
+
 g_det = fitsio.read('25/detmap-g.fits')
 g_detiv = fitsio.read('25/detiv-g.fits')
 r_det = fitsio.read('25/detmap-r.fits')
@@ -30,8 +52,16 @@ Nr = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-r.fits.fz')
 Ni = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-i.fits.fz')
 good = ((Ng >= 12) * (Nr >= 12) * (Ni >= 12))
 
-img = plt.imread('25/legacysurvey-custom-036450m04600-image.jpg')
-img = np.flipud(img)
+gco = fitsio.read('25/legacysurvey-custom-036450m04600-image-g.fits.fz')
+rco = fitsio.read('25/legacysurvey-custom-036450m04600-image-r.fits.fz')
+ico = fitsio.read('25/legacysurvey-custom-036450m04600-image-i.fits.fz')
+
+s = 4
+scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
+img = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
+
+#img = plt.imread('25/legacysurvey-custom-036450m04600-image.jpg')
+#img = np.flipud(img)
 H,W,three = img.shape
 
 ra,dec = 36.45, -4.6
