@@ -1,6 +1,7 @@
 DES SN X3 field is at (36.45, -4.6)
 https://portal.nersc.gov/des-sn/
-target:
+
+target observing sequence (there are many of these sequences)
 exptime   g           r          i            z
 Deep	3 x 200s	3 x 400s	5 x 360s	11 x 330s
 
@@ -29,10 +30,6 @@ SELECT reference, date_obs, ra, dec, filter, exposure, prodtype, seeing, dtacqna
 AND ((filter like 'g %') OR (filter like 'r %') OR (filter like 'i %')) AND (exposure > 199) ORDER BY date_obs ASC LIMIT 50000
 (6523 rows)
 votabletofits -> snx3.fits
-
-
-
-#fitscopy 
 
 CP data we have at NERSC:
 cori:~/cosmo/staging/decam

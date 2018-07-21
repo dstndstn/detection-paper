@@ -163,6 +163,21 @@ plt.axis(axa)
 plt.savefig('prob-contours-c.pdf')
 
 
+sed_red3 = sed_red
+pratio_red3 = get_pratio(d_j, sig_j, sed_red3, alpha=0.5)
+pratio_d = pratio_red3
+p_fg_d = p_bg * pratio_d
+plt.clf()
+contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
+             style1=dict(colors='b', linestyles='-'),
+             style2=dict(colors='r', linestyles='--'),
+             label1='Foreground model',
+             label2='Foreground model, s * 2')
+axa = [-5.5,11, -5.5,11]
+plt.axis(axa)
+plt.savefig('prob-contours-d.pdf')
+
+
 sed_1a = np.array([1.])
 sed_1b = np.array([2.])
 
@@ -174,6 +189,10 @@ pratio_1a = get_pratio(d_one, sig_one, sed_1a)
 p_fg_1a = p_bg_one * pratio_1a
 pratio_1b = get_pratio(d_one, sig_one, sed_1b)
 p_fg_1b = p_bg_one * pratio_1b
+
+#sed_1c = np.array([1.])
+#pratio_1c = get_pratio(d_one, sig_one, sed_1c, alpha=0.5)
+#p_fg_1c = p_bg_one * pratio_1c
 
 # plt.clf()
 # plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
@@ -221,6 +240,7 @@ ax1 = plt.subplot2grid((3,1), (0, 0), rowspan=2)
 plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
 plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Foreground model')
 plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Foreground model, s * 2')
+#plt.plot(d_one, p_fg_1c[0,:], 'g:', label='Foreground model, alpha = 0.5')
 plt.axvline(0., color='k', alpha=0.1)
 plt.axhline(0., color='k', alpha=0.1)
 plt.xlim(-4,12)
