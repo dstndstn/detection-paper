@@ -763,10 +763,10 @@ re-collected by correlating with the matched filter).
 
 Assume we have computed detection maps $D_j$, with per-pixel standard deviation
 $\sigdj$, for a number of different bandpasses.  Assume each
-bandpass has a known conversion factor $f_j$ to the canonical band;
+bandpass has a known conversion factor $s_j$ to the canonical band;
 that is,
 \begin{eqnarray}
-  D_j & \drawnfrom & \gaussx{f_j F}{\sigdj^2}
+  D_j & \drawnfrom & \gaussx{F s_j}{\sigdj^2}
 \end{eqnarray}
 for flux in the canonical band $F$.
 % \footnote{% The notation $x
@@ -774,10 +774,10 @@ for flux in the canonical band $F$.
 %   Gaussian distribution with mean $\mu$ and variance $\sigma^2$.}
 %
 Given a number of such detection maps, we first scale them so they are all estimates of the
-same quantity, by dividing by $f_j$:
+same quantity, by dividing by $s_j$:
 \begin{eqnarray}
-  F_j & = & \frac{D_j}{f_j} \\
-  F_j & \drawnfrom & \gaussx{F}{\frac{\sigdj^2}{f_j^2}}
+  F_j & = & \frac{D_j}{s_j} \\
+  F_j & \drawnfrom & \gaussx{\frac{D_j}{s_j}}{\frac{\sigdj^2}{s_j^2}}
 \end{eqnarray}
 and assuming that the images  are independent, we combine them by inverse-variance weighting
 to produce the maximum-likelihood estimate for $F$:
@@ -785,29 +785,28 @@ to produce the maximum-likelihood estimate for $F$:
   \hat{F} &=& 
   %\frac{\sum_j D_j \, f_j \, \sigdj^{-2}}%
   %     {\sum_j f_j^2 \, \sigdj^{-2}}
-  \frac{\displaystyle\sum_j \frac{D_j}{f_j} \, \frac{f_j^2}{\sigdj^2}}%
-       {\displaystyle\sum_j \frac{f_j^2}{\sigdj^2}}
+  \frac{\displaystyle\sum_j \frac{D_j}{s_j} \, \frac{s_j^2}{\sigdj^2}}%
+       {\displaystyle\sum_j \frac{s_j^2}{\sigdj^2}}
        = 
-       \frac{\displaystyle\sum_j D_j \, f_j \, \sigdj^{-2}}%
-            {\displaystyle\sum_j f_j^2 \, \sigdj^{-2}}
+       \frac{\displaystyle\sum_j D_j \, s_j \, \sigdj^{-2}}%
+            {\displaystyle\sum_j s_j^2 \, \sigdj^{-2}}
 \end{eqnarray}
 with per-pixel error
 \begin{eqnarray}
-  \hat{\sigma}_F &=& \left( \sum_j f_j^2 \sigdj^{-2} \right)^{-\frac{1}{2}}
+  \hat{\sigma}_F &=& \left( \sum_j s_j^2 \sigdj^{-2} \right)^{-\frac{1}{2}}
   \quad .
 \end{eqnarray}
 
 
 For example, if we treat $r$ band as the canonical band and our
-objects of interest have color $r-i = 1$, then we 
-expect the flux in $i$ to be a factor of $2.5$ greater than the
-flux in $r$; $f_i = 2.5$, and we
-will scale our
-$i$-band detection map $D_i$ by $1/f_i = 0.4$.  Since the
-sources are expected to be brighter in $i$ band, we must \emph{scale
-  down} the $i$-band estimate to produce an $r$-band estimate.  The
-$i$-band variance is also reduced in a corresponding way, so this does
-not dilute the weight of high-precision measurements.
+objects of interest have color $r-i = 1$, then we expect the flux in
+$i$ to be a factor of $2.5$ greater than the flux in $r$; $s_i = 2.5$,
+and we will scale our $i$-band detection map $D_i$ by $1/s_i = 0.4$ to
+produce a prediction for the $r$-band flux.  Since the sources are
+expected to be brighter in $i$ band, we must \emph{scale down} the
+$i$-band estimate to produce an $r$-band estimate.  The $i$-band
+variance is also reduced in a corresponding way, so this does not
+dilute the weight of high-precision measurements.
 
 
 In practice, we advocate computing such maps for a set of spectral
@@ -1168,9 +1167,19 @@ We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
 photometric zeropoints, sky background models and PSF models, using
 the DESI Legacy Surveys pipeline \citep{lsoverview}.  The astrometric
-calibration uses Gaia (DR1) as the reference catalog \citep{gaia, gaiaDR1}, and
-the photometric calibration uses the Pan-STARRS DR1 reference catalog
-\citep{panstarrs}.
+calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
+  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
+reference catalog \citep{panstarrs}.  The PSF models use PsfEx
+\citep{psfex}.
+
+We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
+in the center of the focal plane.  We produce detection maps for each
+band as described above, and run several SED filters: a ``red'' filter
+matched to a source with colors $g - r = r - i = 1$; a ``flat'' filter
+with colors $g-r = r-i = 0$; and,  a ``blue'' filter with colors $g-r =
+r-i = -1$.  (In the AB magnitude system here, very few real
+astrophysical sources have colors bluer than zero; 
+
 
 
 \subsection{Sloan Digital Sky Survey}
