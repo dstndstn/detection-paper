@@ -1167,20 +1167,35 @@ of exposures is available in Table \ref{tab:exposures}.
   \begin{center}
     \includegraphics[height=0.4\textwidth]{image-sources}
     \includegraphics[height=0.4\textwidth]{best-color}
-    \caption{\emph{Left:} A $600 \times 600$-pixel coadded image of
-      the DECam data used in this experiment, shown with an RGB color
-      scheme and \emph{arcsinh} stretch.  The three bright stars have
-      strange colors because the saturated cores are masked by the
-      pipeline and not included in the coadd.  Detected sources are
-      marked with symbols indicating which of the SED-matched filters
-      yields the strongest detection.  \emph{Right:} The positions in
-      color-space of detected sources, classified by the SED-matched
-      filter that yields the strongest detection.  The bold circles
-      mark the color to which each filter is tuned.  Each SED-matched
-      filter most strongly detects sources nearby in color spaces,
-      where the exact dividing line depends on the signal-to-noise in
-      the different filters.
+    \caption{\emph{Left:} A $600 \times 600$-pixel zoom-in of a
+      coadded image of the DECam data used in this experiment, shown
+      with an RGB color scheme and \emph{arcsinh} stretch.  The three
+      bright stars have strange colors because the saturated cores are
+      masked by the pipeline and not included in the coadd.  Detected
+      sources are marked with symbols indicating which of the
+      SED-matched filters yields the strongest detection.
+      \emph{Right:} The positions in color-space of detected sources,
+      classified by the SED-matched filter that yields the strongest
+      detection.  The bold circles mark the color to which each filter
+      is tuned.  Each SED-matched filter most strongly detects sources
+      nearby in color spaces, where the exact dividing line depends on
+      the signal-to-noise in the different filters.
       \label{fig:expt}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{@{}c@{}c@{}c@{}}
+      Blue & Yellow & Red \\
+      \includegraphics[width=0.33\textwidth]{best-blue} &
+      \includegraphics[width=0.33\textwidth]{best-yellow} &
+      \includegraphics[width=0.33\textwidth]{best-red}
+    \end{tabular}
+    \caption{Source that are most strongly detected by each
+      SED-matched filter.  \emph{Left:} ``Blue'' SED.  \emph{Center:}
+      ``Yellow'' SED.  \emph{Right:} ``Red'' SED.
+    \label{fig:bestsed}}
   \end{center}
 \end{figure}
 
@@ -1213,7 +1228,9 @@ pixel as an approximate estimate of the flux of the source.  This
 assumes all sources are point sources, so underestimates total flux of
 galaxies.  An image of the detected sources, and the locations in
 color space of sources that are detected by each SED-matched filter
-are shown in \figref{fig:expt}.
+are shown in \figref{fig:expt}.  \figref{fig:bestsed} shows a sample
+of sources that are most strongly detected by each of the SED-matched
+filters.
 
 
 

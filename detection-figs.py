@@ -271,8 +271,9 @@ plt.savefig('image-sources.pdf')
 
 for i,s in enumerate(sedlist):
     I = np.flatnonzero(sources.imax == i)
+    J = np.argsort(-sources.get(s.tname)[I])
     plt.clf()
-    show_sources(sources[I], img)
+    show_sources(sources[I[J]], img)
     #plt.title('%s best (%i)' % (s.name, len(I)));
     plt.savefig('best-%s.pdf' % s.name.lower())
     print(s.name, 'best coords:')#, list(zip(sources.x[I], 4400-sources.y[I]))[:10])
