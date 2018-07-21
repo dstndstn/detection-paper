@@ -1163,6 +1163,27 @@ exposure per night per band.  The exposure times for each image are
 images have a range of seeing and sky transparency values.  The list
 of exposures is available in Table \ref{tab:exposures}.
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{image-sources}
+    \includegraphics[height=0.4\textwidth]{best-color}
+    \caption{\emph{Left:} A $600 \times 600$-pixel coadded image of
+      the DECam data used in this experiment, shown with an RGB color
+      scheme and \emph{arcsinh} stretch.  The three bright stars have
+      strange colors because the saturated cores are masked by the
+      pipeline and not included in the coadd.  Detected sources are
+      marked with symbols indicating which of the SED-matched filters
+      yields the strongest detection.  \emph{Right:} The positions in
+      color-space of detected sources, classified by the SED-matched
+      filter that yields the strongest detection.  The bold circles
+      mark the color to which each filter is tuned.  Each SED-matched
+      filter most strongly detects sources nearby in color spaces,
+      where the exact dividing line depends on the signal-to-noise in
+      the different filters.
+      \label{fig:expt}}
+  \end{center}
+\end{figure}
+
 We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
 photometric zeropoints, sky background models and PSF models, using
@@ -1174,11 +1195,26 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 
 We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
 in the center of the focal plane.  We produce detection maps for each
-band as described above, and run several SED filters: a ``red'' filter
-matched to a source with colors $g - r = r - i = 1$; a ``flat'' filter
-with colors $g-r = r-i = 0$; and,  a ``blue'' filter with colors $g-r =
-r-i = -1$.  (In the AB magnitude system here, very few real
-astrophysical sources have colors bluer than zero; 
+band as described above, and run several SED-matched filters: a
+``blue'' filter matched to a source with colors $g - r = r - i = 0$; a
+``yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``red''
+filter matched to $g - r = 1.5$, $r - i = 1$.
+
+For the plots shows here, we select sources in the yellow filter with
+signal-to-noise above $100$, taking as a source the peak pixel within
+each connected component of pixels above the threshold; we do not try
+to resolve or deblend nearby peaks.  We drop any source near the edge
+of the image or where there are fewer than 12 exposures in any of $g$,
+$r$, or $i$ bands.  This results in $2092$ detected sources.  For each
+source position, we sample the red and blue SED-matched maps so that
+we can compare the relative sensitivities of the different SED-matched
+filters.  We also sample the detection maps in each band at the peak
+pixel as an approximate estimate of the flux of the source.  This
+assumes all sources are point sources, so underestimates total flux of
+galaxies.  An image of the detected sources, and the locations in
+color space of sources that are detected by each SED-matched filter
+are shown in \figref{fig:expt}.
+
 
 
 
