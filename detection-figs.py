@@ -323,6 +323,7 @@ sources.g_mag = -2.5*(np.log10(sources.g_flux) - 9)
 sources.r_mag = -2.5*(np.log10(sources.r_flux) - 9)
 sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
 
+
 #I = np.argsort(-sources.yellow_sn)
 #sources.cut(I)
 
@@ -380,6 +381,7 @@ def show_sources(T, img, R=10, C=10, sz=10, divider=0):
     plt.xticks([]); plt.yticks([])
 
 
+    
 # show_sources(sources, img)
 
 # I = np.argsort(-sources.red_sn / sources.flat_sn)
@@ -540,175 +542,74 @@ plt.axis(ax)
 plt.gca().set_aspect(aspect);
 plt.savefig('strength.pdf')
 
-sys.exit(0)
-
-# In[ ]:
 
 
-# Galaxy detection.
-from tractor.splinesky import SplineSky
-from tractor.psfex import PixelizedPsfEx
-from astrometry.util.util import wcs_pv2sip_hdr
+#### Galaxy detection
 
-imfn = '1/data/images/decam/cp/c4d_160814_085515_ooi_g_v1-N4.fits'
-im = fitsio.read(imfn)                 
-dq = fitsio.read('1/data/images/decam/cp/c4d_160814_085515_ood_g_v1-N4.fits')
-wt = fitsio.read('1/data/images/decam/cp/c4d_160814_085515_oow_g_v1-N4.fits')
-sig1 = 1./np.sqrt(np.median(wt[dq==0]))
-H,W = im.shape
+s = '1.0'
+#s = 're0.7'
+g_galdet = fitsio.read('25/galdetmap-'+s+'-g.fits')
+g_galdetiv = fitsio.read('25/galdetiv-'+s+'-g.fits')
+r_galdet = fitsio.read('25/galdetmap-'+s+'-r.fits')
+r_galdetiv = fitsio.read('25/galdetiv-'+s+'-r.fits')
+i_galdet = fitsio.read('25/galdetmap-'+s+'-i.fits')
+i_galdetiv = fitsio.read('25/galdetiv-'+s+'-i.fits')
+gdetmaps = [g_galdet, r_galdet, i_galdet]
+gdetivs = [g_galdetiv, r_galdetiv, i_galdetiv]
+for s in sedlist:
+    s.galsnmap = sedsn(gdetmaps, gdetivs, s.sed)
+yellow_gal = sedlist[1].galsnmap
+x,y = detect_sources(yellow_gal, 100.)
 
-hdr = fitsio.read_header(imfn, ext=1)
-imwcs = wcs_pv2sip_hdr(hdr)
+gals = fits_table()
+gals.x = x
+gals.y = y
+gals.cut(good[gals.y, gals.x])
+print('Cut to', len(gals), 'good gals')
+sz = 20
+H,W = good.shape
+gals.cut((gals.x > sz) * (gals.y > sz) * (gals.x < (W-sz)) * (gals.y < (H-sz)))
+print(len(gals), 'not near edges')
+gals.cut((g_galdetiv[gals.y, gals.x] > 0) * (r_galdetiv[gals.y, gals.x] > 0) * (i_galdetiv[gals.y, gals.x] > 0))
+print(len(gals), 'with gri obs')
+sns = []
+for s in sedlist:
+    gals.set(s.tname, s.galsnmap[gals.y, gals.x])
+    gals.set(s.tname+'_psf', s.snmap[gals.y, gals.x])
+    sns.append(s.galsnmap[gals.y, gals.x])
+gals.sn_max = np.max(np.vstack(sns), axis=0)
+# These are PSF fluxes/mags
+gals.g_sn = (g_det[gals.y, gals.x] * np.sqrt(g_detiv[gals.y, gals.x]))
+gals.r_sn = (r_det[gals.y, gals.x] * np.sqrt(r_detiv[gals.y, gals.x]))
+gals.i_sn = (i_det[gals.y, gals.x] * np.sqrt(i_detiv[gals.y, gals.x]))
+gals.g_flux = g_det[gals.y, gals.x]
+gals.r_flux = r_det[gals.y, gals.x]
+gals.i_flux = i_det[gals.y, gals.x]
+gals.ra,gals.dec = wcs.pixelxy2radec(gals.x+1, gals.y+1)
+gals.g_mag = -2.5*(np.log10(gals.g_flux) - 9)
+gals.r_mag = -2.5*(np.log10(gals.r_flux) - 9)
+gals.i_mag = -2.5*(np.log10(gals.i_flux) - 9)
+gals.g_galflux = g_galdet[gals.y, gals.x]
+gals.r_galflux = r_galdet[gals.y, gals.x]
+gals.i_galflux = i_galdet[gals.y, gals.x]
+gals.g_galmag = -2.5*(np.log10(gals.g_galflux) - 9)
+gals.r_galmag = -2.5*(np.log10(gals.r_galflux) - 9)
+gals.i_galmag = -2.5*(np.log10(gals.i_galflux) - 9)
+I = np.argsort(-gals.yellow_sn)
+gals.cut(I)    
 
-fn = '1/data/calib/decam/splinesky/00563/00563982/decam-00563982-N4.fits'
-sky = SplineSky.from_fits(fn, None)
-sky.addTo(im, scale=-1)
-psf = PixelizedPsfEx('1/data/calib/decam/psfex/00563/00563982/decam-00563982-N4.fits')
+plt.figure(figsize=(4,4))
+plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+plt.clf()
+I = np.argsort(-(gals.yellow_sn - gals.yellow_sn_psf))
+show_sources(gals[I], img, sz=20)
+plt.savefig('galaxies.pdf')
 
-
-# In[ ]:
-
-
-#plt.hist(im.ravel(), range=(-5.*sig1, 5.*sig1), bins=100);
-
-
-# In[ ]:
-
-
-from tractor import Image, NullWCS, ExpGalaxy, ConstantSky, LinearPhotoCal, NanoMaggies, PixPos, GaussianMixturePSF, Tractor
-from tractor.ellipses import EllipseE
-
-
-# In[ ]:
-
-
-v = (psf.fwhm / 2.35)**2
-gpsf = GaussianMixturePSF(1., 0., 0., v, v, 0)                          
-tim = Image(data=im, inverr=(dq == 0)*1./sig1, wcs=NullWCS(pixscale=0.262),
-           psf=psf, sky=ConstantSky(0.), photocal=LinearPhotoCal(1., band='g'))
-
-
-# In[ ]:
-
-
-gal = ExpGalaxy(PixPos(W/2., H/2.), NanoMaggies(g=1.), EllipseE(0.5, 0., 0.))
-mog = gal._getAffineProfile(tim, W/2., H/2.)
-#print(mog)
-mog.var[:,0,0]
-
-
-# In[ ]:
-
-
-#tr = Tractor([tim], [gal])
-mod = gal.getModelPatch(tim)
-tim.psf = gpsf
-gmod = gal.getModelPatch(tim)
-print(mod.patch.min(), mod.patch.max())
-print(gmod.patch.min(), gmod.patch.max())
-plt.subplot(1,2,1)
-plt.imshow(mod.patch, interpolation='nearest', origin='lower')
-plt.subplot(1,2,2)
-plt.imshow(gmod.patch, interpolation='nearest', origin='lower')
-
-
-# In[ ]:
-
-
-psf_sigma = psf.fwhm / 2.35
-print('PSF sigma:', psf_sigma)
-
-gpsf = gmod.patch
-print('gal x psf sum', gpsf.sum())
-gpsf /= gpsf.sum()
-gpsfnorm = np.sqrt(np.sum(gpsf**2))
-print('gal x psf norm', gpsfnorm)
-
-gdetsum = 0.
-for amp,sigma in zip(mog.amp, np.sqrt(mog.var[:,0,0])):
-    sig = np.hypot(psf_sigma, sigma)
-    gdetsum = gdetsum + amp * gaussian_filter(im, sig)
-    print(gdetsum.shape)
-gdetsum /= gpsfnorm**2
-gdetsig = sig1 / gpsfnorm
-
-# PSF detection map
-psfnorm = 1./(2.*np.sqrt(np.pi)*psf_sigma)
-print('PSF norm', psfnorm)
-psfdet = gaussian_filter(im, psf_sigma) / psfnorm**2
-psfsig1 = sig1 / psfnorm
-
-
-# In[ ]:
-
-
-psfsn = psfdet / psfsig1
-galsn = gdetsum / gdetsig
-
-plt.subplot(1,2,1)
-plt.imshow(psfsn, interpolation='nearest', origin='lower', vmin=-3, vmax=10.)
-plt.subplot(1,2,2)
-plt.imshow(galsn, interpolation='nearest', origin='lower', vmin=-3, vmax=10.);
-
-
-# In[ ]:
-
-
-psf = fits_table()
-# x,y in detection image
-psf.dx,psf.dy = detect_sources(psfsn, 10.)
-gal = fits_table()
-gal.dx, gal.dy = detect_sources(galsn, 10.)
-
-psf.psf_sn = psfsn[psf.dy, psf.dx]
-psf.gal_sn = galsn[psf.dy, psf.dx]
-gal.psf_sn = psfsn[gal.dy, gal.dx]
-gal.gal_sn = galsn[gal.dy, gal.dx]
-print(len(psf), 'PSF detections')
-print(len(gal), 'Galaxy detections')
-
-
-# In[ ]:
-
-
-# for viewing, convert to x,y in RGB image.
-r,d = imwcs.pixelxy2radec(psf.dx+1, psf.dy+1)
-ok,x,y = wcs.radec2pixelxy(r, d)
-psf.x = (x-1).astype(int)
-psf.y = (y-1).astype(int)
-
-r,d = imwcs.pixelxy2radec(gal.dx+1, gal.dy+1)
-ok,x,y = wcs.radec2pixelxy(r, d)
-gal.x = (x-1).astype(int)
-gal.y = (y-1).astype(int)
-
-H,W,nil = img.shape
-galok = gal[(gal.x > sz) * (gal.y > sz) * (gal.x < (W-sz)) * (gal.y < (H-sz))]
-#galok.cut((g_detiv[galok.y, galok.x] > 0) * (r_detiv[galok.y, galok.x] > 0) * (i_detiv[galok.y, galok.x] > 0))
-
-#I = np.argsort(-galok.gal_sn / galok.psf_sn);
-I = np.argsort(-(galok.gal_sn - galok.psf_sn))
-show_sources(galok[I], img)
-
-
-# In[ ]:
-
-
-S = fits_table('sweep-240p005-250p010.fits')
-len(S)
-
-
-# In[ ]:
-
-
-S.mag_g = -2.5*(np.log10(S.flux_g)-9)
-S.mag_r = -2.5*(np.log10(S.flux_r)-9)
-S.mag_z = -2.5*(np.log10(S.flux_z)-9)
-
-
-# In[ ]:
-
-
-plothist(S.mag_g - S.mag_r, S.mag_r - S.mag_z, range=((-1,5),(-1,5)));
-#plt.axis([-1, 5, -1, 5])
-
+plt.figure(figsize=(5,4))
+plt.subplots_adjust(left=0.12, right=0.98, bottom=0.12, top=0.98)
+plt.clf()
+plt.semilogx(gals.yellow_sn, gals.yellow_sn / gals.yellow_sn_psf, 'k.', alpha=0.25)
+plt.ylim(0.9, 1.2)
+plt.xlabel('Galaxy detection S/N')
+plt.ylabel('Galaxy / PSF detection ratio')
+plt.savefig('galaxies-relsn.pdf')
