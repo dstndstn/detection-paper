@@ -516,6 +516,11 @@ plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
 plt.clf()
 plt.axhline(1., color='orange', lw=5)
 plt.axhline(1., color='k', alpha=0.5)
+
+plt.axvline(0., color='b', lw=2, alpha=0.2)
+plt.axvline(1.3, color='orange', lw=2, alpha=0.2)
+plt.axvline(2.5, color='r', lw=2, alpha=0.2)
+
 plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bx', alpha=0.3,
         label='Blue SED-matched filter');
 plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'r.', alpha=0.5,
