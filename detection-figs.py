@@ -6,14 +6,146 @@ import matplotlib.pyplot as plt
 import pylab as plt
 import numpy as np
 import fitsio
+import sys
 from astrometry.util.fits import *
 from astrometry.util.util import Tan
 from astrometry.util.plotutils import *
 from astrometry.util.starutil import *
+from astrometry.util.starutil_numpy import *
 from collections import Counter
 from scipy.ndimage.filters import *
 from scipy.ndimage.measurements import label, find_objects
 from scipy.ndimage.morphology import binary_dilation, binary_fill_holes
+
+
+
+def jpl_query(ra, dec, mjd):
+    import requests
+    # DECam
+    latlongargs = dict(lon='70.81489', lon_u='W',
+                       lat='30.16606', lat_u='S',
+                       alt='2215.0', alt_u='m')
+    hms = ra2hmsstring(ra, separator=':')
+    dms = dec2dmsstring(dec)
+    if dms.startswith('+'):
+        dms = dms[1:]
+    date = mjdtodate(mjd)
+    print('date', date)
+    date = '%i-%02i-%02i %02i:%02i:%02i' % (date.year, date.month, date.day,
+                                            date.hour, date.minute, date.second)
+    print('date string:', date)
+    # '2016-03-01 00:42'
+    s = requests.Session()
+    r = s.get('https://ssd.jpl.nasa.gov/sbfind.cgi')
+    #r2 = s.get('https://ssd.jpl.nasa.gov/sbfind.cgi?s_time=1')
+    print('JPL lookup: setting date', date)
+    r3 = s.post('https://ssd.jpl.nasa.gov/sbfind.cgi', data=dict(obs_time=date, time_zone='0', check_time='Use Specified Time'))
+    print('Reply code:', r3.status_code)
+    #r4 = s.get('https://ssd.jpl.nasa.gov/sbfind.cgi?s_loc=1')
+    print('JPL lookup: setting location', latlongargs)
+    latlongargs.update(s_pos="Use Specified Coordinates")
+    r5 = s.post('https://ssd.jpl.nasa.gov/sbfind.cgi', data=latlongargs)
+    print('Reply code:', r5.status_code)
+    #r6 = s.get('https://ssd.jpl.nasa.gov/sbfind.cgi?s_region=1')
+    print('JPL lookup: setting RA,Dec', (hms, dms))
+    r7 = s.post('https://ssd.jpl.nasa.gov/sbfind.cgi', data=dict(ra_1=hms, dec_1=dms,
+                                                                 ra_2='w0 0 45', dec_2='w0 0 45', sys='J2000', check_region_1="Use Specified R.A./Dec. Region"))
+    print('Reply code:', r7.status_code)
+    #r8 = s.get('https://ssd.jpl.nasa.gov/sbfind.cgi?s_constraint=1')
+    print('JPL lookup: clearing mag limit')
+    r9 = s.post('https://ssd.jpl.nasa.gov/sbfind.cgi', data=dict(group='all', limit='1000', mag_limit='', mag_required='yes', two_pass='yes', check_constraints="Use Specified Settings"))
+    print('Reply code:', r9.status_code)
+    print('JPL lookup: submitting search')
+    r10 = s.post('https://ssd.jpl.nasa.gov/sbfind.cgi', data=dict(search="Find Objects"))
+    txt = r10.text
+    txt = txt.replace('<a href="sbdb.cgi', '<a href="https://ssd.jpl.nasa.gov/sbdb.cgi')
+    if '<pre>' in txt:
+        i0 = txt.index('<pre>')
+        i1 = txt.index('</pre>', i0)
+        print(txt[i0:i1])
+    else:
+        print(txt)
+
+# 1
+# jpl_query(36.56102704691466, -4.670403734599411, 57714.19666554)
+# -> 1466 Mundleria
+
+# 4
+# jpl_query(36.43302303215179, -4.6610239398835915, 57653.18272374)
+# -> 63059 2000 WA118
+
+# 5
+# jpl_query(36.453468408983994, -4.660223580431442, 57614.36879513)
+# -> 43342 2000 RO67
+
+# 6
+# jpl_query(36.55642461654786, -4.655848930341187, 57636.23166751)
+# -> 63059 2000 WA118
+
+# 8
+# jpl_query(36.405931058993566, -4.690934375617985, 57715.03741036)
+# -> 1466 Mundleria
+
+# 9
+# jpl_query(36.557884974189555, -4.655775931800927, 57636.25212985)
+# -> 63059 2000 WA118
+
+# *** three in a row
+# 10
+# jpl_query(36.431927745821085, -4.660951135059059, 57653.19172575)
+# -> 63059 2000 WA118
+
+# 13 (three)
+#jpl_query(36.452519159695925, -4.660078029052925, 57614.35276412)
+# -> 43342 2000 RO67
+
+# 14
+# jpl_query(36.49361846690702, -4.489485785856188, 57701.0896792)
+# -> NOT FOUND?
+
+# 15
+# jpl_query(36.479386652726994, -4.574272458183519, 57660.35787177)
+# -> 159502 2000 WW31
+
+# 22
+# jpl_query(36.3880453003972, -4.637077573496249, 57752.08623574)
+# -> 23275 2000 YP101
+
+# 29
+# jpl_query(36.58504995432683, -4.667124561799415, 57714.07199208)
+# -> 1466 Mundleria
+
+# 30
+# jpl_query(36.590601384876706, -4.677021211507089, 57730.07658341)
+# -> 21354 1997 FM
+
+# 31
+# jpl_query(36.3654691532076, -4.755047525778143, 57624.2981817)
+# -> Just an extremely red source
+
+# 32
+# jpl_query(36.386878285125924, -4.622958594369826, 57730.07658341)
+# -> Not found
+
+# 34
+# jpl_query(36.34424966987521, -4.540569264179978, 57714.07199208)
+# -> Not found
+
+# 36 jpl_query(36.329873436791395, -4.504614950467419, 57614.32912007)
+# -> very red
+
+# 39 jpl_query(36.40761412746831, -4.631184012969891, 57614.32912007)
+# -> very red
+
+# 40 jpl_query(36.58238715599062, -4.48372573941448, 57614.32912007)
+# -> very red
+
+# 41 jpl_query(36.355197857223395, -4.5616762877343335, 57624.2981817)
+# -> very red
+
+# 43 jpl_query(36.54854190675149, -4.679575558482741, 57624.2981817)
+# -> very red
+
 
 def sdss_rgb(imgs, bands, scales=None, m=0.03, Q=20):
     rgbscales=dict(g=(2, 6.0),
@@ -55,10 +187,11 @@ good = ((Ng >= 12) * (Nr >= 12) * (Ni >= 12))
 gco = fitsio.read('25/legacysurvey-custom-036450m04600-image-g.fits.fz')
 rco = fitsio.read('25/legacysurvey-custom-036450m04600-image-r.fits.fz')
 ico = fitsio.read('25/legacysurvey-custom-036450m04600-image-i.fits.fz')
-
 s = 4
 scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
 img = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
+img = (np.clip(img, 0, 1) * 255.).astype(np.uint8)
+#print('Img', img.dtype)
 
 #img = plt.imread('25/legacysurvey-custom-036450m04600-image.jpg')
 #img = np.flipud(img)
@@ -219,10 +352,8 @@ sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
 #     plt.imshow(img[f.y-sz : f.y+sz+1, f.x-sz : f.x+sz+1, :], interpolation='nearest', origin='lower')
 #     plt.xticks([]); plt.yticks([])    
 
-def show_sources(T, img):
-    sz = 10
+def show_sources(T, img, R=10, C=10, sz=10, divider=0):
     imgrows = []
-    R,C = 10,10
     k = 0
     for i in range(R):
         imgrow = []
@@ -233,12 +364,19 @@ def show_sources(T, img):
                 f = T[k]
                 sub = img[f.y-sz : f.y+sz+1, f.x-sz : f.x+sz+1, :]
             imgrow.append(sub)
+            if divider and j < C-1:
+                imgrow.append(np.zeros((sz*2+1, divider, 3), np.uint8) + 255)
             k += 1
         imgrow = np.hstack(imgrow)
+        #print('imgrow', imgrow.shape)
         imgrows.append(imgrow)
+        if divider and i < R-1:
+            rh,rw,three = imgrow.shape
+            imgrows.append(np.zeros((divider, rw, 3), np.uint8) + 255)
+        
     imgrows = np.vstack(reversed(imgrows))
     plt.imshow(imgrows, interpolation='nearest', origin='lower')
-    plt.xticks([]); plt.yticks([]);
+    plt.xticks([]); plt.yticks([])
 
 
 # show_sources(sources, img)
@@ -311,19 +449,24 @@ for i,s in enumerate(sedlist):
         print('  http://legacysurvey.org/viewer-dev/?layer=decals-dr7&ra=%.4f&dec=%.4f&zoom=14' % (r, d))
 
 
+# Artifacts from single-band detections
+
+I = np.hstack((np.flatnonzero(sources.imax == 3)[:6],
+               np.flatnonzero(sources.imax == 4)[:18],
+               np.flatnonzero(sources.imax == 5)[:12]))
+
+plt.figure(figsize=(4,4))
+plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+plt.clf()
+show_sources(sources[I], img, R=6, C=6, sz=30, divider=1)
+plt.savefig('singleband.pdf')
+
+#for i in I:
+    
+
+
+
 sys.exit(0)
-
-
-for i,s in enumerate(sedlist):
-    I = np.flatnonzero(sources.imax == i)
-    #print(len(I), s.name)
-    show_sources(sources[I], img)
-    plt.title('%s best (%i)' % (s.name, len(I)));
-    plt.savefig('best-%s.png' % s.name)
-    print('Coords:', list(zip(sources.x[I], 4400-sources.y[I]))[:10])
-    plt.show();
-
-
 # In[ ]:
 
 
