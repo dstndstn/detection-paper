@@ -12,6 +12,7 @@ from astrometry.util.util import Tan
 from astrometry.util.plotutils import *
 from astrometry.util.starutil import *
 from astrometry.util.starutil_numpy import *
+from astrometry.libkd.spherematch import *
 from collections import Counter
 from scipy.ndimage.filters import *
 from scipy.ndimage.measurements import label, find_objects
@@ -444,9 +445,9 @@ for i,s in enumerate(sedlist):
     show_sources(sources[I[J]], img)
     #plt.title('%s best (%i)' % (s.name, len(I)));
     plt.savefig('best-%s.pdf' % s.name.lower())
-    print(s.name, 'best coords:')#, list(zip(sources.x[I], 4400-sources.y[I]))[:10])
-    for r,d in list(zip(sources.ra[I], sources.dec[I]))[:10]:
-        print('  http://legacysurvey.org/viewer-dev/?layer=decals-dr7&ra=%.4f&dec=%.4f&zoom=14' % (r, d))
+    #print(s.name, 'best coords:')#, list(zip(sources.x[I], 4400-sources.y[I]))[:10])
+    #for r,d in list(zip(sources.ra[I], sources.dec[I]))[:10]:
+    #    print('  http://legacysurvey.org/viewer-dev/?layer=decals-dr7&ra=%.4f&dec=%.4f&zoom=14' % (r, d))
 
 
 # Artifacts from single-band detections
@@ -461,59 +462,37 @@ plt.clf()
 show_sources(sources[I], img, R=6, C=6, sz=30, divider=1)
 plt.savefig('singleband.pdf')
 
-#for i in I:
-    
 
+'''
+https://des.ncsa.illinois.edu/easyweb/db-access
 
+SELECT RA, DEC, MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I from DR1_MAIN
+where RA between 36.3 and 36.6
+and DEC between -4.76 and -4.44
 
-sys.exit(0)
-# In[ ]:
+-> des-db-2.fits
+'''
 
-
-plt.plot(sources.red_sn / sources.flat_sn, 'r.');
-
-
-# In[23]:
-
-
-DES = fits_table('des-db.fits')
-print(len(DES))
+DES = fits_table('des-db-2.fits')
+print(len(DES), 'DES')
 DES.cut((DES.mag_auto_g < 99) * (DES.mag_auto_r < 99) * (DES.mag_auto_i < 99))
-print(len(DES))
+print(len(DES), 'with good mags')
 ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
 DES.x = (x-1).astype(np.int)
 DES.y = (y-1).astype(np.int)
 DES.cut((DES.x > sz) * (DES.y > sz) * (DES.x < (W-sz)) * (DES.y < (H-sz)))
-print(len(DES))
-DES.cut((g_detiv[DES.y, DES.x] > 0) * (r_detiv[DES.y, DES.x] > 0) * (i_detiv[DES.y, DES.x] > 0))
-print(len(DES))
-
-
-# In[ ]:
-
-
-plt.hist(DES.mag_auto_g);
-
-
-# In[24]:
-
+print(len(DES), 'DES in bounds')
+#DES.cut((g_detiv[DES.y, DES.x] > 0) * (r_detiv[DES.y, DES.x] > 0) * (i_detiv[DES.y, DES.x] > 0))
+DES.cut(good[DES.y, DES.x])
+print(len(DES), 'in good region')
 
 MI,MJ,d = match_radec(sources.ra, sources.dec, DES.ra, DES.dec, 1./3600, nearest=True)
-len(MI), len(sources)
+print(len(MI), 'matches')
 MDES = DES[MJ]
 Msources = sources[MI]
 
-
-# In[ ]:
-
-
-#plt.plot(DES.mag_auto_g - DES.mag_auto_r, DES.mag_auto_r - DES.mag_auto_i, 'r.')
-plt.plot(MDES.mag_auto_g - MDES.mag_auto_r, MDES.mag_auto_r - MDES.mag_auto_i, 'k.')
-plt.axis([-0.5, 3, -0.5, 2]);
-
-
-# In[25]:
-
+#plt.plot(MDES.mag_auto_g - MDES.mag_auto_r, MDES.mag_auto_r - MDES.mag_auto_i, 'k.')
+#plt.axis([-0.5, 3, -0.5, 2]);
 
 ## FIXME -- star vs galaxy; isolated
 colorbins = np.linspace(-0.5, 4.0, 10)
@@ -530,33 +509,33 @@ for clo,chi in zip(colorbins, colorbins[1:]):
     K.append(C[0])
     #print('min mags', np.sort(minmag)[:10])
     #print('r mags', np.sort(DES.mag_auto_r[J])[:10])
-show_sources(DES[II], img)
+#show_sources(DES[II], img)
 
-
-# In[27]:
-
-
+plt.figure(figsize=(6,4))
+plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
+plt.clf()
 plt.axhline(1., color='orange', lw=5)
 plt.axhline(1., color='k', alpha=0.5)
 plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bx', alpha=0.3,
-        label='Blue SED');
+        label='Blue SED-matched filter');
 plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'r.', alpha=0.5,
-        label='Red SED');
-plt.xlabel('DES g-i color (mag)')
-plt.ylabel('Relative strength of SED-matched filter vs Yellow');
+        label='Red SED-matched filter');
+plt.xlabel('DES g - i color (mag)')
+plt.ylabel('Relative strength of SED filter vs Yellow');
 plt.legend(loc='upper left')
-ymin = 0.5
+ymin = 0.6
 plt.axis([-0.5, 4.0, ymin, 1.3])
 ax = plt.axis()
 aspect = plt.gca().get_aspect()
 for clo,chi,k in zip(colorbins, colorbins[1:], K):
     x,y = DES.x[k], DES.y[k]
     plt.imshow(img[y-sz:y+sz+1, x-sz:x+sz+1], interpolation='nearest', origin='lower',
-              extent=[clo,chi,ymin,ymin+0.15], zorder=20)
+              extent=[clo,chi,ymin,ymin+0.11], zorder=20)
 plt.axis(ax)
 plt.gca().set_aspect(aspect);
-plt.savefig('strength3.png')
+plt.savefig('strength.pdf')
 
+sys.exit(0)
 
 # In[ ]:
 

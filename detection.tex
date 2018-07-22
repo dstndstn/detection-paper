@@ -1214,6 +1214,26 @@ of exposures is available in Table \ref{tab:exposures}.
   \end{center}
 \end{figure}
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{strength}
+    \caption{Relative strengths of the different SED-matched detection
+      filters.  We match our detected sources with the Dark Energy
+      Survey DR1 source database in order to show an accurately
+      measured color for each source.  We plot the detection strength
+      (sensitivity) of the ``Blue'' and ``Red'' SED-matched filters
+      versus the ``Yellow'' filter.  As expected, sources with blue
+      $g-i$ colors are most sensitively detected by the ``Blue''
+      SED-matched filter, sources with intermediate colors are most
+      sensitively detected by the ``Yellow'' filter, and red sources
+      are most sensitively detected by the ``Red'' SED-matched filter.
+      Note that the relative sensitivities can be tens of percent,
+      which is very significant at low signal-to-noise levels.
+      \label{fig:strength}}
+  \end{center}
+\end{figure}
+
+
 
 We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
@@ -1255,265 +1275,11 @@ such as cosmic rays that are not masked by the Community Pipeline; and
 transient sources, including asteroids.  A few examples are shown in
 \figref{fig:oneband}.
 
-
-\subsection{Sloan Digital Sky Survey}
-
-Here we present some proof-of-concept experiments on Sloan Digital Sky
-Survey (SDSS) data from the Stripe 82 region \cite{sdss}.
-
-% FIXME -- The results show XYZ...
-
-\paragraph{Input data selection.}
-We select input exposures to include as follows.  Using the
-``window\_flist'' table for SDSS Data Release 9 \cite{dr9}, we select
-photometric exposures from camera column 3, with RA in the range
-$[45.15, 45.85]$ and Dec in the range $[-0.2, -0.1]$.  This results in
-$109$ fields from $23$ unique runs, which are listed in
-\tabref{tab:fields}.
-
-\paragraph{\Detmap\ and resampling.}
-For each input image, we take the PSF to be the double-Gaussian model
-computed by the SDSS \emph{Photo} pipeline \cite{photo}, and compute
-the \detmap.  Since SDSS DR9 images are already in sky-subtracted,
-calibrated ``nano-maggies'', we do not need to apply a calibration
-factor to convert them to common units, nor do we need to remove a sky
-background level.  We set to zero any image pixels that are masked as
-saturated, interpolated, cosmic ray, ghost, or ``not checked'' (close
-to the image boundaries).
-% 'INTERP', 'SATUR', 'NOTCHECKED', 'GHOST', 'CR'
-We compute the per-pixel noise ($\sigma_1$) based on a Gaussian
-approximation of the Poisson errors from the mean sky level, plus dark
-current and read noise, as recommended by the SDSS
-team.\footnote{\niceurl{http://data.sdss3.org/datamodel/files/BOSS\_PHOTOOBJ/frames/RERUN/RUN/CAMCOL/frame.html}}
-
-
-For each of the $u$, $g$, $r$, $i$ and $z$ bandpass filters
-(``bands''), we resample to a common pixel grid and then compute a
-per-band \detmap\ as per \eqnref{eq:onebandmap}.  The common pixel
-grid is defined by a WCS tangent-plane projection centered on our
-patch of interest with the nominal SDSS pixel scale (0.396 arcseconds
-per pixel) and image size $4096 \times 2048$ \cite{wcs}.  Since the
-SDSS pipeline adds a 128-pixel overlap between neighboring fields in a
-run, we first build a \detmap\ for each run, averaging values in the
-overlapping regions to avoid double-counting, then combine these
-per-run \detmap s as per \eqnref{eq:onebandmap}.  For resampling we
-use a third-order Lanczos kernel.
-
-% We track the inverse-variance on a per-pixel basis
-
-\paragraph{Background correction.}
-We find that there is considerable spatially-coherent structure in our
-combined \detmap s, which we suspect is due to slightly biased
-background subtraction in the SDSS pipeline code.  We estimate and
-remove a residual background as follows.  After masking all pixels
-above 5 sigma, we compute the median value within each cell of a $\sim
-100 \times 100$-pixel grid, and interpolate between these values with
-a third-order B-spline.  The resulting background-subtracted \detmap s
-have no apparent background structure (by eye) and their pixel
-distributions are closer to Gaussian.  See \figref{fig:bg}.
-
-\paragraph{Detection}
-In this \doctype\ we are not concerning ourselves with blended
-objects, so we identify peaks in the \detmap\ naively.  We find
-pixels above the desired threshold, expand by a 2-pixel radius, and
-find the connected components.  For each component, we return the peak
-pixel, ignoring other peaks within the component.
-
-
-We construct a series of spectral energy distributions (SEDs),
-building the combined \detmap\ and running the peak detection
-algorithm for each.  A standard approach for detecting objects in
-imaging from multiple bands is to weight each band by its
-signal-to-noise.  This is equivalent to assuming a flat spectrum, or
-zero color.  Our SED-matched filters weight each band according to
-both the amount of flux we expect to see in the band, and its
-signal-to-noise.  The SEDs we use here include ``Flat'' (expected
-color $g = r = i$), ``Red'' ($g-r = r-i = 1$), ``Blue'' ($g-r = r-i =
--1$), and four points lying approximately along the stellar locus
-($(g-r, r-i)$ colors $(0.5,0.2)$, $(1.0,0.4)$, $(1.4,0.7)$, and
-$(1.4,1.4)$.  In the experiments here we will compare the detection
-strengths in the different SEDs.  In practice we would return the
-union of peaks detected in this way.
-
-
-
-% XXX: Verify this statement
-% XXX: Cite ``standard approach''
-% XXX: Advice on what to do in practice?
-
-\paragraph{Results}
-In \figref{fig:redblue} we show that objects with red colors in the
-SDSS catalog are detected more strongly by our SED-matched Red filter
-than a Flat SED (which corresponds to the traditional multi-band
-detection approach).  There are very few objects that the Blue
-SED-matched filter detects more strongly than the Flat or Red filters;
-astrophysical objects with blue colors (bluer than 0 in the AB system)
-are rare.
-
-% (in the AB system of SDSS)
-
-In \figref{fig:colorcolor} we show, in color-color space, the sources
-detected by each of our SED-matched filters.  As expected, each filter
-is most sensitive to sources in a given region of color-color space.
-
-% FIXME -- show strongest detections for each SED.
-
-In \figref{fig:missed} we show postage-stamp images of sources that
-are detected by our SED-matched filters and not detected by a
-traditional approach.  In \figref{fig:added} we show in color-color
-space the additional objects that are detected as we apply a sequence
-of SED-matched filters.
-
-
-
-\subsection{Simulations}
-
----Single exposure, single band
-
----Multiple exposures (different PSFs, sky), single band
-
----Multiple exposures, multiple bands
-
-
-
-
-
-
-
-
-
-\begin{table}
-\begin{center}
-\begin{tabular}{|r|r|r|}
-\hline
-Run & Min field & Max field \\
-\hline
-1752 & 163 & 166 \\
-1887 & 107 & 111 \\
-2578 & 112 & 116 \\
-2589 & 200 & 204 \\
-2700 & 168 & 171 \\
-2738 & 220 & 224 \\
-2820 & 168 & 172 \\
-2861 & 86 & 90 \\
-2873 & 211 & 215 \\
-3362 & 169 & 173 \\
-3384 & 671 & 675 \\
-3461 & 20 & 24 \\
-4128 & 425 & 429 \\
-4157 & 178 & 181 \\
-4198 & 664 & 668 \\
-4207 & 673 & 677 \\
-4849 & 757 & 760 \\
-4858 & 656 & 660 \\
-4874 & 723 & 727 \\
-4905 & 304 & 307 \\
-4927 & 654 & 658 \\
-4933 & 665 & 668 \\
-4948 & 245 & 249 \\
-\hline
-\end{tabular}
-\caption{SDSS fields included in the experiments.  All fields are from
-  camera column (``camcol'') 3.  The minimum and maximum (inclusive)
-  fields are listed.\label{tab:fields}}
-\end{center}
-\end{table}
-
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.7\textwidth]{detect-r-00} \\
-\includegraphics[width=0.7\textwidth]{detect-r-01} \\
-\includegraphics[width=0.8\textwidth]{detect-r-02}
-\caption{Residual background subtraction.  \textbf{Top:} combined
-  \detmap\ for the SDSS $r$ band, combining images from 23 runs.
-  There are clear patterns in the background level.  \textbf{Middle:}
-  after estimating and removing the residual background as described
-  in the text, the background appears more flat.  \textbf{Bottom:}
-  after removing the background, the pixel error statistics are closer
-  to Gaussian, though the distribution is still significantly
-  broader than expected.\label{fig:bg}}
-\end{center}
-\end{figure}
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.8\textwidth]{mdetect-11}
-\caption{Detection strengths in the Red, Flat, and Blue SED-matched
-  filters, versus SDSS-measured colors.  We performed a spatial match
-  between our detected sources and SDSS sources (from the DR7 CasJobs
-  database ``Stripe82''; \cite{annis}) within 1 pixel.  Redder objects
-  in $g-i$ are detected more strongly in the Red SED-matched filter
-  than Flat or Blue.  The handful of objects with significantly blue
-  colors are detected more strongly with the Blue filter.
-  \label{fig:redblue}}
-\end{center}
-\end{figure}
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.8\textwidth]{mdetect-17}
-\caption{Color-color space locations of sources detected most strongly
-  by each of the filters.
-  The color measurements are from the SDSS
-  Stripe82 coadd catalog \cite{annis}, matched to
-  our detections using a 1-pixel matching radius.
-  It is clear that
-  our different SED-matched filters are tuned to detect objects in
-  particular regions of color-color space.  The ``X'' marks indicate
-  the color each SED-matched filter is tuned for.  Note that many of
-  the sources are detected above a given detection threshold by
-  several of the SED-matched filters; here each source is assigned to
-  the filter by which it is detected most strongly.
-  \label{fig:colorcolor}}
-\end{center}
-\end{figure}
-
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.8\textwidth]{mdetect-14}
-\includegraphics[width=0.8\textwidth]{mdetect-15}
-\includegraphics[width=0.8\textwidth]{mdetect-16}
-\caption{Sources detected by our SED-matched filters and not by a
-  ``traditional'' approach; full caption on next page\label{fig:missed}}
-\end{center}
-\end{figure}
-
-\addtocounter{figure}{-1}
-\begin{figure}
-\begin{center}
-\caption{[figure previous page] Sources detected by applying a
-  sequence of SED-matched filters.  We start with sources detected by
-  a ``traditional'' approach that takes the union of single-band
-  detections in each of the $g$, $r$, and $i$ filters.  We then apply,
-  in sequence, our Flat, Red, and Stellar locus SED-matched filters.
-  Each panel shows the sources detected by the new filter and not
-  detected by previous filters, in order of decreasing
-  signal-to-noise.  In order to make the objects easier to see, we
-  have increased the detection threshold to $20 \sigma$.}
-\end{center}
-\end{figure}
-
-\begin{figure}
-\begin{center}
-\includegraphics[width=0.8\textwidth]{mdetect-18}
-\caption{Color-color space locations of additional sources detected as
-  additional SED-matched filters are applied.  We start by taking all
-  single-band detections in the $g$, $r$, and $i$-band filters.  Next,
-  we add sources detected by the Flat SED-matched filter, then the Red
-  filter, then a set of filters along the stellar locus.  Each
-  subsequent SED-matched filter detects sources that are missed (at a
-  fixed detection threshold) by the previous filters.
-  %The color measurements are from the SDSS
-  %Stripe82 coadd catalog \cite{annis}, matched to
-  %our detections using a 1-pixel matching radius.
-  \label{fig:added}}
-\end{center}
-\end{figure}
+In \figref{fig:strength} we illustrate how the relative strength of
+the different SED-matched filters change with respect to measured
+source colors.  We observe differences of tens of percent, which can
+lead to a very significant number of additional detected sources at
+the lowest signal-to-noise levels.
 
 
 \section{Discussion}
