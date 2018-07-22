@@ -45,18 +45,24 @@ def stage_galdetect(targetrd=None, pixscale=None, targetwcs=None,
 
     print('Computing detection maps...')
     # 1", 2", 4" FWHM
-    gal_fwhms = np.array([1., 2., 4.])
-    gal_sigmas = gal_fwhms/2.35
+    #gal_fwhms = np.array([1., 2., 4.])
+    #gal_sigmas = gal_fwhms/2.35
 
-    detmaps,detivs = galaxy_detection_maps(tims, gal_sigmas, targetwcs, bands, mp)
+    # 0.7" r_e EXP
+    gal_re = np.array([0.7])
+
+    detmaps,detivs = galaxy_detection_maps(tims, gal_re, targetwcs, bands, mp)
 
     i = 0
-    for fwhm in gal_fwhms:
+    #for fwhm in gal_fwhms:
+    for re in gal_re:
         for ib,band in enumerate(bands):
-            fn = os.path.join(survey.output_dir, 'galdetmap-%.1f-%s.fits' % (fwhm,band))
+            #fn = os.path.join(survey.output_dir, 'galdetmap-%.1f-%s.fits' % (fwhm,band))
+            fn = os.path.join(survey.output_dir, 'galdetmap-re%.1f-%s.fits' % (re, band))
             fitsio.write(fn, detmaps[i].astype(np.float32), clobber=True)
             print('Wrote', fn)
-            fn = os.path.join(survey.output_dir, 'galdetiv-%.1f-%s.fits' % (fwhm, band))
+            #fn = os.path.join(survey.output_dir, 'galdetiv-%.1f-%s.fits' % (fwhm, band))
+            fn = os.path.join(survey.output_dir, 'galdetiv-re%.1f-%s.fits' % (re, band))
             fitsio.write(fn, detivs[i].astype(np.float32), clobber=True)
             print('Wrote', fn)
             i += 1
@@ -93,21 +99,44 @@ def galaxy_detection_maps(tims, galsigmas, targetwcs, bands, mp):
 def _galdetmap(X):
     from scipy.ndimage.filters import gaussian_filter
     from legacypipe.survey import tim_get_resamp
-    (tim, galsigma, targetwcs, H, W) = X
+    (tim, galsize, targetwcs, H, W) = X
     R = tim_get_resamp(tim, targetwcs)
     if R is None:
         return None,None,None,None
     ie = tim.getInvvar()
     assert(tim.psf_sigma > 0)
     pixscale = tim.subwcs.pixel_scale()
+
     # convert galsigma to pixels
-    galsigma /= pixscale
-    print('Galaxy sigma: %.2f, PSF sigma: %.2f' % (galsigma, tim.psf_sigma))
-    sigma = np.hypot(tim.psf_sigma, galsigma)
-    gnorm = 1./(2. * np.sqrt(np.pi) * sigma)
-    detim = tim.getImage().copy()
-    detim[ie == 0] = 0.
-    detim = gaussian_filter(detim, sigma) / gnorm**2
+    #galsigma /= pixscale
+    #sigma = np.hypot(tim.psf_sigma, galsigma)
+    #gnorm = 1./(2. * np.sqrt(np.pi) * sigma)
+    #detim = tim.getImage().copy()
+    #detim[ie == 0] = 0.
+    #detim = gaussian_filter(detim, sigma) / gnorm**2
+
+    galsigs = np.sqrt(ExpGalaxy.profile.var[:,0,0]) * galsize / pixscale
+    galamps = ExpGalaxy.profile.amp
+    #print('Galaxy sigma: %.2f, PSF sigma: %.2f' % (galsigma, tim.psf_sigma))
+    print('Galaxy amps', galamps, 'sigmas', galsigs)
+
+    sz = 20
+    xx,yy = np.meshgrid(np.arange(-sz, sz+1), np.arange(-sz, sz+1))
+    rr = xx**2 + yy**2
+    normim = 0
+    detim = 0
+    img = tim.getImage().copy()
+    img[ie ==  0] = 0.
+    for amp,sig in zip(galamps, galsigs):
+        sig = np.hypot(tim.psf_sigma, sig)
+        detim  += amp * gaussian_filter(img, sig)
+        normim += amp * 1./(2.*np.pi*sig**2) * np.exp(-0.5 * rr / sig**2)
+    #print('Normimg:', normim.sum())
+    gnorm = np.sqrt(np.sum(normim**2))
+    print('Galnorm', gnorm, 'vs psfnorm', 1./(2. * np.sqrt(np.pi) * tim.psf_sigma), 'seeing', tim.psf_fwhm/pixscale)
+    detim /= gnorm**2
+    #gnorm = 1./(2. * np.sqrt(np.pi) * sigma)
+
     detsig1 = tim.sig1 / gnorm
     subh,subw = tim.shape
     detiv = np.zeros((subh,subw), np.float32) + (1. / detsig1**2)
