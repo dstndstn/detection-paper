@@ -1041,6 +1041,11 @@ coarse gridding of SED space yields good results, as shown below.
 %   \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
 % \end{eqnarray}
 
+% - a_i is negative for sources; b_i ~ constant across the image
+% - a_i / (2 sqrt(b_i)) goes from slightly above zero to, eg, -50 for sources
+% - erf(a_i / (2 sqrt(b_i))) ~ -1 for sources
+% - 1 - erf(a_i / 2 sqrt(b_i)) ~ 2 for sources
+
 
 In order to select sources, we can compare this likelihood to the
 null-hypothesis likelihood: that there is no source and the observed
@@ -1266,6 +1271,8 @@ calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \citep{psfex}.
 
+\subsection{SED-matched detection}
+
 We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
 in the center of the focal plane.  We produce detection maps for each
 band as described above, and run several SED-matched filters: a
@@ -1294,7 +1301,8 @@ We also observe that some sources are most strongly detected in one of
 the single-band-only SED-matched filters.  For the $g$-band-only and
 $r$-band-only filters, these are almost exclusively image artifacts,
 such as cosmic rays that are not masked by the Community Pipeline; and
-transient sources, including asteroids.  A few examples are shown in
+transient sources, including asteroids.  The $i$-band-only filter can
+also detect extremely red sources.  A few examples are shown in
 \figref{fig:oneband}.
 
 In \figref{fig:strength} we illustrate how the relative strength of
@@ -1302,6 +1310,12 @@ the different SED-matched filters change with respect to measured
 source colors.  We observe differences of tens of percent, which can
 lead to a very significant number of additional detected sources at
 the lowest signal-to-noise levels.
+
+\subsection{Bayesian SED-matched detection}
+
+
+
+\subsection{Galaxy detection}
 
 
 \section{Discussion}
