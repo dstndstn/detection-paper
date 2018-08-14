@@ -3,6 +3,7 @@ matplotlib.use('Agg')
 matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 import pylab as plt
 import numpy as np
 import fitsio
@@ -446,32 +447,50 @@ def log_pratio_bayes(seds, weights, D, Div, alpha):
 def bayes_figs(DES, detmaps, detivs, good):
 
     # First, build empirical SED prior "library" from DES sources
-    DES.flux_g = 10. ** ((DES.mag_auto_g - 22.5) / -2.5)
-    DES.flux_r = 10. ** ((DES.mag_auto_r - 22.5) / -2.5)
-    DES.flux_i = 10. ** ((DES.mag_auto_i - 22.5) / -2.5)
+    DES.flux_g = np.maximum(0, DES.flux_auto_g)
+    DES.flux_r = np.maximum(0, DES.flux_auto_r)
+    DES.flux_i = np.maximum(0, DES.flux_auto_i)
     flux = DES.flux_g + DES.flux_r + DES.flux_i
+    K = np.flatnonzero(flux > 0)
+    DES.cut(K)
+    flux = flux[K]
     DES.f_g = DES.flux_g / flux
     DES.f_r = DES.flux_r / flux
     DES.f_i = DES.flux_i / flux
-    # This keeps virtually all sources
-    K = np.flatnonzero(DES.mag_auto_r < 27.)
-    # Bin the sources
+    print('Kept', len(DES), 'with positive flux')
+
     nbins=21
     edge = 1. / (nbins-1) / 2.
-    N,xe,ye = loghist(DES.f_g[K], DES.f_r[K],
-                      range=((0-edge,1+edge),(0-edge,1+edge)), nbins=nbins,
-                      imshowargs=dict(cmap='gray'));
+    #N,xe,ye = loghist(DES.f_g, DES.f_r, range=((0-edge,1+edge),(0-edge,1+edge)), nbins=nbins);
+    N,xe,ye = np.histogram2d(DES.f_g, DES.f_r,
+                             range=((0-edge,1+edge),(0-edge,1+edge)),
+                             bins=nbins)
     N = N.T
-    plt.clf()
+
+    print(np.sum(N > 0), np.sum(N > N.sum()*0.001))
     NN = N.copy()
-    #NN[
-    plt.imshow(N, interpolation='nearest', origin='lower', cmap='hot')
-    plt.xlabel('f_g')
-    plt.ylabel('f_r')
+    NN[N < N.sum()*0.001] = np.nan
+
+    plt.figure(figsize=(3,3))
+    plt.subplots_adjust(left=0.2, right=0.98, bottom=0.15, top=0.98)
+
+    plt.clf()
+    x0,x1 = -edge, 1+edge
+    y0,y1 = x0,x1
+    plt.imshow(NN, interpolation='nearest', origin='lower', extent=(x0,x1,y0,y1),
+               cmap=antigray, zorder=20)
+    plt.plot([x0, x0, x1, x0], [y0,y1,y0,y0], 'k-', zorder=30)
+    plt.gca().set_frame_on(False)
+    p = Polygon(np.array([[x0, x0, x1, x0], [y0, y1, y0, y0]]).T, color=(0.9,0.9,1),
+                zorder=15)
+    plt.gca().add_artist(p)
+    plt.xlabel('flux fraction g')
+    plt.ylabel('flux fraction r')
     plt.savefig('bayes-prior-sed.pdf')
 
     #iy,ix = np.nonzero(N)
-
+    iy,ix = np.nonzero(N > N.sum()*0.001)
+    print(len(iy), 'significant bins')
     # Find f_{g,r} histogram midpoints
     mx = (xe[:-1] + xe[1:]) / 2.
     my = (ye[:-1] + ye[1:]) / 2.
@@ -481,8 +500,50 @@ def bayes_figs(DES, detmaps, detivs, good):
     fn = N[iy,ix]
     seds = np.clip(np.vstack((fg,fr,fi)).T, 0., 1.)
     weights = fn / np.sum(fn)
+    ok = np.flatnonzero(np.sum(seds, axis=1) == 1)
+    seds = seds[ok,:]
+    weights = weights[ok]
     print(len(weights), 'color-color bins are populated; max weight', weights.max())
 
+    plt.clf()
+    plothist(DES.mag_auto_g - DES.mag_auto_r, DES.mag_auto_r - DES.mag_auto_i,
+             range=((-0.5, 3),(-0.5, 2)), nbins=20,
+             imshowargs=dict(cmap=antigray), dohot=False, docolorbar=False)
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    plt.savefig('bayes-data-cc.pdf')
+
+    plt.clf()
+    fg_grid,fr_grid = np.meshgrid(xe, ye)
+    fi_grid = 1. - (fg_grid + fr_grid)
+    gr_grid = -2.5 * np.log10(fg_grid / fr_grid)
+    ri_grid = -2.5 * np.log10(fr_grid / fi_grid)
+    good_grid = (fi_grid >= 0) * np.isfinite(gr_grid) * np.isfinite(ri_grid)
+    h,w = good_grid.shape
+    cm = antigray
+    ng = 0
+    for j0 in range(h-1):
+        for i0 in range(w-1):
+            j1 = j0+1
+            i1 = i0+1
+            if not(good_grid[j0,i0] and good_grid[j0,i1] and good_grid[j1,i0] and good_grid[j1,i1]):
+                continue
+            if N[j0,i0] == 0:
+                continue
+            ng += N[j0,i0]
+            xx = [gr_grid[j0,i0], gr_grid[j0,i1], gr_grid[j1,i1], gr_grid[j1,i0], gr_grid[j0,i0]]
+            yy = [ri_grid[j0,i0], ri_grid[j0,i1], ri_grid[j1,i1], ri_grid[j1,i0], ri_grid[j0,i0]]
+            xy = np.vstack((xx, yy)).T
+            poly = Polygon(xy, color=cm(N[j0,i0]/N.max()))
+            plt.gca().add_artist(poly)
+    #plt.gca().set_fc('0.5')
+    plt.axis([-0.5, 3, -0.5,2])
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    print(ng, 'of', N.sum(), 'plotted')
+    plt.savefig('bayes-prior-cc.pdf')
+
+    return
     H,W = detmaps[0].shape
     # Number of bands
     J = 3
@@ -640,12 +701,6 @@ def main():
     # Read DES catalog in region
     '''
     https://des.ncsa.illinois.edu/easyweb/db-access
-    
-    SELECT RA, DEC, MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I from DR1_MAIN
-    where RA between 36.3 and 36.6
-    and DEC between -4.76 and -4.44
-    
-    -> des-db-2.fits
 
     SELECT RA, DEC,
     MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I,
@@ -672,12 +727,12 @@ def main():
                           (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                           good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
 
-    sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
-                     g_det, r_det, i_det, wcs)
+    #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
+    #                 g_det, r_det, i_det, wcs)
 
     #galaxy_figs(sedlist, good, wcs, img)
 
-    #bayes_figs(DES, detmaps, detivs, good)
+    bayes_figs(DES, detmaps, detivs, good)
     
 if __name__ == '__main__':
     main()
