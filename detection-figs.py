@@ -345,6 +345,7 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         C = np.flatnonzero((DES.gi >= clo) * (DES.gi < chi))
         minmag = np.vstack((DES.mag_auto_g, DES.mag_auto_r, DES.mag_auto_i)).max(axis=0)[C]
         C = C[np.argsort(np.abs(minmag - 17.9))]
+        C = C[DES.spread_model_r[C] < 0.01]
         II.extend(C[:10])
         K.append(C[0])
     
@@ -452,10 +453,25 @@ def bayes_figs(DES, detmaps, detivs, good):
     DES.f_g = DES.flux_g / flux
     DES.f_r = DES.flux_r / flux
     DES.f_i = DES.flux_i / flux
-    # This keeps virtually all
+    # This keeps virtually all sources
     K = np.flatnonzero(DES.mag_auto_r < 27.)
-    N,xe,ye = loghist(DES.f_g[K], DES.f_r[K], range=((0,1),(0,1)), nbins=10);
-    iy,ix = np.nonzero(N)
+    # Bin the sources
+    nbins=21
+    edge = 1. / (nbins-1) / 2.
+    N,xe,ye = loghist(DES.f_g[K], DES.f_r[K],
+                      range=((0-edge,1+edge),(0-edge,1+edge)), nbins=nbins,
+                      imshowargs=dict(cmap='gray'));
+    N = N.T
+    plt.clf()
+    NN = N.copy()
+    #NN[
+    plt.imshow(N, interpolation='nearest', origin='lower', cmap='hot')
+    plt.xlabel('f_g')
+    plt.ylabel('f_r')
+    plt.savefig('bayes-prior-sed.pdf')
+
+    #iy,ix = np.nonzero(N)
+
     # Find f_{g,r} histogram midpoints
     mx = (xe[:-1] + xe[1:]) / 2.
     my = (ye[:-1] + ye[1:]) / 2.
@@ -630,28 +646,38 @@ def main():
     and DEC between -4.76 and -4.44
     
     -> des-db-2.fits
+
+    SELECT RA, DEC,
+    MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I,
+    FLUX_AUTO_G, FLUX_AUTO_R, FLUX_AUTO_I,
+    FLAGS_G, FLAGS_R, FLAGS_I,
+    SPREAD_MODEL_R
+    from DR1_MAIN
+    where RA between 36.3 and 36.6
+    and DEC between -4.76 and -4.44
+
+    -> des-db-4.fits
     '''
-    
-    DES = fits_table('des-db-2.fits')
+    DES = fits_table('des-db-4.fits')
     print(len(DES), 'DES')
-    DES.cut((DES.mag_auto_g < 99) * (DES.mag_auto_r < 99) * (DES.mag_auto_i < 99))
-    print(len(DES), 'with good mags')
+    DES.cut((DES.flags_g < 4) * (DES.flags_r < 4) * (DES.flags_i < 4))
+    print(len(DES), 'un-flagged')
     ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
     DES.x = (x-1).astype(np.int)
     DES.y = (y-1).astype(np.int)
+
+    # Cut of DES catalog for the SED-matched filter figure
     sz = 20
-    DES.cut((DES.x > sz) * (DES.y > sz) * (DES.x < (W-sz)) * (DES.y < (H-sz)))
-    print(len(DES), 'DES in bounds')
-    #DES.cut((g_detiv[DES.y, DES.x] > 0) * (r_detiv[DES.y, DES.x] > 0) * (i_detiv[DES.y, DES.x] > 0))
-    DES.cut(good[DES.y, DES.x])
-    print(len(DES), 'in good region')
+    Ides = np.flatnonzero((DES.x > sz) * (DES.y > sz) *
+                          (DES.x < (W-sz)) * (DES.y < (H-sz)) *
+                          good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
 
+    sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
+                     g_det, r_det, i_det, wcs)
 
-    #sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
-    #                 wcs)
     #galaxy_figs(sedlist, good, wcs, img)
 
-    bayes_figs(DES, detmaps, detivs, good)
+    #bayes_figs(DES, detmaps, detivs, good)
     
 if __name__ == '__main__':
     main()
