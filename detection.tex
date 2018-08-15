@@ -1341,7 +1341,68 @@ into fluxes, compute the fraction of flux contributed by the $g$, $r$,
 and $i$ bands, and histogram these values into a $21 \times 21$ grid.
 Keeping bins containing more than $0.1 \%$ of the catalog entries, we
 find 63 bins populated, as shown in \figref{fig:prior}.  The prior
-includes some SEDs that have zero flux contributions from 
+includes some SED components that have zero flux in $g$ band, which
+correspond to very red sources.
+
+
+We run the Bayesian detection proceduce described in Equation
+\ref{eq:pfg}, computing in log space to avoid numerical overflow.
+This takes a few minutes on a single core with our unoptimized
+implementation.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
+    \caption{Color-space locations of sources that are detected by
+      only the Bayesian SED-matched detection method, and only the
+      $g+r+i$ single-band detection method.  The Bayesian-only
+      detections have the colors of real objects, while the
+      $g+r+i$-only detections tend to be single-band sources,
+      including cosmic rays, asteroids, and very red sources.
+      \label{fig:bayes-vs-gri}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{bayes-only}
+    \hspace{0.03\textwidth}
+    \includegraphics[width=0.4\textwidth]{gri-only}
+    \caption{\emph{Left:} Examples of sources that are detected by
+      only the Bayesian SED-matched detection method.  These have the
+      colors of real objects and appear to be all faint galaxies.
+      \emph{Right:} Examples of sources that are detected by only the
+      $g+r+i$ single-band detection method.  These include cosmic
+      rays, asteroids, and very red sources.
+      \label{fig:only}}
+  \end{center}
+\end{figure}
+
+
+In order to show the performance of the Bayesian approach, we will
+detect sources at a high threshold and compare against a simple
+approach.  For the Bayesian map, we threshold at a log-probability
+ratio of $2000$, which yields approximately 3055 sources in good
+regions of the image.  For a comparison, we run the same detection
+procedure first on our $g$-band map, then on the $r$-band map, and
+finally on the $i$-band map, with a detection threshold of $50 \sigma$
+for each band.  We merge detected sources if they are within 5 pixels.
+This yields a total of 3201 sources in good regions.  In order to find
+sources that are detected by one method and not the other, we first
+cut to the brightest 3055 $g+r+i$ detections (based on maximum
+signal-to-noise in the three bands) so that the two lists of sources
+are the same length.  We then find sources that are not within an
+above-threshold region in the other map.  That is, we ignore Bayesian
+detections where the maximum of $g$, $r$, or $i$ signal-to-noise is
+above $50$, and we drop $g+r+i$ detections where the Bayesian
+log-probability is above $2000$.  This yields 163 unique Bayesian
+detections and 112 unique $g+r+i$ detections.  As shown in Figures
+\ref{fig:bayes-vs-gri} and \ref{fig:only}, the sources detected by
+only the Bayesian method have the colors of real sources and appear to
+be all real galaxies, while the sources detected by only the $g+r+i$
+method include a large number of cosmic rays and asteroids, as well as
+a number of real very red sources.
+
 
 \subsection{Galaxy detection}
 

@@ -8,12 +8,14 @@ import pylab as plt
 import numpy as np
 import fitsio
 import sys
+import time
 from astrometry.util.fits import *
+from astrometry.util.file import pickle_to_file, unpickle_from_file
 from astrometry.util.util import Tan
 from astrometry.util.plotutils import *
 from astrometry.util.starutil import *
 from astrometry.util.starutil_numpy import *
-from astrometry.libkd.spherematch import *
+from astrometry.libkd.spherematch import match_xy, match_radec
 from collections import Counter
 from scipy.ndimage.filters import *
 from scipy.ndimage.measurements import label, find_objects
@@ -441,10 +443,12 @@ def log_pratio_bayes(seds, weights, D, Div, alpha):
         ok = np.nonzero(b_i)
         c_i = a_i[ok] / beta_i[ok]
         terms[i,:,:][ok] = np.log(weights[i] / beta_i[ok]) + np.log(erfc(c_i)) + c_i**2
+        print('.', end='')
+    print()
     lse = logsumexp(terms, axis=0)
     return lse + np.log(alpha * np.sqrt(np.pi))
 
-def bayes_figs(DES, detmaps, detivs, good):
+def bayes_figs(DES, detmaps, detivs, good, wcs, img):
 
     # First, build empirical SED prior "library" from DES sources
     DES.flux_g = np.maximum(0, DES.flux_auto_g)
@@ -543,31 +547,132 @@ def bayes_figs(DES, detmaps, detivs, good):
     print(ng, 'of', N.sum(), 'plotted')
     plt.savefig('bayes-prior-cc.pdf')
 
-    return
     H,W = detmaps[0].shape
-    # Number of bands
-    J = 3
-    # Build detection-map & iv arrays
-    D = np.zeros((J,H,W))
-    Div = np.zeros((J,H,W))
-    for i,(d,div) in enumerate(zip(detmaps,detivs)):
-        D[i,:,:] = d
-        Div[i,:,:] = div
-    alpha = 1.
-    lprb = log_pratio_bayes(seds, weights, D, Div, alpha)
+    bayesfn = 'lprb.pickle'
+    if os.path.exists(bayesfn):
+        print('Reading cached', bayesfn)
+        lprb = unpickle_from_file(bayesfn)
+    else:
+        # Number of bands
+        J = 3
+        # Build detection-map & iv arrays
+        D = np.zeros((J,H,W))
+        Div = np.zeros((J,H,W))
+        for i,(d,div) in enumerate(zip(detmaps,detivs)):
+            D[i,:,:] = d
+            Div[i,:,:] = div
+        alpha = 1.
+        t0 = time.process_time()
+        lprb = log_pratio_bayes(seds, weights, D, Div, alpha)
+        t1 = time.process_time()
+        print('Bayes took', t1-t0, 'CPU-seconds')
+        pickle_to_file(lprb, bayesfn)
+        print('Writing cache', bayesfn)
+        # Bayes took 276.118402 CPU-seconds
 
     sz = 20
-    
-    bx,by = detect_sources(lprb, 200)
+    bx,by = detect_sources(lprb, 2000)
     bsources = fits_table()
     bsources.x = bx
     bsources.y = by
-    iy,ix = np.round(bsources.y).astype(int), np.round(bsources.x).astype(int)
-    bsources.lprb = lprb[iy,ix]
+    bsources.lprb = lprb[bsources.y, bsources.x]
     bsources.cut((bsources.x > sz) * (bsources.x < (W-sz)) * (bsources.y > sz) * (bsources.y < (H-sz)))
     bsources.cut(good[bsources.y, bsources.x])
     print('Kept', len(bsources))
 
+    g_det, r_det, i_det = detmaps
+    
+    bsources.g_flux = g_det[bsources.y, bsources.x]
+    bsources.r_flux = r_det[bsources.y, bsources.x]
+    bsources.i_flux = i_det[bsources.y, bsources.x]
+    bsources.ra,bsources.dec = wcs.pixelxy2radec(bsources.x+1, bsources.y+1)
+    bsources.g_mag = -2.5*(np.log10(bsources.g_flux) - 9)
+    bsources.r_mag = -2.5*(np.log10(bsources.r_flux) - 9)
+    bsources.i_mag = -2.5*(np.log10(bsources.i_flux) - 9)
+    bsources.gr = bsources.g_mag - bsources.r_mag
+    bsources.ri = bsources.r_mag - bsources.i_mag
+    I = np.argsort(-bsources.lprb)
+    bsources.cut(I)
+
+    # g + r + i detections
+    xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
+    xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
+    xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
+    print('Detected', len(xg),len(xr),len(xi), 'gri')
+    xm,ym = xg.copy(),yg.copy()
+    for xx,yy in [(xr,yr),(xi,yi)]:
+        I,J,d = match_xy(xm,ym, xx,yy, 5.)
+        print('Matched:', len(I))
+        U = np.ones(len(xx), bool)
+        U[J] = False
+        print('Unmatched:', np.sum(U))
+        xm = np.hstack((xm, xx[U]))
+        ym = np.hstack((ym, yy[U]))
+    print('Total of', len(xm), 'g+r+i')
+
+    sources = fits_table()
+    sources.x = xm
+    sources.y = ym
+    iy,ix = np.round(sources.y).astype(int), np.round(sources.x).astype(int)
+    sources.sn_g = (detmaps[0] * np.sqrt(detivs[0]))[iy,ix]
+    sources.sn_r = (detmaps[1] * np.sqrt(detivs[1]))[iy,ix]
+    sources.sn_i = (detmaps[2] * np.sqrt(detivs[2]))[iy,ix]
+    sources.g_flux = g_det[sources.y, sources.x]
+    sources.r_flux = r_det[sources.y, sources.x]
+    sources.i_flux = i_det[sources.y, sources.x]
+    sources.ra,sources.dec = wcs.pixelxy2radec(sources.x+1, sources.y+1)
+    sources.g_mag = -2.5*(np.log10(sources.g_flux) - 9)
+    sources.r_mag = -2.5*(np.log10(sources.r_flux) - 9)
+    sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
+    sources.gr = sources.g_mag - sources.r_mag
+    sources.ri = sources.r_mag - sources.i_mag
+    sources.sn_max = np.maximum(sources.sn_g, np.maximum(sources.sn_r, sources.sn_i))
+    sources.cut((sources.x > sz) * (sources.x < (W-sz)) * (sources.y > sz) * (sources.y < (H-sz)))
+    sources.cut(good[sources.y, sources.x])
+    print('Kept', len(sources))
+    I = np.argsort(-sources.sn_max)
+    sources.cut(I)
+
+    N = min(len(sources), len(bsources))
+    sources  =  sources[:N]
+    bsources = bsources[:N]
+    print('Cut both to', N)
+    
+    # Define unmatched sources as ones that are not in the other's hot region
+    hot = binary_fill_holes(np.logical_or(detmaps[0] * np.sqrt(detivs[0]) > 50.,
+                            np.logical_or(detmaps[1] * np.sqrt(detivs[1]) > 50.,
+                                          detmaps[2] * np.sqrt(detivs[2]) > 50.)))
+    Bhot = binary_fill_holes(lprb > 2000.)
+    UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
+    US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
+    print(len(UB), 'unmatched Bayesian', len(US), 'g+r+i')
+    
+    plt.figure(figsize=(6,4))
+    plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
+
+    plt.clf()
+    plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
+             label='g+r+i only')
+    plt.plot(bsources.gr[UB], bsources.ri[UB], 'kx',
+             label='Bayesian only')
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    plt.legend()
+    plt.axis([-5, 5, -3, 3])
+    plt.savefig('bayes-vs-gri.pdf')
+
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    plt.clf()
+    show_sources(bsources[UB], img, R=10, C=10, divider=1)
+    #plt.suptitle('Bayesian only');
+    plt.savefig('bayes-only.pdf')
+
+    plt.clf()
+    show_sources(sources[US], img, R=10, C=10, divider=1)
+    #plt.suptitle('Bayesian only');
+    plt.savefig('gri-only.pdf')
+    
     # plt.figure(figsize=(8,8))
     # I = np.argsort(-bsources.lprb)
     # show_sources(bsources[I], img, R=20, C=20)
@@ -732,7 +837,7 @@ def main():
 
     #galaxy_figs(sedlist, good, wcs, img)
 
-    bayes_figs(DES, detmaps, detivs, good)
+    bayes_figs(DES, detmaps, detivs, good, wcs, img)
     
 if __name__ == '__main__':
     main()
