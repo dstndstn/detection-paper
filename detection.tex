@@ -151,22 +151,6 @@ methods can be seen as instances of SED-matched filtering with implied
 
 \section{Introduction}
 
-
-FIXME -- are we going to talk about detecting galaxies?  Seems like we
-should!
-
-FIXME -- should we talk about the probability of selecting the wrong
-pixel as the peak?
-
-FIXME -- need some consistent way of labelling image quantities, and
-sensible naming and careful use of ``flux'' and ``counts''.  Some
-notation for ``estimates for'' or ``maximum-likelihood point estimate
-of'' would be useful too.  Hats?
-
-FIXME -- Szalay+1999 actually talk about SED-matched detection!!
-Section 4.2, and they call it ``optimal subspace filtering''.
-
-
 There are few operations in astronomy more important than the
 detection of stars or point sources.
 Indeed, many astronomical discoveries come down to point-source
@@ -200,22 +184,18 @@ gravitational radiation \cite{ligo}.
 % http://arxiv.org/abs/astro-ph/0602424
 
 In what follows, we will argue for matched filtering for point-source
-detection.  This is not new (CITE); what is new is that we consider
-the common context of heterogeneous (in point-spread function and
-sensitivity) multi-epoch, multi-band imaging.
+detection.  This is not new (it has been reviewed recently by
+\cite{zackay1}); what is new is that we consider the common context of
+heterogeneous (in point-spread function and sensitivity) multi-epoch,
+multi-band imaging.
 %
 While the optimality of matched filtering for single-image point
 source detection is well known by astronomers, the straightforward
-mathematics behind it is often not, leading to a misconception that
-it is simply an algorithmic choice.  To our knowledge, the optimal%
-\footnote{In this \doctype\ we use ``optimal'' in a technical sense,
- of saturating the Cram\'er--Rao bound under stated assumptions.  We
- encourage other authors to do the same!}
-method of combining multiple images with different properties to
-obtain the greatest possible sensitivity to point sources has not been
-written down in the astronomical literature.  The mathematics are
-straightforward and the resulting procedure is simple and
-computationally inexpensive.  
+mathematics behind it is often not, leading to a misconception that it
+is simply an algorithmic choice.  Here, we show that this method is
+optimal in the technical sense that it saturates the Cram\'er--Rao
+bound under stated assumptions.  The mathematics are straightforward
+and the resulting procedure is simple and computationally inexpensive.
 
 Perhaps more controversially, we go on to argue that when imaging in
 multiple bands is available, one should again use a matched filter,
@@ -239,7 +219,6 @@ point-spread function, noise-model, calibration, and time-domain
 uncertainties.
 
 % FIXME -- DISCUSS each of the things listed above in the Discussion (or omit)!
-
 
 
 A ``traditional'' approach for detecting sources in multi-epoch
@@ -831,7 +810,7 @@ thresholding to determine which sources should be kept.
 \subsection{Comments}
 
 \paragraph{Chi-squared coadd.}
-Szalay \etal \citep{szalay1999} present the idea of using the $\chi^2$
+\cite{szalay1999} present the idea of using the $\chi^2$
 statistic of a set of images taken through different bandpass filters.
 That is, they take pixel-aligned and possibly PSF-filtered images
 (here we will use detection maps) and compute $\chi^2$ pixelwise,
@@ -1157,6 +1136,12 @@ integrals.
 
 \section{Experiments}
 
+% The experiment here make extensive use of the Legacy Survey code
+% infrastructure -- running calibrations of the CP images, and
+% producing detection maps.  The processing is described in DECAM.txt,
+% and the custom code for this project is in the run-pipe.py file.
+
+
 We present experiments using data from the Dark Energy Camera
 \citep{decam} taken as part of the Supernova program \citep{dessn} of
 the Dark Energy Survey \citep{des}.  We selected the deep field ``SN
@@ -1412,35 +1397,33 @@ a number of real very red sources.
 
 
 While we have focused on the detection of point sources in this paper,
-it is a trivial extension to detect a source with a known spatial
-profile.  We need only return to the individual exposures and, instead
-of correlating the images by a model of the PSF, we correlate by a
-model of the PSF convolved by the spatial profile of the source to be
-detected.  Here, we assume a simple round Gaussian profile with a FWHM
-of 1 arcsecond.  We need to return to the original images, as opposed
-to post-processing the PSF-optimized detection maps, because the
-\emph{weights} ($1/\sigma_{D}^2$) applied to each image are different
-for detecting an extended sources versus detecting a point source;
-images with good seeing are relatively less valuable for detecting
-extended sources than for detecting point sources.  After computing
-extended-source detection maps for each of the $g$, $r$, and $i$ image
-sets, as above, we run the Yellow SED-matched filter and detect
-sources as before.  In \figref{fig:gals} we show sources that are more
-strongly detected by our extended-source detector than by a
-point-source detector.  These include a few bright stars (where the
-saturated cores cause errors in estimating the signal-to-noise) but
-are largely real galaxies.  Perhaps surprisingly, we find that using a
-detection filter tuned to a round Gaussian profile yields only a
-few-percent improvement in detection efficiency versus a PSF-tuned
-filter, for typical galaxies in DECam images.
+it is a trivial extension to build a detection filter tuned to a
+source with a known spatial profile.  We need only return to the
+individual exposures and, instead of correlating the images by a model
+of the PSF, we correlate by a model of the PSF correlated with the
+spatial profile of the source to be detected.  In this experiment, we
+assume a simple round Gaussian profile with a FWHM of 1 arcsecond.  We
+need to return to the original images, as opposed to post-processing
+the PSF-optimized detection maps, because the \emph{weights} applied
+to each image are different for detecting an extended sources versus
+detecting a point source; images with good seeing are relatively less
+valuable for detecting extended sources than for detecting point
+sources.  After computing extended-source detection maps for each of
+the $g$, $r$, and $i$ image sets, as above, we run the Yellow
+SED-matched filter and detect sources as before.  In \figref{fig:gals}
+we show sources that are more strongly detected by our extended-source
+detector than by a point-source detector.  These include a few bright
+stars (where the saturated cores cause errors in estimating the
+signal-to-noise) but are largely real galaxies.  Perhaps surprisingly,
+we find that using a detection filter tuned to a round Gaussian
+profile yields only a few-percent improvement in detection efficiency
+versus a PSF-tuned filter, for typical galaxies in DECam images.
 
 
 \section{Discussion}
 
 --similarities and differences from Szalay et al 1999 -- SED-matched
 filters $\sim$ ``optimal subspace filtering''
-
---galaxy detection?
 
 --No weights go to zero -- all images contribute *something*, in
 proportion to t he information they bring.  Contrast with lucky
@@ -1450,13 +1433,13 @@ imaging and some co-adding schemes.
 threshold; post-process to cut out peaks that really were below
 threshold.
 
+--Practicalities: bad pixels / masks, interpolation, etc?
 
 \section{Conclusions}
 
-[[What to do with a detection image; how to proceed.  Build models,
-    fit simultaneously to all images in the ``stack''.]]
+--What to do with a detection image; how to proceed.  Build models,
+    fit simultaneously to all images in the ``stack''.
 
-[[Practicalities: bad pixels / masks, interpolation, etc]]
 
 \acknowledgements
 
