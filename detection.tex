@@ -345,6 +345,7 @@ mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
 
 
 \section{Detecting a point source in a single image}
+\label{sec:detection}
 
 %\subsection{Optimal linear detection}
 
@@ -582,7 +583,7 @@ is related to the cosine distance between the correct and model galaxy
 profile.
 
 In practice, our mixture-of-Gaussians approximations to standard
-exponential and deVaucouleurs galaxy profiles \cite{gaussgals} are
+exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
 convenient for this task.
 
 
@@ -1169,37 +1170,6 @@ images have a range of seeing and sky transparency values.  The list
 of exposures is available in Tables \ref{tab:exposures} and
 \ref{tab:exposuresi}.
 
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[height=0.4\textwidth]{galaxies}
-    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
-    \caption{\emph{Left:} Detections from an extended-source detector,
-      sorted by the difference in detection strength between the
-      ``yellow galaxy'' and ``yellow point source'' detectors.
-      \emph{Right:} Relative strength of detection of sources in the
-      extended versus PSF detection filters.  The extended-source
-      filter used here is a 1-arcsecond FWHM round Gaussian.  There is
-      a clear line of sources with a detection ratio around 0.95,
-      corresponding to point sources.  Sources with ratios above unity
-      are closer in profile to the target profile than to a point
-      source, with the largest ratios probably corresponding to
-      sources that are approximately equal to the target profile.
-      \label{fig:gals}}
-  \end{center}
-\end{figure}
-
-We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
-for calibration of the images, and then compute astrometric and
-photometric zeropoints, sky background models and PSF models, using
-the DESI Legacy Surveys pipeline \citep{lsoverview}.  The astrometric
-calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
-  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
-reference catalog \citep{panstarrs}.  The PSF models use PsfEx
-\citep{psfex}.
-
-\subsection{SED-matched detection}
-
 \begin{figure}
   \begin{center}
     \includegraphics[height=0.4\textwidth]{image-sources}
@@ -1273,6 +1243,89 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
   \end{center}
 \end{figure}
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.32\textwidth]{bayes-data-cc}
+    \includegraphics[width=0.32\textwidth]{bayes-prior-sed}
+    \includegraphics[width=0.32\textwidth]{bayes-prior-cc}
+    \caption{Bayesian prior for SED-matched detection.  \emph{Left:}
+      Sources from the Dark Energy Survey catalog, in color space.
+      \emph{Center:} Sources binned in SED space, with low-population
+      bins dropped.  The axes are the fraction of flux contributed by
+      the $g$ and $r$ bands, respectively.  Implicitly, the fraction
+      contributed by the $i$ band is \mbox{1 - ($g$ + $r$).}  Empty
+      bins are shown with a light shading.  Notice that some bins with
+      $g \sim 0$ are populated; these cannot be represented in color
+      space, but correspond to DES catalog entries with measured $g$
+      flux consistent with zero.  \emph{Right:} Our discrete SED-space
+      binning, projected to color space.
+      \label{fig:prior}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
+    \caption{Color-space locations of sources that are detected by
+      only the Bayesian SED-matched detection method, and only the
+      $g+r+i$ single-band detection method.  The Bayesian-only
+      detections have the colors of real objects, while the
+      $g+r+i$-only detections tend to be single-band sources,
+      including cosmic rays, asteroids, and very red sources.
+      \label{fig:bayes-vs-gri}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{bayes-only}
+    \hspace{0.03\textwidth}
+    \includegraphics[width=0.4\textwidth]{gri-only}
+    \caption{\emph{Left:} Examples of sources that are detected by
+      only the Bayesian SED-matched detection method.  These have the
+      colors of real objects and appear to be all faint galaxies.
+      \emph{Right:} Examples of sources that are detected by only the
+      $g+r+i$ single-band detection method.  These include cosmic
+      rays, asteroids, and very red sources.
+      \label{fig:only}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{galaxies}
+    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
+    \caption{\emph{Left:} Detections from an extended-source detector,
+      sorted by the difference in detection strength between the
+      ``yellow galaxy'' and ``yellow point source'' detectors.  The
+      bright stars are likely included because their saturated cores
+      cause difficulty in correctly measuring the signal-to-noise.
+      The remaining sources are all galaxies, except for one
+      fast-moving asteroid that is spatially extended.  \emph{Right:}
+      Relative strength of detection of sources in the extended versus
+      PSF detection filters.  The extended-source filter used here is
+      a 1-arcsecond FWHM round Gaussian.  There is a clear line of
+      sources with a detection ratio around 0.95, corresponding to
+      point sources.  Sources with ratios above unity are closer in
+      profile to the target profile than to a point source, with the
+      largest ratios probably corresponding to sources that are
+      approximately equal to the target profile.
+      \label{fig:gals}}
+  \end{center}
+\end{figure}
+
+We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
+for calibration of the images, and then compute astrometric and
+photometric zeropoints, sky background models and PSF models, using
+the DESI Legacy Surveys pipeline \citep{lsoverview}.  The astrometric
+calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
+  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
+reference catalog \citep{panstarrs}.  The PSF models use PsfEx
+\citep{psfex}.
+
+\subsection{SED-matched detection}
+
+
 We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
 in the center of the focal plane.  We produce detection maps for each
 band as described above, and run several SED-matched filters: a
@@ -1313,27 +1366,6 @@ the lowest signal-to-noise levels.
 
 \subsection{Bayesian SED-matched detection}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.32\textwidth]{bayes-data-cc}
-    \includegraphics[width=0.32\textwidth]{bayes-prior-sed}
-    \includegraphics[width=0.32\textwidth]{bayes-prior-cc}
-    \caption{Bayesian prior for SED-matched detection.  \emph{Left:}
-      Sources from the Dark Energy Survey catalog, in color space.
-      \emph{Center:} Sources binned in SED space, with low-population
-      bins dropped.  The axes are the fraction of flux contributed by
-      the $g$ and $r$ bands, respectively.  Implicitly, the fraction
-      contributed by the $i$ band is \mbox{1 - ($g$ + $r$).}  Empty
-      bins are shown with a light shading.  Notice that some bins with
-      $g \sim 0$ are populated; these cannot be represented in color
-      space, but correspond to DES catalog entries with measured $g$
-      flux consistent with zero.  \emph{Right:} Our discrete SED-space
-      binning, projected to color space.
-      \label{fig:prior}}
-  \end{center}
-\end{figure}
-
-
 We build an empirical ``library'' of SEDs for these bands, which we
 use as a prior, by querying the Dark Energy Survey database in our
 region of interest.  We convert the \texttt{mag\_auto} measurements
@@ -1349,34 +1381,6 @@ We run the Bayesian detection proceduce described in Equation
 \ref{eq:pfg}, computing in log space to avoid numerical overflow.
 This takes a few minutes on a single core with our unoptimized
 implementation.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
-    \caption{Color-space locations of sources that are detected by
-      only the Bayesian SED-matched detection method, and only the
-      $g+r+i$ single-band detection method.  The Bayesian-only
-      detections have the colors of real objects, while the
-      $g+r+i$-only detections tend to be single-band sources,
-      including cosmic rays, asteroids, and very red sources.
-      \label{fig:bayes-vs-gri}}
-  \end{center}
-\end{figure}
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.4\textwidth]{bayes-only}
-    \hspace{0.03\textwidth}
-    \includegraphics[width=0.4\textwidth]{gri-only}
-    \caption{\emph{Left:} Examples of sources that are detected by
-      only the Bayesian SED-matched detection method.  These have the
-      colors of real objects and appear to be all faint galaxies.
-      \emph{Right:} Examples of sources that are detected by only the
-      $g+r+i$ single-band detection method.  These include cosmic
-      rays, asteroids, and very red sources.
-      \label{fig:only}}
-  \end{center}
-\end{figure}
 
 
 In order to show the performance of the Bayesian approach, we will
@@ -1405,6 +1409,30 @@ a number of real very red sources.
 
 
 \subsection{Galaxy detection}
+
+
+While we have focused on the detection of point sources in this paper,
+it is a trivial extension to detect a source with a known spatial
+profile.  We need only return to the individual exposures and, instead
+of correlating the images by a model of the PSF, we correlate by a
+model of the PSF convolved by the spatial profile of the source to be
+detected.  Here, we assume a simple round Gaussian profile with a FWHM
+of 1 arcsecond.  We need to return to the original images, as opposed
+to post-processing the PSF-optimized detection maps, because the
+\emph{weights} ($1/\sigma_{D}^2$) applied to each image are different
+for detecting an extended sources versus detecting a point source;
+images with good seeing are relatively less valuable for detecting
+extended sources than for detecting point sources.  After computing
+extended-source detection maps for each of the $g$, $r$, and $i$ image
+sets, as above, we run the Yellow SED-matched filter and detect
+sources as before.  In \figref{fig:gals} we show sources that are more
+strongly detected by our extended-source detector than by a
+point-source detector.  These include a few bright stars (where the
+saturated cores cause errors in estimating the signal-to-noise) but
+are largely real galaxies.  Perhaps surprisingly, we find that using a
+detection filter tuned to a round Gaussian profile yields only a
+few-percent improvement in detection efficiency versus a PSF-tuned
+filter, for typical galaxies in DECam images.
 
 
 \section{Discussion}

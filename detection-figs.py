@@ -704,8 +704,8 @@ def galaxy_figs(sedlist, good, wcs, img):
     H,W = good.shape
     gals.cut((gals.x > sz) * (gals.y > sz) * (gals.x < (W-sz)) * (gals.y < (H-sz)))
     print(len(gals), 'not near edges')
-    gals.cut((g_galdetiv[gals.y, gals.x] > 0) * (r_galdetiv[gals.y, gals.x] > 0) * (i_galdetiv[gals.y, gals.x] > 0))
-    print(len(gals), 'with gri obs')
+    #gals.cut((g_galdetiv[gals.y, gals.x] > 0) * (r_galdetiv[gals.y, gals.x] > 0) * (i_galdetiv[gals.y, gals.x] > 0))
+    #print(len(gals), 'with gri obs')
     sns = []
     for s in sedlist:
         gals.set(s.tname, s.galsnmap[gals.y, gals.x])
@@ -729,9 +729,9 @@ def galaxy_figs(sedlist, good, wcs, img):
     # gals.g_galmag = -2.5*(np.log10(gals.g_galflux) - 9)
     # gals.r_galmag = -2.5*(np.log10(gals.r_galflux) - 9)
     # gals.i_galmag = -2.5*(np.log10(gals.i_galflux) - 9)
-    I = np.argsort(-gals.yellow_sn)
-    gals.cut(I)    
-    
+    #I = np.argsort(-gals.yellow_sn)
+    #gals.cut(I)
+
     plt.figure(figsize=(4,4))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
@@ -835,9 +835,9 @@ def main():
     #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
     #                 g_det, r_det, i_det, wcs)
 
-    #galaxy_figs(sedlist, good, wcs, img)
+    galaxy_figs(sedlist, good, wcs, img)
 
-    bayes_figs(DES, detmaps, detivs, good, wcs, img)
+    #bayes_figs(DES, detmaps, detivs, good, wcs, img)
     
 if __name__ == '__main__':
     main()
