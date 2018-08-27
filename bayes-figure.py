@@ -261,6 +261,7 @@ plt.plot(d_one, prior1a, 'b-', label='Faint luminosity function') #'Foreground p
 # /2 to normalize (~ d_d / d_flux)
 plt.plot(d_one, prior1b/2., 'r--', label='Bright luminosity function') #Foreground prior, s * 2')
 plt.axhline(0., color='k', alpha=0.1)
+plt.axvline(0., color='k', alpha=0.1)
 plt.xlim(-4,8)
 plt.yticks([0, 0.5, 1.0])
 plt.ylabel('Prior probability')
