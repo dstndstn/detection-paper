@@ -53,9 +53,12 @@ for ii,alpha in enumerate(alphas):
     codetsn[ii] = codet.max() / codetsig
 
 plt.clf()
-plt.axhline(detmap.max()/detsig, color='k', linestyle='--', label='Detection map')
-plt.plot(alphas, codetsn, 'b-', label='Detect on coadd')
-plt.axhline(detmap1.max()/detsig1, color='r', linestyle=':', label='Single-image detection maps')
+plt.axhline(detmap.max()/detsig, color='k', linestyle='--',
+            label='2-image detection map')
+plt.plot(alphas, codetsn, 'b-',
+         label='Coadd 2 images then detect')
+plt.axhline(detmap1.max()/detsig1, color='r', linestyle=':',
+            label='Single-image detection maps')
 plt.axhline(detmap2.max()/detsig2, color='r', linestyle=':')
 plt.legend(loc=(0.02, 0.75))
 plt.xlim(0,1)

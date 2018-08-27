@@ -678,14 +678,22 @@ in loss of signal-to-noise or detection efficiency.
 
 \begin{figure}[h]
   \begin{center}
+    % This figure comes from the dont-coadd.py script.
   \includegraphics[width=0.5\textwidth]{dont-coadd}
-  \caption{Loss of signal-to-noise in computing a coadd and detecting
-    sources in the coadd, rather than computing the detection map on
-    the individual images.  Two images, with PSF widths differing by a
+  \caption{The benefit of constructing a \emph{detection map} versus
+    \emph{coadding} the images and then detecting sources on the
+    coadd.  Here, we have two images with PSF widths different by a
     factor of two, and exposure times such that the depths are
-    similar, are coadded and sources detected.  Regardless of the
-    weighting used to coadd the images, detection efficiency is lost
-    compared to the method presented in this paper.\label{fig:dontcoadd}}
+    similar.  The signal-to-noise at which a source is detected in the
+    individual images is shown by the dotted lines at the bottom.  By
+    constructing a detection map, we extract all the available signal
+    in the combination of the two images; the detection map
+    signal-to-noise (dashed line at top) equals the sum-in-quadrature
+    of the two images.  However, if we instead coadd the images and
+    then detect the source in the coadd, we lose a significant
+    fraction of the signal-to-noise, regardless of the weighting
+    factor applied to the two images.
+    \label{fig:dontcoadd}}
   \end{center}
 \end{figure}
 
