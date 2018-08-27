@@ -26,4 +26,9 @@ for fn in set(T.image_filename):
                (infn.replace('_ooi_', tag), outfn.replace('_ooi_', tag),
                 T.image_hdu[J[0]], T.image_hdu[J[1]]))
         print(cmd)
-        os.system(cmd)
+        #os.system(cmd)
+
+    T.image_hdu[J[0]] = 1
+    T.image_hdu[J[1]] = 2
+
+T.writeto('survey-ccds-snx3-25-subs.fits.gz')
