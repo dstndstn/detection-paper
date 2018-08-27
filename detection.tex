@@ -151,22 +151,6 @@ methods can be seen as instances of SED-matched filtering with implied
 
 \section{Introduction}
 
-
-FIXME -- are we going to talk about detecting galaxies?  Seems like we
-should!
-
-FIXME -- should we talk about the probability of selecting the wrong
-pixel as the peak?
-
-FIXME -- need some consistent way of labelling image quantities, and
-sensible naming and careful use of ``flux'' and ``counts''.  Some
-notation for ``estimates for'' or ``maximum-likelihood point estimate
-of'' would be useful too.  Hats?
-
-FIXME -- Szalay+1999 actually talk about SED-matched detection!!
-Section 4.2, and they call it ``optimal subspace filtering''.
-
-
 There are few operations in astronomy more important than the
 detection of stars or point sources.
 Indeed, many astronomical discoveries come down to point-source
@@ -200,22 +184,18 @@ gravitational radiation \cite{ligo}.
 % http://arxiv.org/abs/astro-ph/0602424
 
 In what follows, we will argue for matched filtering for point-source
-detection.  This is not new (CITE); what is new is that we consider
-the common context of heterogeneous (in point-spread function and
-sensitivity) multi-epoch, multi-band imaging.
+detection.  This is not new (it has been reviewed recently by
+\cite{zackay1}); what is new is that we consider the common context of
+heterogeneous (in point-spread function and sensitivity) multi-epoch,
+multi-band imaging.
 %
 While the optimality of matched filtering for single-image point
 source detection is well known by astronomers, the straightforward
-mathematics behind it is often not, leading to a misconception that
-it is simply an algorithmic choice.  To our knowledge, the optimal%
-\footnote{In this \doctype\ we use ``optimal'' in a technical sense,
- of saturating the Cram\'er--Rao bound under stated assumptions.  We
- encourage other authors to do the same!}
-method of combining multiple images with different properties to
-obtain the greatest possible sensitivity to point sources has not been
-written down in the astronomical literature.  The mathematics are
-straightforward and the resulting procedure is simple and
-computationally inexpensive.  
+mathematics behind it is often not, leading to a misconception that it
+is simply an algorithmic choice.  Here, we show that this method is
+optimal in the technical sense that it saturates the Cram\'er--Rao
+bound under stated assumptions.  The mathematics are straightforward
+and the resulting procedure is simple and computationally inexpensive.
 
 Perhaps more controversially, we go on to argue that when imaging in
 multiple bands is available, one should again use a matched filter,
@@ -239,7 +219,6 @@ point-spread function, noise-model, calibration, and time-domain
 uncertainties.
 
 % FIXME -- DISCUSS each of the things listed above in the Discussion (or omit)!
-
 
 
 A ``traditional'' approach for detecting sources in multi-epoch
@@ -345,6 +324,7 @@ mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
 
 
 \section{Detecting a point source in a single image}
+\label{sec:detection}
 
 %\subsection{Optimal linear detection}
 
@@ -582,7 +562,7 @@ is related to the cosine distance between the correct and model galaxy
 profile.
 
 In practice, our mixture-of-Gaussians approximations to standard
-exponential and deVaucouleurs galaxy profiles \cite{gaussgals} are
+exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
 convenient for this task.
 
 
@@ -830,7 +810,7 @@ thresholding to determine which sources should be kept.
 \subsection{Comments}
 
 \paragraph{Chi-squared coadd.}
-Szalay \etal \citep{szalay1999} present the idea of using the $\chi^2$
+\cite{szalay1999} present the idea of using the $\chi^2$
 statistic of a set of images taken through different bandpass filters.
 That is, they take pixel-aligned and possibly PSF-filtered images
 (here we will use detection maps) and compute $\chi^2$ pixelwise,
@@ -1041,6 +1021,11 @@ coarse gridding of SED space yields good results, as shown below.
 %   \exp(c_i^2) \left[ 1 - \erf(c_i) \right]
 % \end{eqnarray}
 
+% - a_i is negative for sources; b_i ~ constant across the image
+% - a_i / (2 sqrt(b_i)) goes from slightly above zero to, eg, -50 for sources
+% - erf(a_i / (2 sqrt(b_i))) ~ -1 for sources
+% - 1 - erf(a_i / 2 sqrt(b_i)) ~ 2 for sources
+
 
 In order to select sources, we can compare this likelihood to the
 null-hypothesis likelihood: that there is no source and the observed
@@ -1151,6 +1136,12 @@ integrals.
 
 \section{Experiments}
 
+% The experiment here make extensive use of the Legacy Survey code
+% infrastructure -- running calibrations of the CP images, and
+% producing detection maps.  The processing is described in DECAM.txt,
+% and the custom code for this project is in the run-pipe.py file.
+
+
 We present experiments using data from the Dark Energy Camera
 \citep{decam} taken as part of the Supernova program \citep{dessn} of
 the Dark Energy Survey \citep{des}.  We selected the deep field ``SN
@@ -1161,7 +1152,8 @@ exposures in each band from the 2016B semester, keeping at most one
 exposure per night per band.  The exposure times for each image are
 200 seconds in $g$, 400 seconds in $r$, and 360 seconds in $i$.  The
 images have a range of seeing and sky transparency values.  The list
-of exposures is available in Table \ref{tab:exposures}.
+of exposures is available in Tables \ref{tab:exposures} and
+\ref{tab:exposuresi}.
 
 \begin{figure}
   \begin{center}
@@ -1236,7 +1228,76 @@ of exposures is available in Table \ref{tab:exposures}.
   \end{center}
 \end{figure}
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.32\textwidth]{bayes-data-cc}
+    \includegraphics[width=0.32\textwidth]{bayes-prior-sed}
+    \includegraphics[width=0.32\textwidth]{bayes-prior-cc}
+    \caption{Bayesian prior for SED-matched detection.  \emph{Left:}
+      Sources from the Dark Energy Survey catalog, in color space.
+      \emph{Center:} Sources binned in SED space, with low-population
+      bins dropped.  The axes are the fraction of flux contributed by
+      the $g$ and $r$ bands, respectively.  Implicitly, the fraction
+      contributed by the $i$ band is \mbox{1 - ($g$ + $r$).}  Empty
+      bins are shown with a light shading.  Notice that some bins with
+      $g \sim 0$ are populated; these cannot be represented in color
+      space, but correspond to DES catalog entries with measured $g$
+      flux consistent with zero.  \emph{Right:} Our discrete SED-space
+      binning, projected to color space.
+      \label{fig:prior}}
+  \end{center}
+\end{figure}
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
+    \caption{Color-space locations of sources that are detected by
+      only the Bayesian SED-matched detection method, and only the
+      $g+r+i$ single-band detection method.  The Bayesian-only
+      detections have the colors of real objects, while the
+      $g+r+i$-only detections tend to be single-band sources,
+      including cosmic rays, asteroids, and very red sources.
+      \label{fig:bayes-vs-gri}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.4\textwidth]{bayes-only}
+    \hspace{0.03\textwidth}
+    \includegraphics[width=0.4\textwidth]{gri-only}
+    \caption{\emph{Left:} Examples of sources that are detected by
+      only the Bayesian SED-matched detection method.  These have the
+      colors of real objects and appear to be all faint galaxies.
+      \emph{Right:} Examples of sources that are detected by only the
+      $g+r+i$ single-band detection method.  These include cosmic
+      rays, asteroids, and very red sources.
+      \label{fig:only}}
+  \end{center}
+\end{figure}
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{galaxies}
+    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
+    \caption{\emph{Left:} Detections from an extended-source detector,
+      sorted by the difference in detection strength between the
+      ``yellow galaxy'' and ``yellow point source'' detectors.  The
+      bright stars are likely included because their saturated cores
+      cause difficulty in correctly measuring the signal-to-noise.
+      The remaining sources are all galaxies, except for one
+      fast-moving asteroid that is spatially extended.  \emph{Right:}
+      Relative strength of detection of sources in the extended versus
+      PSF detection filters.  The extended-source filter used here is
+      a 1-arcsecond FWHM round Gaussian.  There is a clear line of
+      sources with a detection ratio around 0.95, corresponding to
+      point sources.  Sources with ratios above unity are closer in
+      profile to the target profile than to a point source, with the
+      largest ratios probably corresponding to sources that are
+      approximately equal to the target profile.
+      \label{fig:gals}}
+  \end{center}
+\end{figure}
 
 We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
@@ -1246,6 +1307,9 @@ calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
   gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \citep{psfex}.
+
+\subsection{SED-matched detection}
+
 
 We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
 in the center of the focal plane.  We produce detection maps for each
@@ -1275,7 +1339,8 @@ We also observe that some sources are most strongly detected in one of
 the single-band-only SED-matched filters.  For the $g$-band-only and
 $r$-band-only filters, these are almost exclusively image artifacts,
 such as cosmic rays that are not masked by the Community Pipeline; and
-transient sources, including asteroids.  A few examples are shown in
+transient sources, including asteroids.  The $i$-band-only filter can
+also detect extremely red sources.  A few examples are shown in
 \figref{fig:oneband}.
 
 In \figref{fig:strength} we illustrate how the relative strength of
@@ -1284,13 +1349,81 @@ source colors.  We observe differences of tens of percent, which can
 lead to a very significant number of additional detected sources at
 the lowest signal-to-noise levels.
 
+\subsection{Bayesian SED-matched detection}
+
+We build an empirical ``library'' of SEDs for these bands, which we
+use as a prior, by querying the Dark Energy Survey database in our
+region of interest.  We convert the \texttt{mag\_auto} measurements
+into fluxes, compute the fraction of flux contributed by the $g$, $r$,
+and $i$ bands, and histogram these values into a $21 \times 21$ grid.
+Keeping bins containing more than $0.1 \%$ of the catalog entries, we
+find 63 bins populated, as shown in \figref{fig:prior}.  The prior
+includes some SED components that have zero flux in $g$ band, which
+correspond to very red sources.
+
+
+We run the Bayesian detection proceduce described in Equation
+\ref{eq:pfg}, computing in log space to avoid numerical overflow.
+This takes a few minutes on a single core with our unoptimized
+implementation.
+
+
+In order to show the performance of the Bayesian approach, we will
+detect sources at a high threshold and compare against a simple
+approach.  For the Bayesian map, we threshold at a log-probability
+ratio of $2000$, which yields approximately 3055 sources in good
+regions of the image.  For a comparison, we run the same detection
+procedure first on our $g$-band map, then on the $r$-band map, and
+finally on the $i$-band map, with a detection threshold of $50 \sigma$
+for each band.  We merge detected sources if they are within 5 pixels.
+This yields a total of 3201 sources in good regions.  In order to find
+sources that are detected by one method and not the other, we first
+cut to the brightest 3055 $g+r+i$ detections (based on maximum
+signal-to-noise in the three bands) so that the two lists of sources
+are the same length.  We then find sources that are not within an
+above-threshold region in the other map.  That is, we ignore Bayesian
+detections where the maximum of $g$, $r$, or $i$ signal-to-noise is
+above $50$, and we drop $g+r+i$ detections where the Bayesian
+log-probability is above $2000$.  This yields 163 unique Bayesian
+detections and 112 unique $g+r+i$ detections.  As shown in Figures
+\ref{fig:bayes-vs-gri} and \ref{fig:only}, the sources detected by
+only the Bayesian method have the colors of real sources and appear to
+be all real galaxies, while the sources detected by only the $g+r+i$
+method include a large number of cosmic rays and asteroids, as well as
+a number of real very red sources.
+
+
+\subsection{Galaxy detection}
+
+
+While we have focused on the detection of point sources in this paper,
+it is a trivial extension to build a detection filter tuned to a
+source with a known spatial profile.  We need only return to the
+individual exposures and, instead of correlating the images by a model
+of the PSF, we correlate by a model of the PSF correlated with the
+spatial profile of the source to be detected.  In this experiment, we
+assume a simple round Gaussian profile with a FWHM of 1 arcsecond.  We
+need to return to the original images, as opposed to post-processing
+the PSF-optimized detection maps, because the \emph{weights} applied
+to each image are different for detecting an extended sources versus
+detecting a point source; images with good seeing are relatively less
+valuable for detecting extended sources than for detecting point
+sources.  After computing extended-source detection maps for each of
+the $g$, $r$, and $i$ image sets, as above, we run the Yellow
+SED-matched filter and detect sources as before.  In \figref{fig:gals}
+we show sources that are more strongly detected by our extended-source
+detector than by a point-source detector.  These include a few bright
+stars (where the saturated cores cause errors in estimating the
+signal-to-noise) but are largely real galaxies.  Perhaps surprisingly,
+we find that using a detection filter tuned to a round Gaussian
+profile yields only a few-percent improvement in detection efficiency
+versus a PSF-tuned filter, for typical galaxies in DECam images.
+
 
 \section{Discussion}
 
 --similarities and differences from Szalay et al 1999 -- SED-matched
 filters $\sim$ ``optimal subspace filtering''
-
---galaxy detection?
 
 --No weights go to zero -- all images contribute *something*, in
 proportion to t he information they bring.  Contrast with lucky
@@ -1300,13 +1433,13 @@ imaging and some co-adding schemes.
 threshold; post-process to cut out peaks that really were below
 threshold.
 
+--Practicalities: bad pixels / masks, interpolation, etc?
 
 \section{Conclusions}
 
-[[What to do with a detection image; how to proceed.  Build models,
-    fit simultaneously to all images in the ``stack''.]]
+--What to do with a detection image; how to proceed.  Build models,
+    fit simultaneously to all images in the ``stack''.
 
-[[Practicalities: bad pixels / masks, interpolation, etc]]
 
 \acknowledgements
 
@@ -1334,8 +1467,7 @@ Let us assume that there exists a linear filter whose output allows
 optimal detection of isolated point sources.  That is, we seek a
 (two-dimensional) set of coefficients $a_{\ivec}$ that, when
 correlated with the image $I_{\jvec}$, produces a map $M_{\jvec}$
-whose peak is the likely location of the point source.  See
-\figref{fig:detmap}.
+whose peak is the likely location of the point source.
 
 
 The linear filtering (correlation) operation is
@@ -1347,7 +1479,7 @@ where $\mathcal{A}$ is the support of $\avec$ (integer pixel
 positions), and the center of $\avec$ is $\coord{0}{0}$.  We will
 demand that the elements of $\avec$ are non-negative and sum to unity.
 
-Inserting \eqnref{eq:modelimg}, we get
+Inserting \eqnref{eqn:image}, we get
 \begin{eqnarray}
 M_{\jvec} &\drawnfrom& \sum_{\iina}
   I_k \, a_{\ivec} \, \psfat{\ivec + \jvec - \kvec} + \gaussx{0}{\sigma_1^2}
@@ -1590,9 +1722,12 @@ Therefore, the estimator saturates the Cram\'er--Rao bound.
 
 \begin{table}
   \begin{center}
+    \begin{scriptsize}
     \begin{tabular}{cccccc}
+      \hline
       Filter & Exposure number & Date & Exposure time (s) &
       Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
+      \hline
       g & 563982 & 2016-08-14 & 200 & 1.28 & 24.65 \\
       g & 566968 & 2016-08-24 & 200 & 1.79 & 23.02 \\
       g & 567422 & 2016-08-25 & 200 & 1.72 & 23.55 \\
@@ -1618,7 +1753,7 @@ Therefore, the estimator saturates the Cram\'er--Rao bound.
       g & 604684 & 2016-12-28 & 200 & 1.82 & 24.26 \\
       g & 605946 & 2017-01-03 & 200 & 1.75 & 24.11 \\
       g & 609567 & 2017-01-17 & 200 & 1.17 & 24.14 \\
-      \hline \\
+      \hline
       r & 563978 & 2016-08-14 & 400 & 1.37 & 24.51 \\
       r & 566976 & 2016-08-24 & 400 & 1.58 & 23.57 \\
       r & 567426 & 2016-08-25 & 400 & 1.53 & 23.99 \\
@@ -1644,7 +1779,22 @@ Therefore, the estimator saturates the Cram\'er--Rao bound.
       r & 601776 & 2016-12-18 & 400 & 1.20 & 24.98 \\
       r & 604334 & 2016-12-25 & 400 & 1.01 & 25.05 \\
       r & 605255 & 2016-12-30 & 400 & 1.50 & 24.64 \\
-      \hline \\
+      \hline
+    \end{tabular}
+    \caption{Exposures in $g$ and $r$ bands from the Dark Energy
+      Camera used in the experiments.\label{tab:exposures}}
+    \end{scriptsize}
+  \end{center}
+\end{table}
+
+\begin{table}
+  \begin{center}
+    \begin{scriptsize}
+    \begin{tabular}{cccccc}
+      \hline
+      Filter & Exposure number & Date & Exposure time (s) &
+      Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
+      \hline
       i & 563972 & 2016-08-14 & 360 & 1.77 & 23.49 \\
       i & 566980 & 2016-08-24 & 360 & 1.35 & 23.61 \\
       i & 567442 & 2016-08-25 & 360 & 1.05 & 24.20 \\
@@ -1670,11 +1820,14 @@ Therefore, the estimator saturates the Cram\'er--Rao bound.
       i & 604338 & 2016-12-25 & 360 & 1.14 & 24.23 \\
       i & 605266 & 2016-12-30 & 360 & 1.67 & 23.90 \\
       i & 607844 & 2017-01-09 & 360 & 1.34 & 22.65 \\
+      \hline
     \end{tabular}
-    \caption{Exposures from the Dark Energy Camera used in the
-      experiments.\label{tab:exposures}}
+    \caption{Exposures in $i$ band from the Dark Energy Camera used in
+      the experiments.\label{tab:exposuresi}}
+    \end{scriptsize}
   \end{center}
 \end{table}
+
 
 
 

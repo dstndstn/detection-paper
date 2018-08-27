@@ -3,21 +3,24 @@ matplotlib.use('Agg')
 matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
 import pylab as plt
 import numpy as np
 import fitsio
 import sys
+import time
 from astrometry.util.fits import *
+from astrometry.util.file import pickle_to_file, unpickle_from_file
 from astrometry.util.util import Tan
 from astrometry.util.plotutils import *
 from astrometry.util.starutil import *
 from astrometry.util.starutil_numpy import *
-from astrometry.libkd.spherematch import *
+from astrometry.libkd.spherematch import match_xy, match_radec
 from collections import Counter
 from scipy.ndimage.filters import *
 from scipy.ndimage.measurements import label, find_objects
 from scipy.ndimage.morphology import binary_dilation, binary_fill_holes
-
+from scipy.special import erfc, logsumexp
 
 
 def jpl_query(ra, dec, mjd):
@@ -170,46 +173,6 @@ def sdss_rgb(imgs, bands, scales=None, m=0.03, Q=20):
         rgb[:,:,plane] = np.clip((img * scale + m) * fI / I, 0, 1)
     return rgb
 
-g_det = fitsio.read('25/detmap-g.fits')
-g_detiv = fitsio.read('25/detiv-g.fits')
-r_det = fitsio.read('25/detmap-r.fits')
-r_detiv = fitsio.read('25/detiv-r.fits')
-i_det = fitsio.read('25/detmap-i.fits')
-i_detiv = fitsio.read('25/detiv-i.fits')
-
-detmaps = [g_det, r_det, i_det]
-detivs = [g_detiv, r_detiv, i_detiv]
-
-Ng = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-g.fits.fz')
-Nr = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-r.fits.fz')
-Ni = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-i.fits.fz')
-good = ((Ng >= 12) * (Nr >= 12) * (Ni >= 12))
-
-gco = fitsio.read('25/legacysurvey-custom-036450m04600-image-g.fits.fz')
-rco = fitsio.read('25/legacysurvey-custom-036450m04600-image-r.fits.fz')
-ico = fitsio.read('25/legacysurvey-custom-036450m04600-image-i.fits.fz')
-s = 4
-scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
-img = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
-img = (np.clip(img, 0, 1) * 255.).astype(np.uint8)
-#print('Img', img.dtype)
-
-#img = plt.imread('25/legacysurvey-custom-036450m04600-image.jpg')
-#img = np.flipud(img)
-H,W,three = img.shape
-
-ra,dec = 36.45, -4.6
-pixscale = 0.262 / 3600.
-wcs = Tan(ra, dec, W/2.+0.5, H/2.+0.5, -pixscale, 0., 0., pixscale,
-          float(W), float(H))
-
-# plt.figure(figsize=(4,4))
-# plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
-# plt.clf()
-# plt.imshow(img[500:1100, 500:1100], origin='lower', interpolation='nearest')
-# plt.xticks([])
-# plt.yticks([])
-# plt.savefig('image.pdf')
 
 def sedsn(detmaps, detivs, sed):
     H,W = detmaps[0].shape
@@ -247,25 +210,6 @@ class SED(object):
     def __repr__(self):
         return self.name + ': ' + str(self.sed)
 
-sedlist = [
-    SED('Blue',   'c',      'D', colorsed(0., 0.)),
-    SED('Yellow', 'orange', 'o', colorsed(1., 0.3)),
-    SED('Red',    'r',      's', colorsed(1.5, 1.)),
-    SED('g-only', 'g',      '^', np.array([1., 0., 0.])),
-    SED('r-only', 'pink',   'v', np.array([0., 1., 0.])),
-    SED('i-only', 'm',      '*', np.array([0., 0., 1.])),
-    #SED('blue', 'b', colorsed(-0.5, -0.5)),
-    #SED('mid', colorsed(0.8, 0.6)),
-]
-for s in sedlist:
-    print('%8s' % s.name, '   '.join(['%6.3f' % x for x in s.sed]))
-
-for s in sedlist:
-    s.snmap = sedsn(detmaps, detivs, s.sed)
-
-# Use Yellow to do the actual detection
-detect_sn = sedlist[1].snmap
-
 def detect_sources(snmap, threshold):
     hot = (snmap > threshold)
     hot = binary_dilation(hot, iterations=2)
@@ -293,66 +237,150 @@ def detect_sources(snmap, threshold):
         #    plt.plot(x, y, 'ro')
     return np.array(px),np.array(py)
 
-x,y = detect_sources(detect_sn, 100.)
-sources = fits_table()
-sources.x = x
-sources.y = y
-sources.cut(good[sources.y, sources.x])
-print('Cut to', len(sources), 'good sources')
-sz = 20
-H,W = good.shape
-sources.cut((sources.x > sz) * (sources.y > sz) *
-            (sources.x < (W-sz)) * (sources.y < (H-sz)))
-print(len(sources), 'not near edges')
-# sources.cut((g_detiv[sources.y, sources.x] > 0) *
-#             (r_detiv[sources.y, sources.x] > 0) *
-#             (i_detiv[sources.y, sources.x] > 0))
-# print(len(sources), 'with gri obs')
-
-for s in sedlist:
-    sources.set(s.tname, s.snmap[sources.y, sources.x])
-
-sources.g_sn = (g_det[sources.y, sources.x] * np.sqrt(g_detiv[sources.y, sources.x]))
-sources.r_sn = (r_det[sources.y, sources.x] * np.sqrt(r_detiv[sources.y, sources.x]))
-sources.i_sn = (i_det[sources.y, sources.x] * np.sqrt(i_detiv[sources.y, sources.x]))
-sources.g_flux = g_det[sources.y, sources.x]
-sources.r_flux = r_det[sources.y, sources.x]
-sources.i_flux = i_det[sources.y, sources.x]
-sources.ra,sources.dec = wcs.pixelxy2radec(sources.x+1, sources.y+1)
-sources.g_mag = -2.5*(np.log10(sources.g_flux) - 9)
-sources.r_mag = -2.5*(np.log10(sources.r_flux) - 9)
-sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
-
-#I = np.argsort(-sources.yellow_sn)
-#sources.cut(I)
 
 
-# plt.clf()
-# plt.plot(sources.g_mag - sources.r_mag, sources.r_mag - sources.i_mag, 'k.', alpha=0.25)
-# plt.axis([-0.5, 2.5, -.5, 2])
-# plt.xlabel('g - r (mag)')
-# plt.ylabel('r - i (mag)');
-# I = np.flatnonzero(np.isfinite(sources.g_mag) * np.isfinite(sources.r_mag) * np.isfinite(sources.i_mag))
-# print('median g-r:', np.median(sources.g_mag[I] - sources.r_mag[I]), 'r-i:', np.median(sources.r_mag[I] - sources.i_mag[I]))
-# plt.savefig('detected-color.pdf')
+def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
+                     wcs):
+    x,y = detect_sources(detect_sn, 100.)
+    sources = fits_table()
+    sources.x = x
+    sources.y = y
+    sources.cut(good[sources.y, sources.x])
+    print('Cut to', len(sources), 'good sources')
+    sz = 20
+    H,W = good.shape
+    sources.cut((sources.x > sz) * (sources.y > sz) *
+                (sources.x < (W-sz)) * (sources.y < (H-sz)))
+    print(len(sources), 'not near edges')
 
-# plt.imshow(yellow_sn, interpolation='nearest', origin='lower', vmin=0, vmax=50, cmap='gray')
-# ax = plt.axis()
-# plt.plot(sources.x, sources.y, 'r.')
-# plt.axis(ax)
-# plt.axis([0,500,0,500]);
+    for s in sedlist:
+        sources.set(s.tname, s.snmap[sources.y, sources.x])
 
-# plt.subplots_adjust(hspace=0.01, wspace=0.01)
-# N=100
-# R,C = 9,12
-# for i in range(len(sources)):
-#     if i >= R*C:
-#         break
-#     plt.subplot(R,C,i+1)
-#     f = sources[i]
-#     plt.imshow(img[f.y-sz : f.y+sz+1, f.x-sz : f.x+sz+1, :], interpolation='nearest', origin='lower')
-#     plt.xticks([]); plt.yticks([])    
+    # sources.g_sn = (g_det[sources.y, sources.x] * np.sqrt(g_detiv[sources.y, sources.x]))
+    # sources.r_sn = (r_det[sources.y, sources.x] * np.sqrt(r_detiv[sources.y, sources.x]))
+    # sources.i_sn = (i_det[sources.y, sources.x] * np.sqrt(i_detiv[sources.y, sources.x]))
+    sources.g_flux = g_det[sources.y, sources.x]
+    sources.r_flux = r_det[sources.y, sources.x]
+    sources.i_flux = i_det[sources.y, sources.x]
+    sources.ra,sources.dec = wcs.pixelxy2radec(sources.x+1, sources.y+1)
+    sources.g_mag = -2.5*(np.log10(sources.g_flux) - 9)
+    sources.r_mag = -2.5*(np.log10(sources.r_flux) - 9)
+    sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
+    sources.imax = np.argmax(np.vstack([sources.get(s.tname) for s in sedlist]), axis=0)
 
+    plt.figure(figsize=(5,4))
+    plt.subplots_adjust(left=0.15, right=0.97, bottom=0.12, top=0.98)
+    
+    plt.clf()
+    for i,s in enumerate(sedlist):
+        if not np.all(s.sed > 0):
+            continue
+        I = np.flatnonzero(sources.imax == i)
+        plt.plot(sources.g_mag[I] - sources.r_mag[I],
+                 sources.r_mag[I] - sources.i_mag[I],
+                 s.plotsym, label=s.name, color=s.plotcolor, alpha=0.5,
+                 mfc='none', ms=5)
+        gr = -2.5 * np.log10(s.sed[0] / s.sed[1])
+        ri = -2.5 * np.log10(s.sed[1] / s.sed[2])
+        plt.plot(gr, ri, 'o', color='k', mfc='none', ms=8, mew=3)
+    plt.axis([-0.5, 2.5, -0.5, 2])
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    plt.legend(loc='upper left')
+    plt.savefig('best-color.pdf')
+    
+    
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    
+    plt.clf()
+    xlo,xhi = 500,1100
+    ylo,yhi = 500,1100
+    plt.imshow(img[ylo:yhi, xlo:xhi], origin='lower', interpolation='nearest',
+               extent=[xlo,xhi,ylo,yhi])
+    ax = plt.axis()
+    
+    for i,s in enumerate(sedlist):
+        if not np.all(s.sed > 0):
+            continue
+        I = np.flatnonzero((sources.imax == i) * 
+                           (sources.x >= xlo) * (sources.x <= xhi) *
+                           (sources.y >= ylo) * (sources.y <= yhi))
+        print(len(I), s.name)
+        plt.plot(sources.x[I], sources.y[I],
+                 s.plotsym, label=s.name, color=s.plotcolor, alpha=0.5,
+                 mfc='none', ms=15)
+    plt.axis(ax)
+    plt.xticks([])
+    plt.yticks([])
+    plt.savefig('image-sources.pdf')
+    
+    
+    for i,s in enumerate(sedlist):
+        I = np.flatnonzero(sources.imax == i)
+        J = np.argsort(-sources.get(s.tname)[I])
+        plt.clf()
+        show_sources(sources[I[J]], img)
+        plt.savefig('best-%s.pdf' % s.name.lower())
+    
+    # Artifacts from single-band detections
+    I = np.hstack((np.flatnonzero(sources.imax == 3)[:6],
+                   np.flatnonzero(sources.imax == 4)[:18],
+                   np.flatnonzero(sources.imax == 5)[:12]))
+    
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    plt.clf()
+    show_sources(sources[I], img, R=6, C=6, sz=30, divider=1)
+    plt.savefig('singleband.pdf')
+
+    MI,MJ,d = match_radec(sources.ra, sources.dec, DES.ra, DES.dec, 1./3600, nearest=True)
+    print(len(MI), 'matches')
+    MDES = DES[MJ]
+    Msources = sources[MI]
+    
+    ## FIXME -- select only isolated stars?
+    colorbins = np.linspace(-0.5, 4.0, 10)
+    II = []
+    K = []
+    DES.gi = DES.mag_auto_g - DES.mag_auto_i
+    for clo,chi in zip(colorbins, colorbins[1:]):
+        C = np.flatnonzero((DES.gi >= clo) * (DES.gi < chi))
+        minmag = np.vstack((DES.mag_auto_g, DES.mag_auto_r, DES.mag_auto_i)).max(axis=0)[C]
+        C = C[np.argsort(np.abs(minmag - 17.9))]
+        C = C[DES.spread_model_r[C] < 0.01]
+        II.extend(C[:10])
+        K.append(C[0])
+    
+    plt.figure(figsize=(6,4))
+    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
+    plt.clf()
+    plt.axhline(1., color='orange', lw=5)
+    plt.axhline(1., color='k', alpha=0.5)
+
+    plt.axvline(0., color='b', lw=2, alpha=0.2)
+    plt.axvline(1.3, color='orange', lw=2, alpha=0.2)
+    plt.axvline(2.5, color='r', lw=2, alpha=0.2)
+
+    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bx', alpha=0.3,
+            label='Blue SED-matched filter');
+    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'r.', alpha=0.5,
+            label='Red SED-matched filter');
+    plt.xlabel('DES g - i color (mag)')
+    plt.ylabel('Relative strength of SED filter vs Yellow');
+    plt.legend(loc='upper left')
+    ymin = 0.6
+    plt.axis([-0.5, 4.0, ymin, 1.3])
+    ax = plt.axis()
+    aspect = plt.gca().get_aspect()
+    for clo,chi,k in zip(colorbins, colorbins[1:], K):
+        x,y = DES.x[k], DES.y[k]
+        plt.imshow(img[y-sz:y+sz+1, x-sz:x+sz+1], interpolation='nearest', origin='lower',
+                  extent=[clo,chi,ymin,ymin+0.11], zorder=20)
+    plt.axis(ax)
+    plt.gca().set_aspect(aspect);
+    plt.savefig('strength.pdf')
+    
 def show_sources(T, img, R=10, C=10, sz=10, divider=0):
     imgrows = []
     k = 0
@@ -380,335 +408,436 @@ def show_sources(T, img, R=10, C=10, sz=10, divider=0):
     plt.xticks([]); plt.yticks([])
 
 
-# show_sources(sources, img)
+#### Bayesian SED-matched detection
 
-# I = np.argsort(-sources.red_sn / sources.flat_sn)
-# show_sources(sources[I], img)
+def log_pratio_bayes(seds, weights, D, Div, alpha):
+    '''
+    N: # SEDs
+    J: # bands
+    H,W: # pixels
 
-# I = np.argsort(-sources.blue_sn / sources.flat_sn)
-# show_sources(sources[I], img)
+    seds: N x J
+    weights: N
+    D: J x H x W
+    Div: J x H x W
 
-sources.imax = np.argmax(np.vstack([sources.get(s.tname) for s in sedlist]), axis=0)
+    D is detection map
+    Div is detection map inverse-variance
+    '''
+    J,H,W = D.shape
+    N = len(weights)
+    assert(seds.shape == (N,J))
+    assert(weights.shape == (N,))
+    assert(Div.shape == (J,H,W))
 
-plt.figure(figsize=(5,4))
-plt.subplots_adjust(left=0.15, right=0.97, bottom=0.12, top=0.98)
+    terms = np.empty((N,H,W), np.float32)
+    terms[:,:,:] = -1e6
+    for i in range(N):
+        # sum over bands j
+        a_i = alpha - np.sum(D * seds[i,:,np.newaxis,np.newaxis] * Div, axis=0)
+        assert(a_i.shape == (H,W))
+        # sum over bands j
+        b_i = 0.5 * np.sum(seds[i,:,np.newaxis,np.newaxis]**2 * Div, axis=0)
+        assert(b_i.shape == (H,W))
+        beta_i = 2 * np.sqrt(b_i)
+        ok = np.nonzero(b_i)
+        c_i = a_i[ok] / beta_i[ok]
+        terms[i,:,:][ok] = np.log(weights[i] / beta_i[ok]) + np.log(erfc(c_i)) + c_i**2
+        print('.', end='')
+    print()
+    lse = logsumexp(terms, axis=0)
+    return lse + np.log(alpha * np.sqrt(np.pi))
 
-plt.clf()
-for i,s in enumerate(sedlist):
-    if not np.all(s.sed > 0):
-        continue
-    I = np.flatnonzero(sources.imax == i)
-    plt.plot(sources.g_mag[I] - sources.r_mag[I],
-             sources.r_mag[I] - sources.i_mag[I],
-             s.plotsym, label=s.name, color=s.plotcolor, alpha=0.5,
-             mfc='none', ms=5)
-    gr = -2.5 * np.log10(s.sed[0] / s.sed[1])
-    ri = -2.5 * np.log10(s.sed[1] / s.sed[2])
-    plt.plot(gr, ri, 'o', color='k', mfc='none', ms=8, mew=3)
-plt.axis([-0.5, 2.5, -0.5, 2])
-plt.xlabel('g - r (mag)')
-plt.ylabel('r - i (mag)')
-plt.legend(loc='upper left')
-plt.savefig('best-color.pdf')
+def bayes_figs(DES, detmaps, detivs, good, wcs, img):
 
+    # First, build empirical SED prior "library" from DES sources
+    DES.flux_g = np.maximum(0, DES.flux_auto_g)
+    DES.flux_r = np.maximum(0, DES.flux_auto_r)
+    DES.flux_i = np.maximum(0, DES.flux_auto_i)
+    flux = DES.flux_g + DES.flux_r + DES.flux_i
+    K = np.flatnonzero(flux > 0)
+    DES.cut(K)
+    flux = flux[K]
+    DES.f_g = DES.flux_g / flux
+    DES.f_r = DES.flux_r / flux
+    DES.f_i = DES.flux_i / flux
+    print('Kept', len(DES), 'with positive flux')
 
-plt.figure(figsize=(4,4))
-plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    nbins=21
+    edge = 1. / (nbins-1) / 2.
+    #N,xe,ye = loghist(DES.f_g, DES.f_r, range=((0-edge,1+edge),(0-edge,1+edge)), nbins=nbins);
+    N,xe,ye = np.histogram2d(DES.f_g, DES.f_r,
+                             range=((0-edge,1+edge),(0-edge,1+edge)),
+                             bins=nbins)
+    N = N.T
 
-plt.clf()
-xlo,xhi = 500,1100
-ylo,yhi = 500,1100
-plt.imshow(img[ylo:yhi, xlo:xhi], origin='lower', interpolation='nearest',
-           extent=[xlo,xhi,ylo,yhi])
-ax = plt.axis()
+    print(np.sum(N > 0), np.sum(N > N.sum()*0.001))
+    NN = N.copy()
+    NN[N < N.sum()*0.001] = np.nan
 
-for i,s in enumerate(sedlist):
-    if not np.all(s.sed > 0):
-        continue
-    I = np.flatnonzero((sources.imax == i) * 
-                       (sources.x >= xlo) * (sources.x <= xhi) *
-                       (sources.y >= ylo) * (sources.y <= yhi))
-    print(len(I), s.name)
-    plt.plot(sources.x[I], sources.y[I],
-             s.plotsym, label=s.name, color=s.plotcolor, alpha=0.5,
-             mfc='none', ms=15)
-plt.axis(ax)
-plt.xticks([])
-plt.yticks([])
-plt.savefig('image-sources.pdf')
+    plt.figure(figsize=(3,3))
+    plt.subplots_adjust(left=0.2, right=0.98, bottom=0.15, top=0.98)
 
-
-for i,s in enumerate(sedlist):
-    I = np.flatnonzero(sources.imax == i)
-    J = np.argsort(-sources.get(s.tname)[I])
     plt.clf()
-    show_sources(sources[I[J]], img)
-    #plt.title('%s best (%i)' % (s.name, len(I)));
-    plt.savefig('best-%s.pdf' % s.name.lower())
-    #print(s.name, 'best coords:')#, list(zip(sources.x[I], 4400-sources.y[I]))[:10])
-    #for r,d in list(zip(sources.ra[I], sources.dec[I]))[:10]:
-    #    print('  http://legacysurvey.org/viewer-dev/?layer=decals-dr7&ra=%.4f&dec=%.4f&zoom=14' % (r, d))
-
-
-# Artifacts from single-band detections
-
-I = np.hstack((np.flatnonzero(sources.imax == 3)[:6],
-               np.flatnonzero(sources.imax == 4)[:18],
-               np.flatnonzero(sources.imax == 5)[:12]))
-
-plt.figure(figsize=(4,4))
-plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
-plt.clf()
-show_sources(sources[I], img, R=6, C=6, sz=30, divider=1)
-plt.savefig('singleband.pdf')
-
-
-'''
-https://des.ncsa.illinois.edu/easyweb/db-access
-
-SELECT RA, DEC, MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I from DR1_MAIN
-where RA between 36.3 and 36.6
-and DEC between -4.76 and -4.44
-
--> des-db-2.fits
-'''
-
-DES = fits_table('des-db-2.fits')
-print(len(DES), 'DES')
-DES.cut((DES.mag_auto_g < 99) * (DES.mag_auto_r < 99) * (DES.mag_auto_i < 99))
-print(len(DES), 'with good mags')
-ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
-DES.x = (x-1).astype(np.int)
-DES.y = (y-1).astype(np.int)
-DES.cut((DES.x > sz) * (DES.y > sz) * (DES.x < (W-sz)) * (DES.y < (H-sz)))
-print(len(DES), 'DES in bounds')
-#DES.cut((g_detiv[DES.y, DES.x] > 0) * (r_detiv[DES.y, DES.x] > 0) * (i_detiv[DES.y, DES.x] > 0))
-DES.cut(good[DES.y, DES.x])
-print(len(DES), 'in good region')
-
-MI,MJ,d = match_radec(sources.ra, sources.dec, DES.ra, DES.dec, 1./3600, nearest=True)
-print(len(MI), 'matches')
-MDES = DES[MJ]
-Msources = sources[MI]
-
-#plt.plot(MDES.mag_auto_g - MDES.mag_auto_r, MDES.mag_auto_r - MDES.mag_auto_i, 'k.')
-#plt.axis([-0.5, 3, -0.5, 2]);
-
-## FIXME -- star vs galaxy; isolated
-colorbins = np.linspace(-0.5, 4.0, 10)
-#colorbins = np.linspace(-0.5, 4.0, 19)
-II = []
-K = []
-DES.gi = DES.mag_auto_g - DES.mag_auto_i
-for clo,chi in zip(colorbins, colorbins[1:]):
-    C = np.flatnonzero((DES.gi >= clo) * (DES.gi < chi))
-    minmag = np.vstack((DES.mag_auto_g, DES.mag_auto_r, DES.mag_auto_i)).max(axis=0)[C]
-    #I.extend(J[np.argsort(DES.mag_auto_r[J])[:10]])
-    C = C[np.argsort(np.abs(minmag - 17.9))]
-    II.extend(C[:10])
-    K.append(C[0])
-    #print('min mags', np.sort(minmag)[:10])
-    #print('r mags', np.sort(DES.mag_auto_r[J])[:10])
-#show_sources(DES[II], img)
-
-plt.figure(figsize=(6,4))
-plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
-plt.clf()
-plt.axhline(1., color='orange', lw=5)
-plt.axhline(1., color='k', alpha=0.5)
-
-plt.axvline(0., color='b', lw=2, alpha=0.2)
-plt.axvline(1.3, color='orange', lw=2, alpha=0.2)
-plt.axvline(2.5, color='r', lw=2, alpha=0.2)
-
-plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bx', alpha=0.3,
-        label='Blue SED-matched filter');
-plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'r.', alpha=0.5,
-        label='Red SED-matched filter');
-plt.xlabel('DES g - i color (mag)')
-plt.ylabel('Relative strength of SED filter vs Yellow');
-plt.legend(loc='upper left')
-ymin = 0.6
-plt.axis([-0.5, 4.0, ymin, 1.3])
-ax = plt.axis()
-aspect = plt.gca().get_aspect()
-for clo,chi,k in zip(colorbins, colorbins[1:], K):
-    x,y = DES.x[k], DES.y[k]
-    plt.imshow(img[y-sz:y+sz+1, x-sz:x+sz+1], interpolation='nearest', origin='lower',
-              extent=[clo,chi,ymin,ymin+0.11], zorder=20)
-plt.axis(ax)
-plt.gca().set_aspect(aspect);
-plt.savefig('strength.pdf')
-
-sys.exit(0)
-
-# In[ ]:
-
-
-# Galaxy detection.
-from tractor.splinesky import SplineSky
-from tractor.psfex import PixelizedPsfEx
-from astrometry.util.util import wcs_pv2sip_hdr
-
-imfn = '1/data/images/decam/cp/c4d_160814_085515_ooi_g_v1-N4.fits'
-im = fitsio.read(imfn)                 
-dq = fitsio.read('1/data/images/decam/cp/c4d_160814_085515_ood_g_v1-N4.fits')
-wt = fitsio.read('1/data/images/decam/cp/c4d_160814_085515_oow_g_v1-N4.fits')
-sig1 = 1./np.sqrt(np.median(wt[dq==0]))
-H,W = im.shape
-
-hdr = fitsio.read_header(imfn, ext=1)
-imwcs = wcs_pv2sip_hdr(hdr)
-
-fn = '1/data/calib/decam/splinesky/00563/00563982/decam-00563982-N4.fits'
-sky = SplineSky.from_fits(fn, None)
-sky.addTo(im, scale=-1)
-psf = PixelizedPsfEx('1/data/calib/decam/psfex/00563/00563982/decam-00563982-N4.fits')
-
-
-# In[ ]:
-
-
-#plt.hist(im.ravel(), range=(-5.*sig1, 5.*sig1), bins=100);
-
-
-# In[ ]:
-
-
-from tractor import Image, NullWCS, ExpGalaxy, ConstantSky, LinearPhotoCal, NanoMaggies, PixPos, GaussianMixturePSF, Tractor
-from tractor.ellipses import EllipseE
-
-
-# In[ ]:
-
-
-v = (psf.fwhm / 2.35)**2
-gpsf = GaussianMixturePSF(1., 0., 0., v, v, 0)                          
-tim = Image(data=im, inverr=(dq == 0)*1./sig1, wcs=NullWCS(pixscale=0.262),
-           psf=psf, sky=ConstantSky(0.), photocal=LinearPhotoCal(1., band='g'))
-
-
-# In[ ]:
-
-
-gal = ExpGalaxy(PixPos(W/2., H/2.), NanoMaggies(g=1.), EllipseE(0.5, 0., 0.))
-mog = gal._getAffineProfile(tim, W/2., H/2.)
-#print(mog)
-mog.var[:,0,0]
-
-
-# In[ ]:
-
-
-#tr = Tractor([tim], [gal])
-mod = gal.getModelPatch(tim)
-tim.psf = gpsf
-gmod = gal.getModelPatch(tim)
-print(mod.patch.min(), mod.patch.max())
-print(gmod.patch.min(), gmod.patch.max())
-plt.subplot(1,2,1)
-plt.imshow(mod.patch, interpolation='nearest', origin='lower')
-plt.subplot(1,2,2)
-plt.imshow(gmod.patch, interpolation='nearest', origin='lower')
-
-
-# In[ ]:
-
-
-psf_sigma = psf.fwhm / 2.35
-print('PSF sigma:', psf_sigma)
-
-gpsf = gmod.patch
-print('gal x psf sum', gpsf.sum())
-gpsf /= gpsf.sum()
-gpsfnorm = np.sqrt(np.sum(gpsf**2))
-print('gal x psf norm', gpsfnorm)
-
-gdetsum = 0.
-for amp,sigma in zip(mog.amp, np.sqrt(mog.var[:,0,0])):
-    sig = np.hypot(psf_sigma, sigma)
-    gdetsum = gdetsum + amp * gaussian_filter(im, sig)
-    print(gdetsum.shape)
-gdetsum /= gpsfnorm**2
-gdetsig = sig1 / gpsfnorm
-
-# PSF detection map
-psfnorm = 1./(2.*np.sqrt(np.pi)*psf_sigma)
-print('PSF norm', psfnorm)
-psfdet = gaussian_filter(im, psf_sigma) / psfnorm**2
-psfsig1 = sig1 / psfnorm
-
-
-# In[ ]:
-
-
-psfsn = psfdet / psfsig1
-galsn = gdetsum / gdetsig
-
-plt.subplot(1,2,1)
-plt.imshow(psfsn, interpolation='nearest', origin='lower', vmin=-3, vmax=10.)
-plt.subplot(1,2,2)
-plt.imshow(galsn, interpolation='nearest', origin='lower', vmin=-3, vmax=10.);
-
-
-# In[ ]:
-
-
-psf = fits_table()
-# x,y in detection image
-psf.dx,psf.dy = detect_sources(psfsn, 10.)
-gal = fits_table()
-gal.dx, gal.dy = detect_sources(galsn, 10.)
-
-psf.psf_sn = psfsn[psf.dy, psf.dx]
-psf.gal_sn = galsn[psf.dy, psf.dx]
-gal.psf_sn = psfsn[gal.dy, gal.dx]
-gal.gal_sn = galsn[gal.dy, gal.dx]
-print(len(psf), 'PSF detections')
-print(len(gal), 'Galaxy detections')
-
-
-# In[ ]:
-
-
-# for viewing, convert to x,y in RGB image.
-r,d = imwcs.pixelxy2radec(psf.dx+1, psf.dy+1)
-ok,x,y = wcs.radec2pixelxy(r, d)
-psf.x = (x-1).astype(int)
-psf.y = (y-1).astype(int)
-
-r,d = imwcs.pixelxy2radec(gal.dx+1, gal.dy+1)
-ok,x,y = wcs.radec2pixelxy(r, d)
-gal.x = (x-1).astype(int)
-gal.y = (y-1).astype(int)
-
-H,W,nil = img.shape
-galok = gal[(gal.x > sz) * (gal.y > sz) * (gal.x < (W-sz)) * (gal.y < (H-sz))]
-#galok.cut((g_detiv[galok.y, galok.x] > 0) * (r_detiv[galok.y, galok.x] > 0) * (i_detiv[galok.y, galok.x] > 0))
-
-#I = np.argsort(-galok.gal_sn / galok.psf_sn);
-I = np.argsort(-(galok.gal_sn - galok.psf_sn))
-show_sources(galok[I], img)
-
-
-# In[ ]:
-
-
-S = fits_table('sweep-240p005-250p010.fits')
-len(S)
-
-
-# In[ ]:
-
-
-S.mag_g = -2.5*(np.log10(S.flux_g)-9)
-S.mag_r = -2.5*(np.log10(S.flux_r)-9)
-S.mag_z = -2.5*(np.log10(S.flux_z)-9)
-
-
-# In[ ]:
-
-
-plothist(S.mag_g - S.mag_r, S.mag_r - S.mag_z, range=((-1,5),(-1,5)));
-#plt.axis([-1, 5, -1, 5])
-
+    x0,x1 = -edge, 1+edge
+    y0,y1 = x0,x1
+    plt.imshow(NN, interpolation='nearest', origin='lower', extent=(x0,x1,y0,y1),
+               cmap=antigray, zorder=20)
+    plt.plot([x0, x0, x1, x0], [y0,y1,y0,y0], 'k-', zorder=30)
+    plt.gca().set_frame_on(False)
+    p = Polygon(np.array([[x0, x0, x1, x0], [y0, y1, y0, y0]]).T, color=(0.9,0.9,1),
+                zorder=15)
+    plt.gca().add_artist(p)
+    plt.xlabel('flux fraction g')
+    plt.ylabel('flux fraction r')
+    plt.savefig('bayes-prior-sed.pdf')
+
+    #iy,ix = np.nonzero(N)
+    iy,ix = np.nonzero(N > N.sum()*0.001)
+    print(len(iy), 'significant bins')
+    # Find f_{g,r} histogram midpoints
+    mx = (xe[:-1] + xe[1:]) / 2.
+    my = (ye[:-1] + ye[1:]) / 2.
+    fg = mx[ix]
+    fr = my[iy]
+    fi = 1. - (fg + fr)
+    fn = N[iy,ix]
+    seds = np.clip(np.vstack((fg,fr,fi)).T, 0., 1.)
+    weights = fn / np.sum(fn)
+    ok = np.flatnonzero(np.sum(seds, axis=1) == 1)
+    seds = seds[ok,:]
+    weights = weights[ok]
+    print(len(weights), 'color-color bins are populated; max weight', weights.max())
+
+    plt.clf()
+    plothist(DES.mag_auto_g - DES.mag_auto_r, DES.mag_auto_r - DES.mag_auto_i,
+             range=((-0.5, 3),(-0.5, 2)), nbins=20,
+             imshowargs=dict(cmap=antigray), dohot=False, docolorbar=False)
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    plt.savefig('bayes-data-cc.pdf')
+
+    plt.clf()
+    fg_grid,fr_grid = np.meshgrid(xe, ye)
+    fi_grid = 1. - (fg_grid + fr_grid)
+    gr_grid = -2.5 * np.log10(fg_grid / fr_grid)
+    ri_grid = -2.5 * np.log10(fr_grid / fi_grid)
+    good_grid = (fi_grid >= 0) * np.isfinite(gr_grid) * np.isfinite(ri_grid)
+    h,w = good_grid.shape
+    cm = antigray
+    ng = 0
+    for j0 in range(h-1):
+        for i0 in range(w-1):
+            j1 = j0+1
+            i1 = i0+1
+            if not(good_grid[j0,i0] and good_grid[j0,i1] and good_grid[j1,i0] and good_grid[j1,i1]):
+                continue
+            if N[j0,i0] == 0:
+                continue
+            ng += N[j0,i0]
+            xx = [gr_grid[j0,i0], gr_grid[j0,i1], gr_grid[j1,i1], gr_grid[j1,i0], gr_grid[j0,i0]]
+            yy = [ri_grid[j0,i0], ri_grid[j0,i1], ri_grid[j1,i1], ri_grid[j1,i0], ri_grid[j0,i0]]
+            xy = np.vstack((xx, yy)).T
+            poly = Polygon(xy, color=cm(N[j0,i0]/N.max()))
+            plt.gca().add_artist(poly)
+    #plt.gca().set_fc('0.5')
+    plt.axis([-0.5, 3, -0.5,2])
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    print(ng, 'of', N.sum(), 'plotted')
+    plt.savefig('bayes-prior-cc.pdf')
+
+    H,W = detmaps[0].shape
+    bayesfn = 'lprb.pickle'
+    if os.path.exists(bayesfn):
+        print('Reading cached', bayesfn)
+        lprb = unpickle_from_file(bayesfn)
+    else:
+        # Number of bands
+        J = 3
+        # Build detection-map & iv arrays
+        D = np.zeros((J,H,W))
+        Div = np.zeros((J,H,W))
+        for i,(d,div) in enumerate(zip(detmaps,detivs)):
+            D[i,:,:] = d
+            Div[i,:,:] = div
+        alpha = 1.
+        t0 = time.process_time()
+        lprb = log_pratio_bayes(seds, weights, D, Div, alpha)
+        t1 = time.process_time()
+        print('Bayes took', t1-t0, 'CPU-seconds')
+        pickle_to_file(lprb, bayesfn)
+        print('Writing cache', bayesfn)
+        # Bayes took 276.118402 CPU-seconds
+
+    sz = 20
+    bx,by = detect_sources(lprb, 2000)
+    bsources = fits_table()
+    bsources.x = bx
+    bsources.y = by
+    bsources.lprb = lprb[bsources.y, bsources.x]
+    bsources.cut((bsources.x > sz) * (bsources.x < (W-sz)) * (bsources.y > sz) * (bsources.y < (H-sz)))
+    bsources.cut(good[bsources.y, bsources.x])
+    print('Kept', len(bsources))
+
+    g_det, r_det, i_det = detmaps
+    
+    bsources.g_flux = g_det[bsources.y, bsources.x]
+    bsources.r_flux = r_det[bsources.y, bsources.x]
+    bsources.i_flux = i_det[bsources.y, bsources.x]
+    bsources.ra,bsources.dec = wcs.pixelxy2radec(bsources.x+1, bsources.y+1)
+    bsources.g_mag = -2.5*(np.log10(bsources.g_flux) - 9)
+    bsources.r_mag = -2.5*(np.log10(bsources.r_flux) - 9)
+    bsources.i_mag = -2.5*(np.log10(bsources.i_flux) - 9)
+    bsources.gr = bsources.g_mag - bsources.r_mag
+    bsources.ri = bsources.r_mag - bsources.i_mag
+    I = np.argsort(-bsources.lprb)
+    bsources.cut(I)
+
+    # g + r + i detections
+    xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
+    xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
+    xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
+    print('Detected', len(xg),len(xr),len(xi), 'gri')
+    xm,ym = xg.copy(),yg.copy()
+    for xx,yy in [(xr,yr),(xi,yi)]:
+        I,J,d = match_xy(xm,ym, xx,yy, 5.)
+        print('Matched:', len(I))
+        U = np.ones(len(xx), bool)
+        U[J] = False
+        print('Unmatched:', np.sum(U))
+        xm = np.hstack((xm, xx[U]))
+        ym = np.hstack((ym, yy[U]))
+    print('Total of', len(xm), 'g+r+i')
+
+    sources = fits_table()
+    sources.x = xm
+    sources.y = ym
+    iy,ix = np.round(sources.y).astype(int), np.round(sources.x).astype(int)
+    sources.sn_g = (detmaps[0] * np.sqrt(detivs[0]))[iy,ix]
+    sources.sn_r = (detmaps[1] * np.sqrt(detivs[1]))[iy,ix]
+    sources.sn_i = (detmaps[2] * np.sqrt(detivs[2]))[iy,ix]
+    sources.g_flux = g_det[sources.y, sources.x]
+    sources.r_flux = r_det[sources.y, sources.x]
+    sources.i_flux = i_det[sources.y, sources.x]
+    sources.ra,sources.dec = wcs.pixelxy2radec(sources.x+1, sources.y+1)
+    sources.g_mag = -2.5*(np.log10(sources.g_flux) - 9)
+    sources.r_mag = -2.5*(np.log10(sources.r_flux) - 9)
+    sources.i_mag = -2.5*(np.log10(sources.i_flux) - 9)
+    sources.gr = sources.g_mag - sources.r_mag
+    sources.ri = sources.r_mag - sources.i_mag
+    sources.sn_max = np.maximum(sources.sn_g, np.maximum(sources.sn_r, sources.sn_i))
+    sources.cut((sources.x > sz) * (sources.x < (W-sz)) * (sources.y > sz) * (sources.y < (H-sz)))
+    sources.cut(good[sources.y, sources.x])
+    print('Kept', len(sources))
+    I = np.argsort(-sources.sn_max)
+    sources.cut(I)
+
+    N = min(len(sources), len(bsources))
+    sources  =  sources[:N]
+    bsources = bsources[:N]
+    print('Cut both to', N)
+    
+    # Define unmatched sources as ones that are not in the other's hot region
+    hot = binary_fill_holes(np.logical_or(detmaps[0] * np.sqrt(detivs[0]) > 50.,
+                            np.logical_or(detmaps[1] * np.sqrt(detivs[1]) > 50.,
+                                          detmaps[2] * np.sqrt(detivs[2]) > 50.)))
+    Bhot = binary_fill_holes(lprb > 2000.)
+    UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
+    US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
+    print(len(UB), 'unmatched Bayesian', len(US), 'g+r+i')
+    
+    plt.figure(figsize=(6,4))
+    plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
+
+    plt.clf()
+    plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
+             label='g+r+i only')
+    plt.plot(bsources.gr[UB], bsources.ri[UB], 'kx',
+             label='Bayesian only')
+    plt.xlabel('g - r (mag)')
+    plt.ylabel('r - i (mag)')
+    plt.legend()
+    plt.axis([-5, 5, -3, 3])
+    plt.savefig('bayes-vs-gri.pdf')
+
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    plt.clf()
+    show_sources(bsources[UB], img, R=10, C=10, divider=1)
+    #plt.suptitle('Bayesian only');
+    plt.savefig('bayes-only.pdf')
+
+    plt.clf()
+    show_sources(sources[US], img, R=10, C=10, divider=1)
+    #plt.suptitle('Bayesian only');
+    plt.savefig('gri-only.pdf')
+    
+    # plt.figure(figsize=(8,8))
+    # I = np.argsort(-bsources.lprb)
+    # show_sources(bsources[I], img, R=20, C=20)
+
+
+#### Galaxy detection
+def galaxy_figs(sedlist, good, wcs, img):
+    s = '1.0'
+    #s = 're0.7'
+    g_galdet = fitsio.read('25/galdetmap-'+s+'-g.fits')
+    g_galdetiv = fitsio.read('25/galdetiv-'+s+'-g.fits')
+    r_galdet = fitsio.read('25/galdetmap-'+s+'-r.fits')
+    r_galdetiv = fitsio.read('25/galdetiv-'+s+'-r.fits')
+    i_galdet = fitsio.read('25/galdetmap-'+s+'-i.fits')
+    i_galdetiv = fitsio.read('25/galdetiv-'+s+'-i.fits')
+    gdetmaps = [g_galdet, r_galdet, i_galdet]
+    gdetivs = [g_galdetiv, r_galdetiv, i_galdetiv]
+    for s in sedlist:
+        s.galsnmap = sedsn(gdetmaps, gdetivs, s.sed)
+    yellow_gal = sedlist[1].galsnmap
+    x,y = detect_sources(yellow_gal, 100.)
+    
+    gals = fits_table()
+    gals.x = x
+    gals.y = y
+    gals.cut(good[gals.y, gals.x])
+    print('Cut to', len(gals), 'good gals')
+    sz = 20
+    H,W = good.shape
+    gals.cut((gals.x > sz) * (gals.y > sz) * (gals.x < (W-sz)) * (gals.y < (H-sz)))
+    print(len(gals), 'not near edges')
+    #gals.cut((g_galdetiv[gals.y, gals.x] > 0) * (r_galdetiv[gals.y, gals.x] > 0) * (i_galdetiv[gals.y, gals.x] > 0))
+    #print(len(gals), 'with gri obs')
+    sns = []
+    for s in sedlist:
+        gals.set(s.tname, s.galsnmap[gals.y, gals.x])
+        gals.set(s.tname+'_psf', s.snmap[gals.y, gals.x])
+        sns.append(s.galsnmap[gals.y, gals.x])
+    gals.sn_max = np.max(np.vstack(sns), axis=0)
+    # These are PSF fluxes/mags
+    # gals.g_sn = (g_det[gals.y, gals.x] * np.sqrt(g_detiv[gals.y, gals.x]))
+    # gals.r_sn = (r_det[gals.y, gals.x] * np.sqrt(r_detiv[gals.y, gals.x]))
+    # gals.i_sn = (i_det[gals.y, gals.x] * np.sqrt(i_detiv[gals.y, gals.x]))
+    # gals.g_flux = g_det[gals.y, gals.x]
+    # gals.r_flux = r_det[gals.y, gals.x]
+    # gals.i_flux = i_det[gals.y, gals.x]
+    gals.ra,gals.dec = wcs.pixelxy2radec(gals.x+1, gals.y+1)
+    # gals.g_mag = -2.5*(np.log10(gals.g_flux) - 9)
+    # gals.r_mag = -2.5*(np.log10(gals.r_flux) - 9)
+    # gals.i_mag = -2.5*(np.log10(gals.i_flux) - 9)
+    # gals.g_galflux = g_galdet[gals.y, gals.x]
+    # gals.r_galflux = r_galdet[gals.y, gals.x]
+    # gals.i_galflux = i_galdet[gals.y, gals.x]
+    # gals.g_galmag = -2.5*(np.log10(gals.g_galflux) - 9)
+    # gals.r_galmag = -2.5*(np.log10(gals.r_galflux) - 9)
+    # gals.i_galmag = -2.5*(np.log10(gals.i_galflux) - 9)
+    #I = np.argsort(-gals.yellow_sn)
+    #gals.cut(I)
+
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    plt.clf()
+    I = np.argsort(-(gals.yellow_sn - gals.yellow_sn_psf))
+    show_sources(gals[I], img, sz=20)
+    plt.savefig('galaxies.pdf')
+    
+    plt.figure(figsize=(5,4))
+    plt.subplots_adjust(left=0.12, right=0.98, bottom=0.12, top=0.98)
+    plt.clf()
+    plt.semilogx(gals.yellow_sn, gals.yellow_sn / gals.yellow_sn_psf, 'k.', alpha=0.25)
+    plt.ylim(0.9, 1.2)
+    plt.xlabel('Galaxy detection S/N')
+    plt.ylabel('Galaxy / PSF detection ratio')
+    plt.savefig('galaxies-relsn.pdf')
+
+
+def main():
+    g_det = fitsio.read('25/detmap-g.fits')
+    g_detiv = fitsio.read('25/detiv-g.fits')
+    r_det = fitsio.read('25/detmap-r.fits')
+    r_detiv = fitsio.read('25/detiv-r.fits')
+    i_det = fitsio.read('25/detmap-i.fits')
+    i_detiv = fitsio.read('25/detiv-i.fits')
+
+    detmaps = [g_det, r_det, i_det]
+    detivs = [g_detiv, r_detiv, i_detiv]
+
+    Ng = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-g.fits.fz')
+    Nr = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-r.fits.fz')
+    Ni = fitsio.read('25/legacysurvey-custom-036450m04600-nexp-i.fits.fz')
+    good = ((Ng >= 12) * (Nr >= 12) * (Ni >= 12))
+
+    gco = fitsio.read('25/legacysurvey-custom-036450m04600-image-g.fits.fz')
+    rco = fitsio.read('25/legacysurvey-custom-036450m04600-image-r.fits.fz')
+    ico = fitsio.read('25/legacysurvey-custom-036450m04600-image-i.fits.fz')
+    s = 4
+    scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
+    img = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
+    img = (np.clip(img, 0, 1) * 255.).astype(np.uint8)
+    H,W,three = img.shape
+
+    ra,dec = 36.45, -4.6
+    pixscale = 0.262 / 3600.
+    wcs = Tan(ra, dec, W/2.+0.5, H/2.+0.5, -pixscale, 0., 0., pixscale,
+              float(W), float(H))
+
+    # plt.figure(figsize=(4,4))
+    # plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    # plt.clf()
+    # plt.imshow(img[500:1100, 500:1100], origin='lower', interpolation='nearest')
+    # plt.xticks([])
+    # plt.yticks([])
+    # plt.savefig('image.pdf')
+
+    sedlist = [
+        SED('Blue',   'c',      'D', colorsed(0., 0.)),
+        SED('Yellow', 'orange', 'o', colorsed(1., 0.3)),
+        SED('Red',    'r',      's', colorsed(1.5, 1.)),
+        SED('g-only', 'g',      '^', np.array([1., 0., 0.])),
+        SED('r-only', 'pink',   'v', np.array([0., 1., 0.])),
+        SED('i-only', 'm',      '*', np.array([0., 0., 1.])),
+    ]
+    for s in sedlist:
+        print('%8s' % s.name, '   '.join(['%6.3f' % x for x in s.sed]))
+    for s in sedlist:
+        s.snmap = sedsn(detmaps, detivs, s.sed)
+
+    # Use Yellow to do the actual detection
+    detect_sn = sedlist[1].snmap
+
+    # Read DES catalog in region
+    '''
+    https://des.ncsa.illinois.edu/easyweb/db-access
+
+    SELECT RA, DEC,
+    MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I,
+    FLUX_AUTO_G, FLUX_AUTO_R, FLUX_AUTO_I,
+    FLAGS_G, FLAGS_R, FLAGS_I,
+    SPREAD_MODEL_R
+    from DR1_MAIN
+    where RA between 36.3 and 36.6
+    and DEC between -4.76 and -4.44
+
+    -> des-db-4.fits
+    '''
+    DES = fits_table('des-db-4.fits')
+    print(len(DES), 'DES')
+    DES.cut((DES.flags_g < 4) * (DES.flags_r < 4) * (DES.flags_i < 4))
+    print(len(DES), 'un-flagged')
+    ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
+    DES.x = (x-1).astype(np.int)
+    DES.y = (y-1).astype(np.int)
+
+    # Cut of DES catalog for the SED-matched filter figure
+    sz = 20
+    Ides = np.flatnonzero((DES.x > sz) * (DES.y > sz) *
+                          (DES.x < (W-sz)) * (DES.y < (H-sz)) *
+                          good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
+
+    #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
+    #                 g_det, r_det, i_det, wcs)
+
+    galaxy_figs(sedlist, good, wcs, img)
+
+    #bayes_figs(DES, detmaps, detivs, good, wcs, img)
+    
+if __name__ == '__main__':
+    main()
