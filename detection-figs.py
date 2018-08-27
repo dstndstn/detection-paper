@@ -447,8 +447,10 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         II.extend(C[:10])
         K.append(C[0])
     
-    plt.figure(figsize=(6,4))
-    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
+    fw,fh = 6,4
+    sl,sr,sb,st = 0.15, 0.98, 0.12, 0.98
+    plt.figure(figsize=(fw,fh))
+    plt.subplots_adjust(left=sl, right=sr, bottom=sb, top=st)
     plt.clf()
     plt.axhline(1., color='orange', lw=5)
     plt.axhline(1., color='k', alpha=0.5)
@@ -457,23 +459,43 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
     plt.axvline(1.3, color='orange', lw=2, alpha=0.2)
     plt.axvline(2.5, color='r', lw=2, alpha=0.2)
 
-    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bx', alpha=0.3,
-            label='Blue SED-matched filter');
-    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'r.', alpha=0.5,
-            label='Red SED-matched filter');
+    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.blue_sn / Msources.yellow_sn, 'bD', alpha=0.3,
+            label='Blue SED-matched filter', ms=3)
+    plt.plot(MDES.mag_auto_g - MDES.mag_auto_i, Msources.red_sn  / Msources.yellow_sn, 'rs', alpha=0.5,
+            label='Red SED-matched filter', ms=3)
     plt.xlabel('DES g - i color (mag)')
-    plt.ylabel('Relative strength of SED filter vs Yellow');
+    plt.ylabel('Relative strength of SED filter vs Yellow')
     plt.legend(loc='upper left')
-    ymin = 0.6
-    plt.axis([-0.5, 4.0, ymin, 1.3])
-    ax = plt.axis()
+
+    # Position the postage stamp images just right...
+    # axes width,height
+    w = fw * (sr-sl)
+    h = fh * (st-sb)
+    n = len(colorbins)-1
+    # image size
+    s = w/n
+    # fraction of vertical axis devoted to image
+    fim = s/h
+    # fraction devoted to plot
+    fplot = 1.-fim
+    # scale
+    ys = (1.3 - 0.7) / fplot
+    # lower limit
+    ymin = 1.3 - ys
+    # image top
+    ymax = ymin + ys * fim
+    
+    ax = [-0.5, 4.0, ymin, 1.3]
+    plt.axis(ax)
     aspect = plt.gca().get_aspect()
+    
     for clo,chi,k in zip(colorbins, colorbins[1:], K):
         x,y = DES.x[k], DES.y[k]
         plt.imshow(img[y-sz:y+sz+1, x-sz:x+sz+1], interpolation='nearest', origin='lower',
-                  extent=[clo,chi,ymin,ymin+0.11], zorder=20)
+                  extent=[clo,chi,ymin,ymax], zorder=20)
+    plt.yticks([0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3])
     plt.axis(ax)
-    plt.gca().set_aspect(aspect);
+    plt.gca().set_aspect(aspect)
     plt.savefig('strength.pdf')
     
 def show_sources(T, img, R=10, C=10, sz=10, divider=0):
