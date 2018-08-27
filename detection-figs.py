@@ -948,7 +948,66 @@ def galaxy_figs(sedlist, good, wcs, img):
     plt.ylabel('Galaxy / PSF detection ratio')
     plt.savefig('galaxies-relsn.pdf')
 
+def chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs):
+    g_det1 = fitsio.read('1d/detmap-g.fits')
+    g_detiv1 = fitsio.read('1d/detiv-g.fits')
+    r_det1 = fitsio.read('1d/detmap-r.fits')
+    r_detiv1 = fitsio.read('1d/detiv-r.fits')
 
+    g_sn1 = g_det1 * np.sqrt(g_detiv1)
+    r_sn1 = r_det1 * np.sqrt(r_detiv1)
+    goodpix1 = np.logical_and(g_detiv1 > 0.5 * np.median(g_detiv1),
+                              r_detiv1 > 0.5 * np.median(r_detiv1))
+
+    g_sn = g_det * np.sqrt(g_detiv)
+    r_sn = r_det * np.sqrt(r_detiv)
+
+    red_sed = [1., 2.5]
+
+    # Detect on the single image
+    #c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 3.)
+    c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 4.5)
+    keep = goodpix1[c3y, c3x]
+    c3x = c3x[keep]
+    c3y = c3y[keep]
+
+    # Compute the S/N required for g-only or r-only to trigger the
+    # "red" SED detector
+    dm=[np.array([[1,0]]), np.array([[0,1]])]
+    div=[np.ones(2), np.ones(2)]
+    sn = sedsn(dm, div, red_sed)
+    sng = sn[0,0]
+    snr = sn[0,1]
+
+    plt.figure(figsize=(6,4))
+    plt.subplots_adjust(right=0.95, top=0.98)
+
+    from matplotlib.patches import Circle
+    plt.clf()
+    # Annotate points as "true" or "false" based on deeper data.
+    real = (np.hypot(g_sn[c3y,c3x], r_sn[c3y,c3x]) >  10.)
+    fake = np.logical_not(real)
+    #plt.plot(g_sn1[c3y,c3x][fake], r_sn1[c3y,c3x][fake], '.', color='0.5', alpha=0.2, label='False Peaks')
+    plt.plot(g_sn1[c3y,c3x][fake], r_sn1[c3y,c3x][fake], 'x', color='0.5', alpha=0.5, label='False Detections')
+    plt.plot(g_sn1[c3y,c3x][real], r_sn1[c3y,c3x][real], '.', color='k', alpha=0.5, label='Real Detections')
+    a = np.linspace(0, 2.*np.pi, 100)
+    plt.plot(5.*np.sin(a), 5.*np.cos(a), 'b-', label='Chi-squared detection')
+    # r
+    plt.axhline(5., color='r', linestyle=':', label='r-band only detection')
+    # red
+    m=-sng/snr
+    b=5./snr
+    xx = np.array([-20,40])
+    plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label="``Red'' SED-matched detection")
+    plt.legend(loc='upper right', framealpha=1.0)
+    plt.axis('square')
+    plt.axis([-10,40,-10,20])
+    plt.xlabel('g band S/N')
+    plt.ylabel('r band S/N')
+    plt.axhline(0, color='k', alpha=0.25)
+    plt.axvline(0, color='k', alpha=0.25)
+    plt.savefig('sed-matched.pdf')
+    
 def main():
     g_det = fitsio.read('25/detmap-g.fits')
     g_detiv = fitsio.read('25/detiv-g.fits')
@@ -1032,12 +1091,14 @@ def main():
                           (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                           good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
 
+    chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs)
+    
     #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
     #                 g_det, r_det, i_det, wcs)
 
     #galaxy_figs(sedlist, good, wcs, img)
 
-    bayes_figs(DES, detmaps, detivs, good, wcs, img)
+    #bayes_figs(DES, detmaps, detivs, good, wcs, img)
     
 if __name__ == '__main__':
     main()
