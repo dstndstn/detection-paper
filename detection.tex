@@ -317,6 +317,7 @@ from a zero-mean Gaussian with known, constant, per-pixel variance $\sigma_1^2$.
 We can also write this as
 \begin{eqnarray}
   I_{\jvec} &\drawnfrom& \gaussx{F \, \psfat{\jvec - \kvec}}{\sigma_1^2}
+  \nonumber
   \quad ,
 \end{eqnarray}
 meaning that $I_{\jvec}$ is drawn from a Gaussian distribution with
@@ -348,7 +349,7 @@ can be written as
   M_{\jvec} &=& \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec} \quad ,
 \end{eqnarray}
 where $\mathcal{A}$ is the support of the PSF and $\psfat{\ivec} =
-\psf(\ivec)$ is an image of the PSF evaluated at integer pixel
+\psf(\ivec)$ is an image of the PSF model evaluated at integer pixel
 positions $\ivec$.  This operation can be seen as ``gathering up'' the
 signal that is dispersed into many pixels by the PSF, weighting by the
 fraction of the flux that went into the pixel.  In
@@ -368,6 +369,8 @@ D_{\jvec} = \frac{1}{\psfnorm^2} \sum_{\iina} \psfat{\ivec} \,
 I_{\ivec + \jvec} \quad ,
 \label{eq:detmap}
 \end{equation}
+where the summation operation is the correlation of image $I$ by its
+PSF $\psf$.
 %where $\mathcal{A}$ is the support of the PSF and
 %$\psfat{\ivec} = \psf(\ivec)$ is an image of the PSF model evaluated at
 %integer-offset pixel positions $\ivec$.
@@ -912,7 +915,7 @@ space, for example.  We then have
 \begin{eqnarray}
   p_S(\{ D_j \})
   &=&
-  \sum_{i} w_i \int p(\{ D_j \} | F, s) \, p(F) \, \dd F
+  \sum_{i} w_i \int p(\{ D_j \} | F, s_i) \, p(F) \, \dd F
   \\
   &=&
   \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_j^2} \, p(F) \, \dd F
@@ -1157,16 +1160,19 @@ of exposures is available in Tables \ref{tab:exposures} and
 
 \begin{figure}
   \begin{center}
-    \includegraphics[height=0.4\textwidth]{image-sources}
-    \includegraphics[height=0.4\textwidth]{best-color}
-    \caption{\emph{Left:} A $600 \times 600$-pixel zoom-in of a
-      coadded image of the DECam data used in this experiment, shown
-      with an RGB color scheme and \emph{arcsinh} stretch.  Detected
-      sources are marked with symbols indicating which of the
+    \begin{tabular}{cc}
+      Tiny zoom-in & Whole sample \\
+      \includegraphics[height=0.4\textwidth]{image-sources-30}
+      &
+      \includegraphics[height=0.4\textwidth]{best-color-30}
+    \end{tabular}
+    \caption{\emph{Left:} A $600 \times 600$-pixel zoom-in of a tiny
+      fraction of the DECam data used in this experiment, coadded and
+      shown with an RGB color scheme and \emph{arcsinh} stretch.
+      Detected sources are marked with symbols indicating which of the
       SED-matched filters yields the strongest detection; for clarity
-      here we are using an extremely high detection threshold of $100
-      \sigma$.  The three bright stars are not detected because their
-      cores are saturated and masked by the pipeline.  \emph{Right:}
+      here we are using an extremely high detection threshold of $30
+      \sigma$.  \emph{Right:}
       The positions in color-space of detected sources, classified by
       the SED-matched filter that yields the strongest detection.  The
       bold circles mark the color to which each filter is tuned.  Each
