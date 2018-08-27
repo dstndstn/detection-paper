@@ -1220,12 +1220,15 @@ of exposures is available in Tables \ref{tab:exposures} and
       Survey DR1 source database in order to show an accurately
       measured color for each source.  We plot the detection strength
       (sensitivity) of the ``Blue'' and ``Red'' SED-matched filters
-      versus the ``Yellow'' filter.  As expected, sources with blue
-      $g-i$ colors are most sensitively detected by the ``Blue''
-      SED-matched filter, sources with intermediate colors are most
-      sensitively detected by the ``Yellow'' filter, and red sources
-      are most sensitively detected by the ``Red'' SED-matched filter.
-      The $g-i$ colors to which the detections filters are matched are
+      versus the ``Yellow'' filter.  That is, a source with relative
+      strength 1.1 in the ``Blue'' filter would be detected at $5.5
+      \sigma$ in the ``Blue'' filter if it were detected at $5 \sigma$
+      in the ``Yellow'' filter.  As expected, sources with blue $g-i$
+      colors are most sensitively detected by the ``Blue'' SED-matched
+      filter, sources with intermediate colors are most sensitively
+      detected by the ``Yellow'' filter, and red sources are most
+      sensitively detected by the ``Red'' SED-matched filter.  The
+      $g-i$ colors to which the detections filters are matched are
       marked with vertical lines.  Note that the relative
       sensitivities can be tens of percent, which is very significant
       at low signal-to-noise levels.  The filters are roughly equal at
@@ -1257,11 +1260,15 @@ of exposures is available in Tables \ref{tab:exposures} and
 \begin{figure}
   \begin{center}
     \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
-    \caption{Color-space locations of sources that are detected by
-      only the Bayesian SED-matched detection method, and only the
-      $g+r+i$ single-band detection method.  The Bayesian-only
-      detections have the colors of real objects, while the
-      $g+r+i$-only detections tend to be single-band sources,
+    \caption{Bayesian SED-matched detection method compared to $g+r+i$
+      single-band detection.  The color-space locations of sources
+      that are detected by both methods are shown as faint points, and
+      sources that are detected by only one method or the other are
+      highlighted.  In this experiment, the detection thresholds were
+      tuned so that both methods produced the same number of
+      detections; this compares each method's best detections.  The
+      Bayesian-only detections have the colors of real objects, while
+      the $g+r+i$-only detections tend to be single-band sources,
       including cosmic rays, asteroids, and very red sources.
       \label{fig:bayes-vs-gri}}
   \end{center}

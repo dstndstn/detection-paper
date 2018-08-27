@@ -768,21 +768,30 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
     US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
     print(len(UB), 'unmatched Bayesian', len(US), 'g+r+i')
+
+    MS = np.flatnonzero(Bhot[sources.y, sources.x])
     
     plt.figure(figsize=(6,4))
     plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
 
     plt.clf()
-    plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
+    # for the legend only
+    p1 = plt.plot(-10, -10, 'k.')
+    plt.plot(sources.gr[MS], sources.ri[MS], 'k.', alpha=0.1,
+             label='Both')
+    p2 = plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
              label='g+r+i only')
-    plt.plot(bsources.gr[UB], bsources.ri[UB], 'kx',
+    p3 = plt.plot(bsources.gr[UB], bsources.ri[UB], 'bx',
              label='Bayesian only')
     plt.xlabel('g - r (mag)')
     plt.ylabel('r - i (mag)')
-    plt.legend()
+    plt.legend((p1[0],p2[0],p3[0]),
+               ('Detected by both', 'Only detected by g+r+i', 'Only detected by Bayesian'),
+               loc='lower left')
     plt.axis([-5, 5, -3, 3])
     plt.savefig('bayes-vs-gri.pdf')
 
+    
     plt.figure(figsize=(4,4))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
@@ -1023,8 +1032,8 @@ def main():
                           (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                           good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
 
-    sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
-                     g_det, r_det, i_det, wcs)
+    #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
+    #                 g_det, r_det, i_det, wcs)
 
     #galaxy_figs(sedlist, good, wcs, img)
 
