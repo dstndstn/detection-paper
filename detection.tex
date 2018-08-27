@@ -1270,21 +1270,39 @@ of exposures is available in Tables \ref{tab:exposures} and
       Bayesian-only detections have the colors of real objects, while
       the $g+r+i$-only detections tend to be single-band sources,
       including cosmic rays, asteroids, and very red sources.
+      Cutouts of these sources are shown in \figref{fig:only}.
       \label{fig:bayes-vs-gri}}
   \end{center}
 \end{figure}
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=0.4\textwidth]{bayes-only}
-    \hspace{0.03\textwidth}
-    \includegraphics[width=0.4\textwidth]{gri-only}
-    \caption{\emph{Left:} Examples of sources that are detected by
-      only the Bayesian SED-matched detection method.  These have the
-      colors of real objects and appear to be all faint galaxies.
-      \emph{Right:} Examples of sources that are detected by only the
-      $g+r+i$ single-band detection method.  These include cosmic
-      rays, asteroids, and very red sources.
+    \begin{tabular}{cc}
+      Detected by Bayesian only &
+      Detected by $g+r+i$ only \\
+      \includegraphics[width=0.4\textwidth]{bayes-only}
+      %\hspace{0.03\textwidth}
+      &
+      \includegraphics[width=0.4\textwidth]{gri-only}
+    \end{tabular}
+    \caption{Bayesian SED-matched detection method compared to
+      $g+r+i$ single-band detection, where each method is allowed to
+      detect the same total number of sources.  \emph{Left:} Examples
+      of sources that are detected by only the Bayesian SED-matched
+      detection method.  These have the colors of real objects and
+      appear to be all faint galaxies.  \emph{Right:} Examples of
+      sources that are detected by only the $g+r+i$ single-band
+      detection method.  These include cosmic rays, asteroids, and
+      very red sources.
+      %
+      If we clip outlier pixels while forming the detection maps, we
+      can eliminate these cosmic rays before the detection step; the
+      $g+r+i$ method then preferentially detects sources with extreme
+      colors.  Still, since real images will often contain artifacts
+      and moving objects, the fact that the $g+r+i$ \emph{prefers} these
+      objects to real sources is problematic; the Bayesian method, on
+      the other hand, requires sources with such unexpected colors to have
+      much higher flux than real sources.
       \label{fig:only}}
   \end{center}
 \end{figure}
