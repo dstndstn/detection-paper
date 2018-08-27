@@ -828,15 +828,15 @@ detection threshold is taken as evidence as a source.  See Figure
   \begin{center}
     \includegraphics[width=0.8\textwidth]{sed-matched}
     \caption{SED-matched and ``chi-squared'' detection filters.  The
-      data points are (chi-squared) peaks above $3 \sigma$ detected in
+      data points are (chi-squared) detections above $4.5 \sigma$ in
       $g$ and $r$ images taken with the Dark Energy Camera, plotted in
       signal-to-noise space.  Points that are below $10 \sigma$ in
       deeper data (25 exposures) are marked as ``False''; these are
       mostly clustered around zero (due to noise), with some scattered
-      points near the axes due to artifacts such as cosmic rays. The
+      points near the axes due to single-band artifacts such as cosmic rays. The
       main locus of ``Real'' peaks correspond to real stars and
       galaxies with typical colors.  The Chi-squared detection method
-      selects as sources all sources outside the circle (including, in
+      selects all sources outside the circle (including, in
       the naive formulation, sources with negative flux in both
       bands).  A single-band detection filter selects all sources
       above a vertical or horizontal detection threshold.  Our ``red''
@@ -1298,11 +1298,11 @@ of exposures is available in Tables \ref{tab:exposures} and
       If we clip outlier pixels while forming the detection maps, we
       can eliminate these cosmic rays before the detection step; the
       $g+r+i$ method then preferentially detects sources with extreme
-      colors.  Still, since real images will often contain artifacts
-      and moving objects, the fact that the $g+r+i$ \emph{prefers} these
+      colors.  Since real images will often contain artifacts
+      and moving objects, the fact that the $g+r+i$ method \emph{prefers} these
       objects to real sources is problematic; the Bayesian method, on
       the other hand, requires sources with such unexpected colors to have
-      much higher flux than real sources.
+      much higher signal than it does for real sources.
       \label{fig:only}}
   \end{center}
 \end{figure}
