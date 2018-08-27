@@ -826,8 +826,9 @@ detection threshold is taken as evidence as a source.  See Figure
 
 \begin{figure}
   \begin{center}
+    % This figure comes from detection-figs.py : chisq_fig()
     \includegraphics[width=0.8\textwidth]{sed-matched}
-    \caption{SED-matched and ``chi-squared'' detection filters.  The
+    \caption{SED-matched versus ``chi-squared'' detection filters.  The
       data points are (chi-squared) detections above $4.5 \sigma$ in
       $g$ and $r$ images taken with the Dark Energy Camera, plotted in
       signal-to-noise space.  Points that are below $10 \sigma$ in
@@ -839,7 +840,7 @@ detection threshold is taken as evidence as a source.  See Figure
       selects all sources outside the circle (including, in
       the naive formulation, sources with negative flux in both
       bands).  A single-band detection filter selects all sources
-      above a vertical or horizontal detection threshold.  Our ``red''
+      above a vertical or horizontal detection threshold.  Our ``Red''
       SED-matched filter selects sources where the fluxes in the two
       bands are consistent with a red SED (in this case, a $g - r$
       color of 1).  Note that the threshold line is roughly orthogonal
@@ -1041,17 +1042,25 @@ simulations to yield an acceptable false positive rate.
 %% FIXME -- can we do it analytically?
 
 \begin{figure}
-    \begin{center}
+  \begin{center}
+    % These figures come from bayes-figure.py.
     \includegraphics[width=0.4\textwidth]{prob-contours-a}
     \includegraphics[width=0.4\textwidth]{prob-rel-a}
-    \caption{ \emph{Left:} likelihood contours for the background
-      model (there is no source, only noise), and the foreground
-      model, where the SED prior is a single ``red'' SED with color $g
-      - r = 1$.  Note that the contours are inclined in the direction
-      of the SED (shown by a faint line).  The contours are at powers
-      of 10.  \emph{Right:} likelihood ratio contours for the
-      foreground divided by background model.  The contours are at
-      powers of 10.
+    \caption{Bayesian SED-matched source detection with a single-SED prior, for illustration.
+      The foreground model is that sources have fluxes that lie along a ``Red''
+      SED with color $g-r = 1$.
+      \emph{Left:} Probability contours for the foreground model are inclined in the
+      direction of the prior.  The luminosity prior prefers small fluxes, but has some
+      probability mass extended toward larger fluxes.
+      The background model (null hypothesis) is that there is no source, only noise; these
+      contours are circles centered on zero.
+      The probability contours are spaced in powers of 10.
+      \emph{Right:} Probability ratio contours for the
+      foreground divided by background model.
+      When performing source detection, these lines mark decision boundaries;
+      points above and to the right of a decision boundary are
+      considered to be detected.
+      The contours are spaced in powers of 10.
       \label{fig:cona}
     }
     \end{center}
@@ -1059,18 +1068,25 @@ simulations to yield an acceptable false positive rate.
 
 \begin{figure}
     \begin{center}
+    % These figures come from bayes-figure.py.
     \includegraphics[width=0.4\textwidth]{prob-contours-b}
     \includegraphics[width=0.4\textwidth]{prob-rel-b}
-    \caption{ \emph{Left:} likelihood contours for the background
-      model (there is no source, only noise), and the foreground
-      model, where the SED prior is a weight sum of three SEDs: 49\%
-      ``red'' (color $g-r=1$ mag), 49\% ``flat'' (color $g-r=0$), and
-      2\% $r$-band only ($g$ flux is zero).  Note that the contours
-      have components inclined in the directions of the SED components
-      (shown by faint lines).  The contours are at powers of 10.
-      \emph{Right:} likelihood ratio contours for the foreground
-      divided by background model.  The contours are at powers of 10.
-      \label{fig:conb}
+    \caption{Bayesian SED-matched source detection with a three-SED prior.
+      The prior is that astronomical sources are a
+      mixture of $49\%$ ``Red'' (color $g-r = 1$ mag),
+      $49\%$ ``Flat'' (color $g - r = 0$ mag),
+      and $2\%$ $r$-band only ($g$ flux is zero).
+      \emph{Left:} Probability contours for the foreground model are extended in the
+      directions of the three components of the prior.
+      The background model (null hypothesis) is that there is no source, only noise; these
+      contours are circles centered on zero.
+      The probability contours are spaced in powers of 10.
+      \emph{Right:} Probability ratio contours for the
+      foreground divided by background model.
+      When performing source detection, these lines mark decision boundaries;
+      points above and to the right of a decision boundary are
+      considered to be detected.
+      The contours are spaced in powers of 10.
     }
     \end{center}
 \end{figure}
@@ -1080,7 +1096,7 @@ of imaging, $g$ and $r$ bands.  In \figref{fig:cona}, we plot the
 probability contours of the background model (equation \ref{eq:pbg})
 and the foreground model (equation \ref{eq:pfg}), for the simplest
 case where our SED prior $p(s)$ is a delta function at $s_{g} =
-\frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``red'' detection
+\frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``Red'' detection
 filter that assumes a $g - r$ color of 1 magnitude.  As expected, the
 probability contours of the foreground model shift away from negative
 fluxes and toward fluxes that are consistent with the expected color.
@@ -1091,7 +1107,7 @@ contours---which are what would be used to accept or reject a proposed
 source---are, as expected, orthogonal to the expected SED vector.
 
 In \figref{fig:conb}, we show probability contours for a three-SED
-model, including the ``red'' SED and a ``flat'' SED ($r$ flux equals
+model, including the ``Red'' SED and a ``Flat'' SED ($r$ flux equals
 $g$ flux) with equal weights of $0.49$, plus an SED that has only flux
 in the $r$ band, with weight $0.02$.  The probability contours of this
 model are, as before, extended in the directions of these SEDs.  The
@@ -1101,18 +1117,22 @@ orthogonal to these three SED directions.
 
 \begin{figure}
     \begin{center}
+    % These figures come from bayes-figure.py.
     \includegraphics[width=0.4\textwidth]{prob-contours-c}
     \includegraphics[width=0.4\textwidth]{prob-1d}
-    \caption{ \emph{Left:} Likelihood contours for the ``red''
-      foreground model, as before, and with the SED scaled by a factor
-      of two.  When the SED factors are scaled up, the underlying flux
-      prior is stretched out---larger observed fluxes are considered
+    \caption{The effect of the luminosity prior in Bayesian
+      SED-matched source detection.  In order to produce closed-form
+      integrals, we use an exponential prior on the luminosity; here
+      we show the effect of the exponential scale factor ($\alpha$) on
+      the results.  \emph{Left:} Probability contours for the ``Red''
+      foreground model, as before, and with a luminosity function that
+      prefers brighter sources---larger observed fluxes are considered
       more probable.  \emph{Right:} A one-dimensional example showing
-      the effect of scaling the SED by a factor of two.  The scaled
-      model (dashed) places more prior belief in larger fluxes, and
-      therefore must produce smaller probabilites at low flux levels.
-      This illustrates that care must be taken with the units of $F$
-      when using this prior.
+      the effect of changing the luminosity function by a factor of
+      two.  The dashed model places more prior belief in larger
+      fluxes, and therefore must produce smaller probabilites at low
+      flux levels.  This illustrates that care must be taken with the
+      scale factor of the luminosity function prior.
       \label{fig:scaling}
     }
     \end{center}
@@ -1345,8 +1365,8 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
 in the center of the focal plane.  We produce detection maps for each
 band as described above, and run several SED-matched filters: a
-``blue'' filter matched to a source with colors $g - r = r - i = 0$; a
-``yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``red''
+``Blue'' filter matched to a source with colors $g - r = r - i = 0$; a
+``Yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``Red''
 filter matched to $g - r = 1.5$, $r - i = 1$.
 
 For the plots shows here, we select sources in the yellow filter with

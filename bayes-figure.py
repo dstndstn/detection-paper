@@ -89,14 +89,14 @@ def contour_plot(p_bg, p_fg, seds,
     
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
-    plt.axhline(0, color='k', alpha=0.5)
-    plt.axvline(0, color='k', alpha=0.5)
+    plt.axhline(0, color='k', alpha=0.2)
+    plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
     for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.1)
+        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=3)
     plt.axis('square')
-    plt.legend([c1.collections[0], c2.collections[0]],
-               [label1, label2],
+    plt.legend([c2.collections[0], c1.collections[0]],
+               [label2, label1],
                loc='lower right')
 
 def rel_contour_plot(pratio, seds):
@@ -104,11 +104,11 @@ def rel_contour_plot(pratio, seds):
     plt.contour(np.log10(pratio), levels=levs, linestyles='-', extent=dextent, colors='k')
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
-    plt.axhline(0, color='k', alpha=0.5)
-    plt.axvline(0, color='k', alpha=0.5)
+    plt.axhline(0, color='k', alpha=0.2)
+    plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
     for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.1)
+        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=3)
     plt.axis('square');
 
 plt.clf()
@@ -156,8 +156,8 @@ plt.clf()
 contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
              style1=dict(colors='b', linestyles='-'),
              style2=dict(colors='r', linestyles='--'),
-             label1='Foreground model',
-             label2='Foreground model, s * 2')
+             label1='Foreground model, faint luminosity function',
+             label2='Foreground model, bright luminosity function')
 axa = [-5.5,11, -5.5,11]
 plt.axis(axa)
 plt.savefig('prob-contours-c.pdf')
@@ -235,27 +235,37 @@ prior1a = np.exp(-flux_1a) * (flux_1a > 0)
 prior1b = np.exp(-flux_1b) * (flux_1b > 0)
 
 plt.clf()
-plt.subplots_adjust(hspace=0)
-ax1 = plt.subplot2grid((3,1), (0, 0), rowspan=2)
+#plt.subplots_adjust(hspace=0)
+plt.subplots_adjust(hspace=0.2)
+
+#ax1 = plt.subplot2grid((3,1), (0, 0), rowspan=2)
+ax1 = plt.subplot2grid((2,1), (1, 0))
 plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
-plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Foreground model')
-plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Foreground model, s * 2')
+plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Faint luminosity function') #'Foreground model, faint luminosity function')
+plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Bright luminosity function') #'Foreground model, bright luminosity function')
 #plt.plot(d_one, p_fg_1c[0,:], 'g:', label='Foreground model, alpha = 0.5')
 plt.axvline(0., color='k', alpha=0.1)
 plt.axhline(0., color='k', alpha=0.1)
-plt.xlim(-4,12)
-plt.yticks(np.arange(0, 0.41, 0.1))
+plt.xlim(-4,8)
+#plt.yticks(np.arange(0, 0.41, 0.1))
+plt.yticks(np.arange(0, 0.41, 0.2))
+plt.xlabel('Observed flux ($\sigma$)')
+#plt.xlabel('Observed flux (arb. units)')
+#plt.xticks([])
 plt.legend()
-plt.ylabel('Probability')
-plt.xticks([])
+plt.ylabel('Posterior Probability')
 
-ax2 = plt.subplot2grid((3,1), (2, 0))
-plt.plot(d_one, prior1a, 'b-', label='Foreground prior')
+#ax2 = plt.subplot2grid((3,1), (2, 0))
+ax2 = plt.subplot2grid((2,1), (0, 0))
+plt.plot(d_one, prior1a, 'b-', label='Faint luminosity function') #'Foreground prior')
 # /2 to normalize (~ d_d / d_flux)
-plt.plot(d_one, prior1b/2., 'r--', label='Foreground prior, s * 2')
+plt.plot(d_one, prior1b/2., 'r--', label='Bright luminosity function') #Foreground prior, s * 2')
 plt.axhline(0., color='k', alpha=0.1)
-plt.xlim(-4,12)
+plt.xlim(-4,8)
 plt.yticks([0, 0.5, 1.0])
-plt.xlabel('Detection map values')
-plt.legend();
+plt.ylabel('Prior probability')
+plt.xlabel('Prior flux (arb. units)')
+plt.xticks([])
+#plt.xlabel('Detection map values')
+plt.legend()
 plt.savefig('prob-1d.pdf')
