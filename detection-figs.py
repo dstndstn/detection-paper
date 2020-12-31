@@ -999,7 +999,7 @@ def chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs):
     b=5./snr
     xx = np.array([-20,40])
     plt.plot(xx, b+m*xx, 'm-', mew=2, linestyle='--', label="``Red'' SED-matched detection")
-    plt.legend(loc='upper right', framealpha=1.0)
+    plt.legend(loc='upper right', framealpha=1.)
     plt.axis('square')
     plt.axis([-10,40,-10,20])
     plt.xlabel('g band S/N')

@@ -1,4 +1,15 @@
-\documentclass[letterpaper,preprint]{aastex62}
+\documentclass[11pt,letterpaper,preprint]{aastex63}
+
+%%%%% TODO
+
+% - fix Hogg's affiliations (Flatiron etc)
+
+
+
+
+
+
+
 \usepackage{bm}
 \usepackage{calc}
 \usepackage{amssymb, amsmath}
@@ -73,7 +84,7 @@
 \newcommand{\sky}{\mathrm{sky}}
 \newcommand{\psfw}{w}
 \newcommand{\dd}{\mathrm{d}}
-\newcommand{\noise}{e}
+\newcommand{\noise}{E}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
 \newcommand{\thetavec}{\vec{\theta}}
 \newcommand{\avec}{\vec{a}}
@@ -91,17 +102,17 @@
 \title{Principled point-source detection in collections of astronomical images}
 \author{Dustin Lang}
 %\altaffiliation{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
+% \affiliation{%
+%   Dunlap Institute and Department for Astronomy \& Astrophysics,
+%   University of Toronto,
+%   50 Saint George Street, Toronto, ON, M5S 3H4, Canada}
 \affiliation{%
-  Dunlap Institute and Department for Astronomy \& Astrophysics,
-  University of Toronto,
-  50 Saint George Street, Toronto, ON, M5S 3H4, Canada}
+  Perimeter Institute for Theoretical Physics,
+  31 Caroline Street North, Waterloo, ON, N2L 2Y5, Canada}
 \affiliation{%
-  Visitor, Department of Physics \& Astronomy,
+  Department of Physics \& Astronomy,
   University of Waterloo,
   200 University Avenue West, Waterloo, ON, N2L 3G1, Canada}
-\affiliation{%
-  Visitor, Perimeter Institute for Theoretical Physics,
-  31 Caroline Street North, Waterloo, ON, N2L 2Y5, Canada}
 
 \author{David W. Hogg}
 \affiliation{%
@@ -125,14 +136,13 @@ point-spread function, and noise models.  We show that the matched
 filter produces a maximum-likelihood estimate of the brightness of a
 purported point source, and this leads to a simple way to combine
 multiple images---taken through the same bandpass filter but with
-different background levels and point-spread functions---to produce an
+different noise levels and point-spread functions---to produce an
 optimal point source detection map.  We then extend the approach to
 images taken through different bandpass filters, introducing the
 \emph{SED-matched filter}, which allows us to combine images taken
 through different filters, but requires us to specify the colors of
 the objects we wish to detect.  We show that this approach is superior
-to some methods traditionally employed, such as the \emph{chi-squared
-  coadd} (Szalay \emph{et al.} 1999), and that other traditional
+to some methods traditionally employed, and that other traditional
 methods can be seen as instances of SED-matched filtering with implied
 (and often unreasonable) priors.
 %
@@ -142,6 +152,8 @@ methods can be seen as instances of SED-matched filtering with implied
 % based on their utility for the question at hand.
 %
 \end{abstract}
+
+%such as the \emph{chi-squared coadd} (Szalay \emph{et al.} 1999), 
 
 \keywords{
     methods:~statistical ---
@@ -173,11 +185,11 @@ In point-source detection in astronomical images, the expected signal is the
 point-spread function (PSF), and the cross-correlation operation is often
 wrongly called ``convolution by the PSF''.
 Matched filters are well used in astronomy, in contexts ranging from
-spectroscopy (CITE) to
-galaxy clusters \cite{redmapper, melin} to
-ultra-faint galaxies \cite{willman1} to
-exoplanets \cite{exoplanet} to
-gravitational radiation \cite{ligo}.
+spectroscopy \citep{bossspectro} to
+galaxy clusters \citep{redmapper, melin} to
+ultra-faint galaxies \citep{willman1} to
+exoplanets \citep{exoplanet} to
+gravitational radiation \citep{ligo}.
 
 % from the tweeps:
 % http://scholar.google.com/scholar?q=astronomy+matched+filter
@@ -258,7 +270,8 @@ program (eg, \cite{unwise-phot}).
 
 We consider idealized astronomical images such as those obtained from
 a CCD in typical broadband optical imaging.
-Specifically, we will make the following strong assumptions:
+Specifically, we will make the following strong assumptions
+(and later we will relax many of them):
 \begin{itemize}
 \item the noise (coming from such sources as the Poisson distribution
   of the sky background, dark current, and read noise) is zero-mean,
@@ -267,14 +280,15 @@ Specifically, we will make the following strong assumptions:
   subtraction (sky estimation);
 \item the image is well sampled;
 \item the (perhaps tiny) image contains \emph{only} one point
-  source with some (unknown) flux and position;
-\item the source is centered within a pixel (we will relax this
-  later);
+  source with an unknown flux and position;
+\item the source is centered within a pixel; %(we will relax this
+  % later);
 \item the point-spread function is spatially constant (across the
   possibly small image patch of interest) and known perfectly;
 \item the device is linear and the photometric calibration of the
   image is known perfectly; that is, that it is possible to map from
-  ``count'' units back to physical units or a photometric standard;
+  image ``count'' units back to physical units or a photometric
+  standard;
 \item the image is perfectly astrometrically calibrated;
 \item the image is not contaminated by cosmic rays, stray light, bad
   pixels, bad columns, electronic artifacts, or any other of the many
@@ -305,23 +319,23 @@ integer pixel units.
 %
 If the image contains a single point source, centered on
 the pixel at position $\kvec$ and with constant flux resulting in a
-total number of counts $F$, then the image is
+total number of counts $f$, then the image is
 \begin{eqnarray}
-  I_{\jvec} &=& F \, \psfat{\jvec - \kvec} + \noise_{\jvec} \quad ,
+  I_{\jvec} &=& f \, \psfat{\jvec - \kvec} + \noise_{\jvec} \quad ,
   \label{eqn:image}
 \end{eqnarray}
-where $\psi(\jvec-\kvec)$ is the point-spread function evaluated at
+where $\psfat{\jvec-\kvec}$ is the point-spread function evaluated at
 offset $\jvec-\kvec$ and $\noise_{\jvec}$ is per-pixel noise drawn
-from a zero-mean Gaussian with known, constant, per-pixel variance $\sigma_1^2$.
+from a zero-mean Gaussian with known, constant, per-pixel variance $\sigma^2$.
 %
 We can also write this as
 \begin{eqnarray}
-  I_{\jvec} &\drawnfrom& \gaussx{F \, \psfat{\jvec - \kvec}}{\sigma_1^2}
+  I_{\jvec} &\drawnfrom& \gaussx{f \, \psfat{\jvec - \kvec}}{\sigma^2}
   \nonumber
   \quad ,
 \end{eqnarray}
 meaning that $I_{\jvec}$ is drawn from a Gaussian distribution with
-mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
+mean $f\, \psf(\jvec - \kvec)$ and variance $\sigma^2$.
 
 
 \section{Detecting a point source in a single image}
@@ -329,8 +343,8 @@ mean $F\, \psf(\jvec - \kvec)$ and variance $\sigma_1^2$.
 
 %\subsection{Optimal linear detection}
 
-Here we consider a point source $k$ in a single image, as in
-\eqnref{eqn:image}.
+%Here we consider a point source $k$ in a single image, as in
+%\eqnref{eqn:image}.
 
 % the map $M_{\jvec}$ can
 % be computed by correlating the image with its PSF:
@@ -346,15 +360,22 @@ the PSF'' or ``correlating by the PSF''\footnote{
   Or, often, ``convolving by the PSF'', being slightly careless with terminology.}
 can be written as
 \begin{eqnarray}
-  M_{\jvec} &=& \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec} \quad ,
+  M_{\jvec} &=& \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec}
+  \nonumber \quad ,
 \end{eqnarray}
 where $\mathcal{A}$ is the support of the PSF and $\psfat{\ivec} =
 \psf(\ivec)$ is an image of the PSF model evaluated at integer pixel
-positions $\ivec$.  This operation can be seen as ``gathering up'' the
-signal that is dispersed into many pixels by the PSF, weighting by the
-fraction of the flux that went into the pixel.  In
-\appref{app:lindet} we derive the matched filter and show that it
-saturates the Cram\'er--Rao bound.
+offset $\ivec$, where the PSF is centered at the origin.  This
+operation can be seen as ``gathering up'' the signal that is dispersed
+into many pixels by the PSF, weighting by the fraction of the flux
+that went into the pixel.  In \appref{app:lindet} we derive the
+matched filter and show that it saturates the Cram\'er--Rao bound.
+
+
+% In practice, it is common to use a symmetric (circular) Gaussian
+% approximation of the PSF model.  This has the computational advantage
+% that one can use a fast (separable) real-space filtering routine, and 
+
 
 % In \appref{app:lindet}\ we show that \emph{correlating} an image by
 % its PSF---\emph{matched filtering}---results in an optimal detector
@@ -374,7 +395,7 @@ PSF $\psf$.
 %where $\mathcal{A}$ is the support of the PSF and
 %$\psfat{\ivec} = \psf(\ivec)$ is an image of the PSF model evaluated at
 %integer-offset pixel positions $\ivec$.
-The PSF norm $\psfnorm$ is
+The PSF norm $\psfnorm$ is defined as
 \begin{equation}
 \psfnorm = \sqrt{\sum_{\iina} \psfat{\ivec}^2} \quad ,
 \end{equation}
@@ -385,30 +406,33 @@ devation $\psfw$ pixels has a norm approximately:
 \end{equation}
 The per-pixel error in the \detmap\ is given by
 \begin{equation}
-\sigma_{D} = \frac{\sigma_1}{\psfnorm} \quad .
+\sigma_{D} = \frac{\sigma}{\psfnorm} \quad .
 \end{equation}
 
 
 We have scaled the \detmap\ so that each pixel contains the
-maximum-likelihood estimate of the total counts of a source centered
-at that pixel.  That is, if we compute at pixel $\jvec$ the total
-source counts $F^{\ast}_{\jvec}$ to minimizes the chi-squared
+maximum-likelihood estimate of the total flux of a source centered
+at that pixel.  That is, if we compute at pixel $\jvec$ the flux
+$f^{\ast}_{\jvec}$ that minimizes the chi-squared
 ($\chi^2$) residual within the support of the PSF:
 \begin{equation}
-  F^{\ast}_{\jvec} = \arg\min_{f} \sum_{\ivec} \left( \frac{I_{\ivec+\jvec} - f \, \psfat{\ivec}}{\sigma_1} \right)^2
+  f^{\ast}_{\jvec} = \arg\min_{f} \sum_{\ivec} \left( \frac{I_{\ivec+\jvec} - f \, \psfat{\ivec}}{\sigma} \right)^2
+  \nonumber
 \end{equation}
 we find
 \begin{eqnarray}
-  F^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} I_{\ivec+\jvec} \, \psfat{\ivec}}{\sum_{\ivec} \psfat{\ivec}^2}
+  f^{\ast}_{\jvec} &=& \frac{\sum_{\ivec} I_{\ivec+\jvec} \, \psfat{\ivec}}{\sum_{\ivec} \psfat{\ivec}^2}
+  \nonumber
   \\
-  F^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
+  f^{\ast}_{\jvec} &=& D_{\jvec} %\quad .
+  \nonumber
 \end{eqnarray}
 as defined above.
 %
 That is, a significant peak in the \detmap\ indicates the likely
 position of a point source, and the value of the \detmap\ at a pixel
-is the maximum-likelihood estimate of the total source counts for a
-source centered at that pixel.
+is the maximum-likelihood estimate of the flux for a source centered
+at that pixel.
 
 
 \subsection{Threshold and Peaks}
@@ -424,15 +448,15 @@ source (or a blended group of sources).\footnote{%
 In regions containing no
 sources, the detection map contains Gaussian noise.  Due to the
 correlation operation, the detection map pixels are not pixelwise
-independent, but as weighted sums of Gaussian samples they remain
-Gaussian.  As such, the expected number of pixels above a threshold
+independent, but as weighted sums of Gaussian samples they are still distributed
+as Gaussians.  As such, the expected number of pixels above a threshold
 $\tau$ is the integral of the high tail of the normal distribution.
 For $\tau = 5 \sigma_D$, the fraction of pixels above threshold due to
 noise is about $2.9\times10^{-7}$, which seems tiny except that we
 will be evaluating millions of pixels; in a 4k$\times$4k image we
 would expect approximately $5$ false positive detections.
 
-There is nothing special about $5 \sigma$ as a detection threshold; it
+There is nothing special about $5 \sigma_D$ as a detection threshold; it
 is simply a choice of tradeoff between allowing some false positives
 while preventing too many false negatives (lost detections).  In
 different situations, higher or lower thresholds could be preferable.
@@ -444,15 +468,18 @@ Computing the detection map requires correlation of the image by a
 model of its point-spread function.  In practice, the PSF model is
 never known exactly, and since correlation by large pixelized models
 can be expensive, it is common to approximate the PSF by a Gaussian
-for the purposes of detecting sources.  The impact this approximation
-of the PSF has on detection efficiency is apparent in the derivation
-of the matched filter; in equation \ref{eqn:psfdotprod}, the detection
+for the purposes of detecting sources.  The impact of this
+approximation on detection efficiency is apparent in the derivation of
+the matched filter; in equation \ref{eqn:psfdotprod}, the detection
 map signal-to-noise is proportional to the cosine distance between the
 true PSF and the correlation kernel.  In typical ground-based images,
 this results in only a few percent loss in signal-to-noise.  For
-example, in our Legacy Surveys images, if we assume that our pixelized
+example, in our DESI Legacy Imagine Surveys images \citep{lsoverview},
+if we assume that our pixelized
 model of the PSF is correct, then a Gaussian approximation typically
-yields above $97\%$ efficiency.
+yields above $97\%$ efficiency.  A considerable side benefit of making
+this assumption is that one can use a fast separable real-space
+filtering routine to perform the correlation operation.
 
 \paragraph{Biases}
 In this paper, we have assumed that backgrounds due to atmospheric
@@ -461,8 +488,9 @@ have been perfectly estimated and subtracted.  In real images,
 however, errors in these estimates can leave spatially coherent
 residual biases, and these can have a considerable effect on source
 detection.  For example, a background that is elevated by $0.05
-\sigma_1$ per pixel can double the $5\sigma$ false positive rate in
-good seeing, and has an even greater effect in worse seeing.
+\sigma$ per pixel can double the false positive rate (with a
+$5\sigma_D$ threshold) in good seeing, and has an even greater effect
+in worse seeing.
 
 % Specifically, sky bias on detection:
 % D_j / sigma_D = 1/||psf||^2 (\sum_i \psf_i (C_i + b)) / (sigma_1/||psf||)
@@ -544,7 +572,7 @@ our knowledge.  In some astronomical source detection packages
 one neighboring pixel to exceed a detection threshold.  This is not
 necessary or useful; in effect it imposes a larger detection threshold
 that varies based on the source morphology and PSF, which is
-undesirable.
+typically undesirable.
 
 
 % \paragraph{What would Bayes do?}  FIXME -- We haven't really explained that
@@ -558,11 +586,14 @@ undesirable.
 We have focused only on point sources, but the same arguments can be
 used to develop a detector for galaxies.  The matched filter by which
 the image must be correlated is then the intrinsic galaxy profile
-correlated with the PSF; a matched-filtering approach is only optimal
-for a given galaxy profile.  As with using an approximation for the
+correlated with the PSF.  It turns out \citep{zackay1} that a
+matched-filtered image for a given galaxy profile can be computed by
+correlation with the PSF detection map.
+Of course, a matched-filtering approach is only optimal
+for a single galaxy profile.  As with using an approximation for the
 PSF model, the non-optimality due to using an incorrect galaxy profile
-is related to the cosine distance between the correct and model galaxy
-profile.
+is related to the cosine distance between the true and model galaxy
+profiles.
 
 In practice, our mixture-of-Gaussians approximations to standard
 exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
@@ -626,16 +657,16 @@ F_i &=& R_i(\kappa_i \, D_i)
 \end{eqnarray}
 with per-pixel error
 \begin{eqnarray}
-\sigma_{F, i} &=& \frac{\kappa_i \, \sigma_{1,i}}{\psfnorm_i}
+\sigma_{F_i} &=& \frac{\kappa_i \, \sigma_{i}}{\psfnorm_i}
 \end{eqnarray}
 and we combine the estimates from multiple images via
 \begin{eqnarray}
-F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F,i}}{\displaystyle\sum_i \sigma^{-2}_{F_i}}
+F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F_i}}{\displaystyle\sum_i \sigma^{-2}_{F_i}}
 \label{eq:onebandmap}
 \end{eqnarray}
 which has per-pixel error
 \begin{eqnarray}
-  \sigma_{F, \star} &=& \left( \sum_i \sigma^{-2}_{F,i} \right)^{-\frac{1}{2}}    \quad .
+  \sigma_{F_{\star}} &=& \left( \sum_i \sigma^{-2}_{F_i} \right)^{-\frac{1}{2}}    \quad .
   \label{eq:onebandstd}
 \end{eqnarray}
 This is simply the maximum-likelihood estimate of the flux based on a
@@ -709,13 +740,16 @@ map.
 
 
 \subsection{Different bandpass filters: the \emph{SED-matched filter}}
+\label{sec:sedmatched}
 
 Everything we have said up to now has been based on facts about
-statistical distributions and should be uncontroversial.  In this section we
-propose a method that is, to our knowledge, new to astronomy.  While
-it is fully defensible, it involves \emph{priors} so we expect will be
-slightly controversial.  We argue that other proposed methods presume
-\emph{stronger} and usually \emph{unstated} priors.
+statistical distributions and should be uncontroversial.  In this
+section we propose a method that is, to our knowledge, new to
+astronomy, though it flows naturally from the multi-image matched
+filtering we have discussed. While it is fully defensible, it involves
+\emph{priors} so we expect will be slightly controversial.  We argue
+that other proposed methods presume \emph{stronger} and usually
+\emph{unstated} priors.
 
 As we saw in the single-bandpass case, we can combine multiple
 individual exposures into an aggregate estimate of the flux of a point
@@ -750,7 +784,7 @@ bandpasses, and in that view the SED-matched filter is analogous to
 the way flux is spread into pixels by the point-spread function (and
 re-collected by correlating with the matched filter).
 
-\newcommand{\sigdj}{\sigma_{j}}
+\newcommand{\sigdj}{\sigma_{D_j}}
 
 Assume we have computed detection maps $D_j$, with per-pixel standard deviation
 $\sigdj$, for a number of different bandpasses.  Assume each
@@ -759,7 +793,7 @@ that is,
 \begin{eqnarray}
   D_j & \drawnfrom & \gaussx{F s_j}{\sigdj^2}
 \end{eqnarray}
-for flux in the canonical band $F$.
+for flux $F$ in the canonical band.
 % \footnote{% The notation $x
 %   \drawnfrom \gaussx{\mu}{\sigma^2}$ means that $x$ is drawn from a
 %   Gaussian distribution with mean $\mu$ and variance $\sigma^2$.}
@@ -800,6 +834,7 @@ variance is also reduced in a corresponding way, so this does not
 dilute the weight of high-precision measurements.
 
 
+%%%% FIXME -- mixture model!
 In practice, we advocate computing such maps for a set of spectral
 energy distributions that sparsely sample the space of sources of
 interest.  By performing multiple significance tests, more false
@@ -824,7 +859,8 @@ thresholding to determine which sources should be kept.
 \cite{szalay1999} present the idea of using the $\chi^2$
 statistic of a set of images taken through different bandpass filters.
 That is, they take pixel-aligned and possibly PSF-filtered images
-(here we will use detection maps) and compute $\chi^2$ pixelwise,
+(here we will use detection maps) and compute $\chi^2$ pixelwise
+over bands $j$,
 \begin{eqnarray}
   \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
 \end{eqnarray}
@@ -836,27 +872,28 @@ detection threshold is taken as evidence as a source.  See Figure
   \begin{center}
     % This figure comes from detection-figs.py : chisq_fig()
     \includegraphics[width=0.8\textwidth]{sed-matched}
-    \caption{SED-matched versus ``chi-squared'' detection filters.  The
-      data points are (chi-squared) detections above $4.5 \sigma$ in
-      $g$ and $r$ images taken with the Dark Energy Camera, plotted in
-      signal-to-noise space.  Points that are below $10 \sigma$ in
-      deeper data (25 exposures) are marked as ``False''; these are
-      mostly clustered around zero (due to noise), with some scattered
-      points near the axes due to single-band artifacts such as cosmic rays. The
-      main locus of ``Real'' peaks correspond to real stars and
-      galaxies with typical colors.  The Chi-squared detection method
-      selects all sources outside the circle (including, in
-      the naive formulation, sources with negative flux in both
-      bands).  A single-band detection filter selects all sources
-      above a vertical or horizontal detection threshold.  Our ``Red''
-      SED-matched filter selects sources where the fluxes in the two
-      bands are consistent with a red SED (in this case, a $g - r$
-      color of 1).  Note that the threshold line is roughly orthogonal
-      to the line between the false positives and the true positives;
-      it separates them efficiently.  We have shown the chi-squared
-      detection filter with a threshold of $(5\sigma)^2$, which yields
-      a higher false positive rate than a $5\sigma$ threshold in a
-      single-band or SED-match filter.
+    \caption{SED-matched versus ``chi-squared'' detection filters.
+      The data points are (chi-squared) detections above $4.5 \sigma$
+      in one $g$-band and one $r$-band image taken with the Dark
+      Energy Camera, plotted in signal-to-noise space.  Points that
+      are not detected in deeper data are marked
+      as ``False''; these are mostly clustered around zero (due to
+      noise), with some scattered points near the axes due to
+      single-band artifacts such as cosmic rays. The main locus of
+      ``Real'' peaks correspond to real stars and galaxies with
+      typical colors.  The Chi-squared detection method selects all
+      sources outside the circle (including, in the naive formulation,
+      sources with negative flux in both bands).  A single-band
+      detection filter selects all sources above a vertical or
+      horizontal detection threshold.  Our ``Red'' SED-matched filter
+      selects sources where the fluxes in the two bands are consistent
+      with a red SED (in this case, a $g - r$ color of 1).  Note that
+      the threshold line is roughly orthogonal to the line between the
+      false positives and the true positives; it separates them
+      efficiently.  We have shown the chi-squared detection filter
+      with a threshold of $(5\sigma)^2$, which yields a higher false
+      positive rate than a $5\sigma$ threshold in a single-band or
+      SED-match filter.
       \label{fig:sedmatched}
     }
   \end{center}
@@ -891,9 +928,9 @@ yields a larger false positive rate than a standard single-band
 detection filter with a threshold of $5\sigma$; in order to achieve a
 desired false positive rate, the detection threshold must be set by
 analysis (with two bands, the survival function of the chi
-distribution at the equivalent of $5 \sigma$ is roughly 5.5; with
-three bands it is roughly 5.75) or simulations (as suggested by
-\cite{szalay1999}).
+distribution at the equivalent of $5 \sigma$ for a Gaussian is roughly
+5.5; with three bands it is roughly 5.75) or simulations (as suggested
+by \cite{szalay1999}).
 
 \cite{szalay1999} in fact also suggest a method for detecting objects
 of a specific color that is similar but not identical to the approach
@@ -913,12 +950,13 @@ source exists, versus the hypothesis that the observed flux is due to
 a noise fluctuation.
 
 We can write the likelihood for a single pixel in the set of detection
-maps $D_j$, given the existence of a source, as
+maps $D_j$ for bands $j$, given the existence of a source, as
 \begin{equation}
   p_S(\{ D_j \}) = \iint p(\{ D_j \} | F, s) \, p(F) \, p(s) \, \dd F \, \dd s
 \end{equation}
 where $F$ is the flux of the source in some canonical band, and $s$ is
-the SED of the source.  We will assume that the SED prior $p(s)$ is
+the SED of the source; here, we have made the strong assumption that the
+flux and SED priors are independent.  We will assume that the SED prior $p(s)$ is
 represented as a weighted sum of discrete SEDs: a gridding of SED
 space, for example.  We then have
 \begin{eqnarray}
@@ -927,20 +965,22 @@ space, for example.  We then have
   \sum_{i} w_i \int p(\{ D_j \} | F, s_i) \, p(F) \, \dd F
   \\
   &=&
-  \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_j^2} \, p(F) \, \dd F
+  \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_{D_j}^2} \, p(F) \, \dd F
   \\
   &=&
   \sum_i w_i 
-  \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} \right)
+  \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2} \right)
   \int 
-    \exp{ \left( \sum_j \frac{(D_j - F \cdot s_{i,j})^2}{-2 \, \sigma_j^2} \right) }
+    \exp{ \left( \sum_j \frac{(D_j - F \cdot s_{i,j})^2}{-2 \, \sigma_{D_j}^2} \right) }
     \, p(F) \, \dd F
 \end{eqnarray}
 %
-where we have written out the Gaussian likelihoods of the detection
-maps, and the SEDs are represented as scalings of the canonical flux
-$F$: for SED $i$, band $j$ is predicted to have flux $F \cdot
-s_{i,j}$.
+where we have written out the indepedent Gaussian likelihoods of the
+detection maps\footnote{The notation $\gaussian{x \,|\, \mu, \sigma^2}$ indicates the likelihood
+  of drawing value $x$ from the Gaussian distribution $\gaussian{\mu, \sigma^2}$.},
+and the SEDs are represented as scalings of the
+canonical flux $F$: for SED $i$, band $j$ is predicted to have flux $F
+\cdot s_{i,j}$.
 
 We must now specify a prior over the flux to make progress.  One
 option that leads to a closed-form result is an exponential prior,
@@ -957,9 +997,9 @@ prior, we have
   %\exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
   %\, K %k \, \chi^2 \,
   \int 
-    \exp{ \left( F \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \right)}
+    \exp{ \left( F \sum_j \frac{D_j s_{i,j}}{\sigma_{D_j}^2} \right)}
     \exp{ \left( -F \alpha \right)}
-    \exp{ \left( F^2 \sum_j \frac{s_{i,j}^2}{\sigma_j^2} \right)}
+    \exp{ \left( F^2 \sum_j \frac{s_{i,j}^2}{\sigma_{D_j}^2} \right)}
     \, \dd F
 \end{eqnarray}
 %where we have introduced the constants
@@ -970,11 +1010,11 @@ prior, we have
 %\end{eqnarray}
 where we have pulled out the constant
 \begin{eqnarray}
-K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2} 
-\exp{\left( \sum_j -\frac{D_j^2}{2 \sigma_j^2} \right)}
+K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2} 
+\exp{\left( \sum_j -\frac{D_j^2}{2 \sigma_{D_j}^2} \right)}
 %\\
 %&=& \gaussian{D_j | 0, \sigma_j^2}
-= \gaussian{D_j \,|\, 0, \sigma_j^2}
+= \gaussian{D_j \,|\, 0, \sigma_{D_j}^2}
 \label{eq:pbg}
 \end{eqnarray}
 which will be recognized as the zero-mean Gaussian probability of
@@ -983,8 +1023,8 @@ background distribution!
 
 Defining variables
 \begin{eqnarray}
-  a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_j^2} \\
-  b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_j^2}
+  a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_{D_j}^2} \\
+  b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_{D_j}^2}
 \end{eqnarray}
 we get an integral in which the flux prior can be integrated analytically:
 % eg
@@ -1042,7 +1082,7 @@ coarse gridding of SED space yields good results, as shown below.
 In order to select sources, we can compare this likelihood to the
 null-hypothesis likelihood: that there is no source and the observed
 values are due to noise.  Conveniently, the null-hypothesis likelihood
-is exactly the factor $K$ in the above expression.  Determining the
+is exactly the factor $K$ in the above expression!  Determining the
 threshold at which to accept a peak in the $p_S/K$ map as a source can
 be framed as a Bayesian decision theory problem, or can be tuned on
 simulations to yield an acceptable false positive rate.
@@ -1058,7 +1098,7 @@ simulations to yield an acceptable false positive rate.
       The foreground model is that sources have fluxes that lie along a ``Red''
       SED with color $g-r = 1$.
       \emph{Left:} Probability contours for the foreground model are inclined in the
-      direction of the prior.  The luminosity prior prefers small fluxes, but has some
+      direction of the prior.  The flux prior prefers small fluxes, but has some
       probability mass extended toward larger fluxes.
       The background model (null hypothesis) is that there is no source, only noise; these
       contours are circles centered on zero.
@@ -1095,6 +1135,7 @@ simulations to yield an acceptable false positive rate.
       points above and to the right of a decision boundary are
       considered to be detected.
       The contours are spaced in powers of 10.
+      \label{fig:conb}
     }
     \end{center}
 \end{figure}
@@ -1126,8 +1167,8 @@ orthogonal to these three SED directions.
 \begin{figure}
     \begin{center}
     % These figures come from bayes-figure.py.
-    \includegraphics[width=0.4\textwidth]{prob-contours-c}
-    \includegraphics[width=0.4\textwidth]{prob-1d}
+    \includegraphics[width=0.45\textwidth]{prob-contours-c}
+    \includegraphics[width=0.45\textwidth]{prob-1d}
     \caption{The effect of the luminosity prior in Bayesian
       SED-matched source detection.  In order to produce closed-form
       integrals, we use an exponential prior on the luminosity; here
@@ -1214,14 +1255,16 @@ of exposures is available in Tables \ref{tab:exposures} and
 \begin{figure}
   \begin{center}
     \begin{tabular}{@{}c@{}c@{}c@{}}
-      Blue & Yellow & Red \\
+      Blue-optimized & Yellow-optimized & Red-optimized \\
       \includegraphics[width=0.33\textwidth]{best-blue} &
       \includegraphics[width=0.33\textwidth]{best-yellow} &
       \includegraphics[width=0.33\textwidth]{best-red}
     \end{tabular}
     \caption{Source that are most strongly detected by each
-      SED-matched filter.  \emph{Left:} ``Blue'' SED.  \emph{Center:}
-      ``Yellow'' SED.  \emph{Right:} ``Red'' SED.
+      SED-matched filter.  \emph{Left:} ``Blue'' SED (matched to color
+      $g-r = r-i = 0$).  \emph{Center:} ``Yellow'' SED (matched to
+      $g-r = 1$, $r-i = 0.3$).  \emph{Right:} ``Red'' SED (matched to
+      $g-r = 1.5$, $r-i = 1$).
     \label{fig:bestsed}}
   \end{center}
 \end{figure}
@@ -1270,17 +1313,17 @@ of exposures is available in Tables \ref{tab:exposures} and
     \includegraphics[width=0.32\textwidth]{bayes-data-cc}
     \includegraphics[width=0.32\textwidth]{bayes-prior-sed}
     \includegraphics[width=0.32\textwidth]{bayes-prior-cc}
-    \caption{Bayesian prior for SED-matched detection.  \emph{Left:}
-      Sources from the Dark Energy Survey catalog, in color space.
-      \emph{Center:} Sources binned in SED space, with low-population
-      bins dropped.  The axes are the fraction of flux contributed by
-      the $g$ and $r$ bands, respectively.  Implicitly, the fraction
-      contributed by the $i$ band is \mbox{1 - ($g$ + $r$).}  Empty
-      bins are shown with a light shading.  Notice that some bins with
-      $g \sim 0$ are populated; these cannot be represented in color
-      space, but correspond to DES catalog entries with measured $g$
-      flux consistent with zero.  \emph{Right:} Our discrete SED-space
-      binning, projected to color space.
+    \caption{Empirical Bayesian prior for SED-matched detection.
+      \emph{Left:} Sources from the Dark Energy Survey catalog, in
+      color space.  \emph{Center:} Sources binned in SED space, with
+      low-population bins dropped.  The axes are the fraction of flux
+      contributed by the $g$ and $r$ bands, respectively.  Implicitly,
+      the fraction contributed by the $i$ band is \mbox{1 - ($g$ +
+        $r$).}  Empty bins are shown with a light shading.  Notice
+      that some bins with $g \sim 0$ are populated; these correspond
+      to DES catalog entries with measured $g$ flux consistent with
+      zero.  \emph{Right:} Our discrete SED-space binning, projected
+      to color space.
       \label{fig:prior}}
   \end{center}
 \end{figure}
@@ -1361,7 +1404,10 @@ of exposures is available in Tables \ref{tab:exposures} and
 We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
 photometric zeropoints, sky background models and PSF models, using
-the DESI Legacy Surveys pipeline \citep{lsoverview}.  The astrometric
+the DESI Legacy Surveys pipeline \citep{lsoverview},
+\textsl{legacypipe}\footnote{Publicly available at
+  \niceurl{https://github.com/legacysurvey/legacypipe}.}.
+The astrometric
 calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
   gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
@@ -1370,20 +1416,21 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \subsection{SED-matched detection}
 
 
-We select a 4000-by-4400 pixel region covering DECam chips N4 and S4
-in the center of the focal plane.  We produce detection maps for each
-band as described above, and run several SED-matched filters: a
-``Blue'' filter matched to a source with colors $g - r = r - i = 0$; a
+We select a 4000-by-4400 pixel region, at the approximate DECam pixel
+scale of $0.262$ arcsec/pixel, covering DECam chips N4 and S4 in the
+center of the focal plane.  We produce detection maps for each band as
+described above, and run several SED-matched filters: a ``Blue''
+filter matched to a source with colors $g - r = r - i = 0$; a
 ``Yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``Red''
 filter matched to $g - r = 1.5$, $r - i = 1$.
 
-For the plots shows here, we select sources in the yellow filter with
+For the plots shows here, we select sources in the Yellow filter with
 signal-to-noise above $100$, taking as a source the peak pixel within
 each connected component of pixels above the threshold; we do not try
 to resolve or deblend nearby peaks.  We drop any source near the edge
 of the image or where there are fewer than 12 exposures in any of $g$,
 $r$, or $i$ bands.  This results in $2092$ detected sources.  For each
-source position, we sample the red and blue SED-matched maps so that
+source position, we sample the Red and Blue SED-matched maps so that
 we can compare the relative sensitivities of the different SED-matched
 filters.  We also sample the detection maps in each band at the peak
 pixel as an approximate estimate of the flux of the source.  This
@@ -1405,7 +1452,7 @@ also detect extremely red sources.  A few examples are shown in
 In \figref{fig:strength} we illustrate how the relative strength of
 the different SED-matched filters change with respect to measured
 source colors.  We observe differences of tens of percent, which can
-lead to a very significant number of additional detected sources at
+lead to a very significant number of additional correctly detected sources at
 the lowest signal-to-noise levels.
 
 \subsection{Bayesian SED-matched detection}
@@ -1457,26 +1504,21 @@ a number of real very red sources.
 
 While we have focused on the detection of point sources in this paper,
 it is a trivial extension to build a detection filter tuned to a
-source with a known spatial profile.  We need only return to the
-individual exposures and, instead of correlating the images by a model
-of the PSF, we correlate by a model of the PSF correlated with the
-spatial profile of the source to be detected.  In this experiment, we
-assume a simple round Gaussian profile with a FWHM of 1 arcsecond.  We
-need to return to the original images, as opposed to post-processing
-the PSF-optimized detection maps, because the \emph{weights} applied
-to each image are different for detecting an extended sources versus
-detecting a point source; images with good seeing are relatively less
-valuable for detecting extended sources than for detecting point
-sources.  After computing extended-source detection maps for each of
-the $g$, $r$, and $i$ image sets, as above, we run the Yellow
-SED-matched filter and detect sources as before.  In \figref{fig:gals}
-we show sources that are more strongly detected by our extended-source
-detector than by a point-source detector.  These include a few bright
-stars (where the saturated cores cause errors in estimating the
-signal-to-noise) but are largely real galaxies.  Perhaps surprisingly,
-we find that using a detection filter tuned to a round Gaussian
-profile yields only a few-percent improvement in detection efficiency
-versus a PSF-tuned filter, for typical galaxies in DECam images.
+source with a known spatial profile.  We need only correlate the
+detection maps for each band by the spatial profile of the source to
+be detected, and compute the corresponding change in uncertainty in
+the detection maps.  In this experiment, we assume a simple round
+Gaussian profile with a FWHM of 1 arcsecond.  After computing
+extended-source detection maps for each of the $g$, $r$, and $i$ image
+sets, as above, we run the Yellow SED-matched filter and detect
+sources as before.  In \figref{fig:gals} we show sources that are more
+strongly detected by our extended-source detector than by a
+point-source detector.  These include a few bright stars (where the
+saturated cores cause errors in estimating the signal-to-noise) but
+are largely real galaxies.  Perhaps surprisingly, we find that using a
+detection filter tuned to a round Gaussian profile yields only a
+few-percent improvement in detection efficiency versus a PSF-tuned
+filter, for typical galaxies in DECam images.
 
 
 \section{Discussion}
@@ -1507,7 +1549,12 @@ Julianne Dalcanton (University of Washington),
 Brad Holden (UCO/Lick Observatories),
 Micha Gorelick (Fast Forward Labs),
 Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
+all provided helpful comments and discussion.
 
+Research at Perimeter Institute is supported in part by the Government
+of Canada through the Department of Innovation, Science and Economic
+Development Canada and by the Province of Ontario through the Ministry
+of Colleges and Universities.
 
 %\bibliographystyle{plain}
 \bibliographystyle{apj}
@@ -1517,9 +1564,7 @@ Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
 
 \appendix
 
-\section{Appendices}
-
-\subsection{Optimal linear detection}
+\section{Deriving the matched filter}
 \label{app:lindet}
 
 Let us assume that there exists a linear filter whose output allows
@@ -1556,8 +1601,7 @@ and the per-pixel signal-to-noise in the map is
 We want to choose coefficients $a_{\ivec}$ to maximize the 
 signal-to-noise at the true pixel position of the source,
 $\kvec$.  Rewriting the expression using dot-products and
-norms\footnote{All norms in this \doctype\ are $\ell_2$ norms: $\norm{X} =
-  \sqrt{\sum_i X_i^2}$.}, treating the two-dimensional images
+($\ell_2$) norms, treating the two-dimensional images
 $a_{\ivec}$ and $\psfat{\ivec + \jvec - \kvec}$ as vectors indexed by
 $\ivec$, we have:
 \begin{eqnarray}
@@ -1600,7 +1644,7 @@ position $\kvec$ is
 \end{equation}
 
 
-\subsubsection{Optimality}
+\subsection{Optimality}
 \label{sec:optsingle}
 
 We compute the variance of the detection map estimator
@@ -1646,7 +1690,7 @@ which is independent of $I_{\jvec}$, so
 \end{eqnarray}
 from which we see that the estimator $D$ saturates the Cram\'er--Rao bound.
 
-\subsubsection{Norm of a Gaussian PSF}
+\subsection{Norm of a Gaussian PSF}
 \label{app:gaussnorm}
 For a Gaussian PSF with standard deviation $\psfw$ pixels,
 \begin{eqnarray}\displaystyle
@@ -1666,7 +1710,7 @@ so the \detmap\ has signal-to-noise at the true source position $\kvec$,
 \end{equation}
 
 Note, however, that we have defined the point-spread function
-$\psfat(\cdot)$ to be the \emph{pixel-convolved} response, so it cannot
+$\psf(\cdot)$ to be the \emph{pixel-convolved} response, so it cannot
 be exactly Gaussian if the pixel response is assumed to be a boxcar
 function.  In practice, however, a two-dimensional Gaussian with
 variance $v^2$ correlated with a two-dimensional boxcar function is
@@ -1678,7 +1722,7 @@ long as $v \gtrsim \frac{1}{2}$.
 
 
 
-\subsubsection{Why not signal-to-noise-squared?}
+\subsection{Why not signal-to-noise-squared?}
 In correlating the image with the PSF, it looks like the
 \detmap\ weights pixels by their signal-to-noise, rather than
 signal-to-noise \emph{squared}.  This apparent conflict can be
@@ -1740,10 +1784,10 @@ proportional to the signal-to-noise \emph{squared}, as expected.
 
 
 
-\subsection{Multi-image detection}
+\section{Multi-image detection}
 \label{app:multidet}
 
-\subsubsection{Optimality}
+\subsection{Optimality}
 \label{app:multiopt}
 As before, we will show that the estimator $F^{\star}$ in
 Equation \ref{eq:onebandmap} saturates the Cram\'er--Rao bound for $F$.
