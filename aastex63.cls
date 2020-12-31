@@ -649,76 +649,76 @@ revtex4-1.cls^^J^^J}\stop
 \expandafter\gdef\csname report\the\rptnum\endcsname{\hbox to
 \textwidth{\hskip.75\textwidth\relax#1\relax\hfill}}}
 
-\long\def\frontmatter@title@above{
-\ifrnaas
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-\noindent{\sc Draft version \today}\\[2pt]
-{\footnotesize Typeset using \LaTeX\ {\bf RNAAS} style in AASTeX63}
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\else
-\vbox to 0pt{\vskip-48pt\normalsize\rptloopnum=0\loop
-\global\advance\rptloopnum by 1
-\expandafter\ifx\csname report\the\rptloopnum\endcsname\relax
-\else
-\csname report\the\rptloopnum\endcsname
-\vskip1pt
-\repeat
-\vss
-}
-\ifmodern
-\vglue-18pt
-{\footnotesize
-\raggedright
-{\sc Draft version \today}\\[2pt]
-{\footnotesize
-Typeset using \LaTeX\ {\bf modern} style in AASTeX63}
-\vskip48pt
-}
-\else
-%%
-\ifpreprint
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-\noindent{\sc Draft version \today}\\[2pt]
-{\footnotesize Typeset using \LaTeX\ {\bf preprint} style in AASTeX63}
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\else
-%%
-\ifpreprinttwo
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-{\footnotesize\textsc{\@journalinfo}}\par
-{\footnotesize Typeset using \LaTeX\ {\bf preprint2} style in AASTeX63}
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\else
-%%
-\iftwocolstyle
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-{\footnotesize\textsc{\@journalinfo}}\par
-{\footnotesize Typeset using \LaTeX\ {\bf twocolumn} style in AASTeX63}
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\else
-\ifmanu
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-\noindent\textsc{\@journalinfo}\\[-8pt]
-{\footnotesize Typeset using \LaTeX\ {\bf manuscript} style in
-AASTeX63}
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\else
-%% Default
-\vspace*{-\headsep}\vspace*{\headheight}
-\footnotesize
-{\footnotesize\textsc{\@journalinfo}}\par
-{\footnotesize Typeset using \LaTeX\ default style in AASTeX63}%% default style
-\par\vspace*{-\baselineskip}\vspace*{0.625in}
-\fi\fi\fi\fi\fi
-%%
-\fi %% ends test to see if rnaas option was used; if rnaas is true
-    %% none of this command will be activated.
-}%
+%   \long\def\frontmatter@title@above{
+%   \ifrnaas
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   \noindent{\sc Draft version \today}\\[2pt]
+%   {\footnotesize Typeset using \LaTeX\ {\bf RNAAS} style in AASTeX63}
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \else
+%   \vbox to 0pt{\vskip-48pt\normalsize\rptloopnum=0\loop
+%   \global\advance\rptloopnum by 1
+%   \expandafter\ifx\csname report\the\rptloopnum\endcsname\relax
+%   \else
+%   \csname report\the\rptloopnum\endcsname
+%   \vskip1pt
+%   \repeat
+%   \vss
+%   }
+%   \ifmodern
+%   \vglue-18pt
+%   {\footnotesize
+%   \raggedright
+%   {\sc Draft version \today}\\[2pt]
+%   {\footnotesize
+%   Typeset using \LaTeX\ {\bf modern} style in AASTeX63}
+%   \vskip48pt
+%   }
+%   \else
+%   %%
+%   \ifpreprint
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   \noindent{\sc Draft version \today}\\[2pt]
+%   {\footnotesize Typeset using \LaTeX\ {\bf preprint} style in AASTeX63}
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \else
+%   %%
+%   \ifpreprinttwo
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   {\footnotesize\textsc{\@journalinfo}}\par
+%   {\footnotesize Typeset using \LaTeX\ {\bf preprint2} style in AASTeX63}
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \else
+%   %%
+%   \iftwocolstyle
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   {\footnotesize\textsc{\@journalinfo}}\par
+%   {\footnotesize Typeset using \LaTeX\ {\bf twocolumn} style in AASTeX63}
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \else
+%   \ifmanu
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   \noindent\textsc{\@journalinfo}\\[-8pt]
+%   {\footnotesize Typeset using \LaTeX\ {\bf manuscript} style in
+%   AASTeX63}
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \else
+%   %% Default
+%   \vspace*{-\headsep}\vspace*{\headheight}
+%   \footnotesize
+%   {\footnotesize\textsc{\@journalinfo}}\par
+%   {\footnotesize Typeset using \LaTeX\ default style in AASTeX63}%% default style
+%   \par\vspace*{-\baselineskip}\vspace*{0.625in}
+%   \fi\fi\fi\fi\fi
+%   %%
+%   \fi %% ends test to see if rnaas option was used; if rnaas is true
+%       %% none of this command will be activated.
+%   }%
 
 \def\frontmatter@title@produce{%
  \begingroup
