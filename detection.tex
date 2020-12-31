@@ -1,56 +1,25 @@
 \documentclass[11pt,letterpaper]{aastex63}
 
 \usepackage{bm}
-\usepackage{calc}
-\usepackage{amssymb, amsmath}
-\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{amsmath}
 
 % Trying to get rid of section headers at end of page
 %\raggedbottom
 %\widowpenalty=10000
 %\clubpenalty=10000
 
-\newcounter{address}
 \newcommand{\doctype}{paper}
 \newcommand{\equationname}{equation}
 \newcommand{\eqnref}[1]{\mbox{\equationname~\ref{#1}}}
 \newcommand{\appref}[1]{\mbox{Appendix~\ref{#1}}}
 \newcommand{\Appref}[1]{\mbox{Appendix~\ref{#1}}}
-\newcommand{\tabref}[1]{\mbox{Table~\ref{#1}}}
-
 \newcommand{\niceurl}[1]{\mbox{\href{#1}{\textsl{#1}}}}
-
 \newcommand{\latin}[1]{\emph{#1}}
 \newcommand{\etal}{\latin{et\,al.}}
 \newcommand{\ie}{\latin{i.e.}}
 \newcommand{\apriori}{\latin{a priori}}
-\newcommand{\sn}{{[s/n]}}
-\newcommand{\sntotal}{\sn_{\mathrm{total}}}
-\newcommand{\fwhm}{{\theta_{\mathrm{FWHM}}}}
-\newcommand{\RA}{{\mathrm{RA}}}
-\newcommand{\Dec}{{\mathrm{Dec}}}
-\newcommand{\vecmu}{\bm{\vec{\mu}}}
-\newcommand{\mualpha}{{\mu_\alpha}}
-\newcommand{\mudelta}{{\mu_\delta}}
-\newcommand{\var}[1]{\mathrm{Var}({#1})}
-\newcommand{\unit}[1]{\mathrm{#1}}
-\renewcommand{\mag}{\unit{mag}}
-\newcommand{\s}{\unit{s}}
-\newcommand{\yr}{\unit{yr}}
-\newcommand{\km}{\unit{km}}
-\newcommand{\pc}{\unit{pc}}
-\newcommand{\kpc}{\unit{kpc}}
-\newcommand{\mas}{\unit{mas}}
-\newcommand{\pix}{\unit{pix}}
-\newcommand{\kmpers}{\km\,\s^{-1}}
-\newcommand{\masperyr}{\mas\,\yr^{-1}}
-\renewcommand{\arcsec}{\unit{arcsec}}
-\newcommand{\arcsecperyr}{\arcsec\,\yr^{-1}}
-\newcommand{\code}[1]{\texttt{#1}}
-\newcommand{\mean}[1]{\left<{#1}\right>}
-
-\renewcommand{\thefootnote}{\fnsymbol{footnote}}
-
+%\renewcommand{\thefootnote}{\fnsymbol{footnote}}
 \newcommand{\figpart}[1]{\textbf{#1}}
 %\newcommand{\fig}{Figure}
 %\newcommand{\figref}[1]{\mbox{\fig~\ref{#1}}}
@@ -62,44 +31,36 @@
 \newcommand{\drawnfrom}{\sim}
 \newcommand{\gaussianN}{\mathcal{N}}
 \newcommand{\gaussian}[1]{\gaussianN\!\left(#1\right)}
-%\newcommand{\gaussx}[2]{\hat{\gaussianN}\!\left(#1 \, , \, #2\right)}
 \newcommand{\gaussx}[2]{\gaussianN\!\left(#1 \, , \, #2\right)}
-%\newcommand{\gaussx}[1]{\mathfrak{N}\!\left(#1\right)}
-%\newcommand{\psf}{\mathrm{psf}}
 \newcommand{\psf}{\psi}
 \newcommand{\psfat}[1]{\psf_{#1}}
 \newcommand{\psfnorm}{\norm{\bm{\psf}}}
-
 \newcommand{\signoise}{[S/N]}
 \newcommand{\snr}[1]{\mathbb{SN}(#1)}
-%\newcommand{\snr}[1]{\mathcal{SN}(#1)}
-
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\expect}[1]{\left\langle #1 \right\rangle}
-\renewcommand{\var}[1]{\mathrm{var}\left( #1 \right)}
+\newcommand{\var}[1]{\mathrm{var}\left( #1 \right)}
 \newcommand{\sky}{\mathrm{sky}}
 \newcommand{\psfw}{w}
 \newcommand{\dd}{\mathrm{d}}
 \newcommand{\noise}{E}
 \renewcommand{\vec}[1]{\boldsymbol{#1}}
-\newcommand{\thetavec}{\vec{\theta}}
 \newcommand{\avec}{\vec{a}}
 \newcommand{\ivec}{\vec{i}}
 \newcommand{\jvec}{\vec{j}}
 \newcommand{\kvec}{\vec{k}}
-\newcommand{\cvec}{\vec{c}}
-\newcommand{\posvec}{\vec{x}}
 \newcommand{\coord}[2]{(#1, #2)}
 \newcommand{\iina}{\ivec \,\, \mathrm{in} \,\, \mathcal{A}}
-
 \newcommand{\erf}{\textrm{erf}}
 
-\shorttitle{Point-source detection}
-\shortauthors{Lang and Hogg}
+\keywords{
+    methods:~statistical ---
+    techniques:~image~processing
+}
 
 \begin{document}
+
 \title{Principled point-source detection in collections of astronomical images}
-\date{Dec 31, 2020}
 \author{Dustin Lang}
 %\altaffiliation{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
 % \affiliation{%
@@ -113,7 +74,6 @@
   Department of Physics \& Astronomy,
   University of Waterloo,
   200 University Avenue West, Waterloo, ON N2L 3G1, Canada}
-
 \author{David W. Hogg}
 \affiliation{%
   Center for Computational Astrophysics,
@@ -126,9 +86,11 @@
 \affiliation{%
   Max-Planck-Institut f\"ur Astronomie,
   K\"onigstuhl 17, D-69117 Heidelberg, Germany}
-
-\correspondingauthor{Dustin Lang}
-\email{dstndstn@gmail.com}
+\date{Dec 31, 2020}
+\shorttitle{Point-source detection}
+\shortauthors{Lang and Hogg}
+%\correspondingauthor{Dustin Lang}
+%\email{dstndstn@gmail.com}
 
 \begin{abstract}
 We review the well-known \emph{matched filter} method for the
@@ -153,10 +115,6 @@ We present a Bayesian formulation, including a flux prior that leads to
 a closed-form expression with low computational cost.
 \end{abstract}
 
-\keywords{
-    methods:~statistical ---
-    techniques:~image~processing
-}
 
 \section{Introduction}
 
@@ -1567,10 +1525,158 @@ Development Canada and by the Province of Ontario through the Ministry
 of Colleges and Universities.
 
 %\bibliographystyle{plain}
-\bibliographystyle{apj}
-\bibliography{detection}
+%\bibliographystyle{apj}
+%\bibliography{detection}
 
+\begin{thebibliography}{}
+\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
 
+\bibitem[{{Abbott} {et~al.}(2016){Abbott}, {Abbott}, {Abbott}, {Abernathy},
+  {Acernese}, {Ackley}, {Adams}, {Adams}, {Addesso}, {Adhikari}, \&
+  et~al.}]{ligo}
+{Abbott}, B.~P., {Abbott}, R., {Abbott}, T.~D., {et~al.} 2016, Physical Review
+  Letters, 116, 061102
+
+\bibitem[{Bernstein {et~al.}(2012)Bernstein, Kessler, Kuhlmann, Biswasal,
+  {et~al.}}]{dessn}
+Bernstein, J.~P., Kessler, R., Kuhlmann, S., Biswasal, R., {et~al.} 2012, \apj,
+  753, astro-ph/1111.1969
+
+\bibitem[{{Bertin}(2011)}]{psfex}
+{Bertin}, E. 2011, in Astronomical Society of the Pacific Conference Series,
+  Vol. 442, Astronomical Data Analysis Software and Systems XX, ed. I.~N.
+  {Evans}, A.~{Accomazzi}, D.~J. {Mink}, \& A.~H. {Rots}, 435
+
+\bibitem[{{Bolton} {et~al.}(2012){Bolton}, {Schlegel}, {Aubourg}, {Bailey},
+  {Bhardwaj}, {Brownstein}, {Burles}, {Chen}, {Dawson}, {Eisenstein}, {Gunn},
+  {Knapp}, {Loomis}, {Lupton}, {Maraston}, {Muna}, {Myers}, {Olmstead},
+  {Padmanabhan}, {P{\^a}ris}, {Percival}, {Petitjean}, {Rockosi}, {Ross},
+  {Schneider}, {Shu}, {Strauss}, {Thomas}, {Tremonti}, {Wake}, {Weaver}, \&
+  {Wood-Vasey}}]{bossspectro}
+{Bolton}, A.~S., {Schlegel}, D.~J., {Aubourg}, {\'E}., {et~al.} 2012, \aj, 144,
+  144
+
+\bibitem[{{Chambers} {et~al.}(2016){Chambers}, {Magnier}, {Metcalfe},
+  {Flewelling}, {Huber}, {Waters}, {Denneau}, {Draper}, {Farrow}, {Finkbeiner},
+  {Holmberg}, {Koppenhoefer}, {Price}, {Saglia}, {Schlafly}, {Smartt},
+  {Sweeney}, {Wainscoat}, {Burgett}, {Grav}, {Heasley}, {Hodapp}, {Jedicke},
+  {Kaiser}, {Kudritzki}, {Luppino}, {Lupton}, {Monet}, {Morgan}, {Onaka},
+  {Stubbs}, {Tonry}, {Banados}, {Bell}, {Bender}, {Bernard}, {Botticella},
+  {Casertano}, {Chastel}, {Chen}, {Chen}, {Cole}, {Deacon}, {Frenk},
+  {Fitzsimmons}, {Gezari}, {Goessl}, {Goggia}, {Goldman}, {Grebel}, {Hambly},
+  {Hasinger}, {Heavens}, {Heckman}, {Henderson}, {Henning}, {Holman}, {Hopp},
+  {Ip}, {Isani}, {Keyes}, {Koekemoer}, {Kotak}, {Long}, {Lucey}, {Liu},
+  {Martin}, {McLean}, {Morganson}, {Murphy}, {Nieto-Santisteban}, {Norberg},
+  {Peacock}, {Pier}, {Postman}, {Primak}, {Rae}, {Rest}, {Riess}, {Riffeser},
+  {Rix}, {Roser}, {Schilbach}, {Schultz}, {Scolnic}, {Szalay}, {Seitz},
+  {Shiao}, {Small}, {Smith}, {Soderblom}, {Taylor}, {Thakar}, {Thiel},
+  {Thilker}, {Urata}, {Valenti}, {Walter}, {Watters}, {Werner}, {White},
+  {Wood-Vasey}, \& {Wyse}}]{panstarrs}
+{Chambers}, K.~C., {Magnier}, E.~A., {Metcalfe}, N., {et~al.} 2016, ArXiv
+  e-prints, arXiv:1612.05560
+
+\bibitem[{{Dey} {et~al.}(2019){Dey}, {Schlegel}, {Lang}, {Blum}, {Burleigh},
+  {Fan}, {Findlay}, {Finkbeiner}, {Herrera}, {Juneau}, {Landriau}, {Levi},
+  {McGreer}, {Meisner}, {Myers}, {Moustakas}, {Nugent}, {Patej}, {Schlafly},
+  {Walker}, {Valdes}, {Weaver}, {Y{\`e}che}, {Zou}, {Zhou}, {Abareshi},
+  {Abbott}, {Abolfathi}, {Aguilera}, {Alam}, {Allen}, {Alvarez}, {Annis},
+  {Ansarinejad}, {Aubert}, {Beechert}, {Bell}, {BenZvi}, {Beutler}, {Bielby},
+  {Bolton}, {Brice{\~n}o}, {Buckley-Geer}, {Butler}, {Calamida}, {Carlberg},
+  {Carter}, {Casas}, {Castander}, {Choi}, {Comparat}, {Cukanovaite}, {Delubac},
+  {DeVries}, {Dey}, {Dhungana}, {Dickinson}, {Ding}, {Donaldson}, {Duan},
+  {Duckworth}, {Eftekharzadeh}, {Eisenstein}, {Etourneau}, {Fagrelius},
+  {Farihi}, {Fitzpatrick}, {Font-Ribera}, {Fulmer}, {G{\"a}nsicke},
+  {Gaztanaga}, {George}, {Gerdes}, {Gontcho}, {Gorgoni}, {Green}, {Guy},
+  {Harmer}, {Hernandez}, {Honscheid}, {Huang}, {James}, {Jannuzi}, {Jiang},
+  {Joyce}, {Karcher}, {Karkar}, {Kehoe}, {Kneib}, {Kueter-Young}, {Lan},
+  {Lauer}, {Le Guillou}, {Le Van Suu}, {Lee}, {Lesser}, {Perreault Levasseur},
+  {Li}, {Mann}, {Marshall}, {Mart{\'\i}nez-V{\'a}zquez}, {Martini}, {du Mas des
+  Bourboux}, {McManus}, {Meier}, {M{\'e}nard}, {Metcalfe},
+  {Mu{\~n}oz-Guti{\'e}rrez}, {Najita}, {Napier}, {Narayan}, {Newman}, {Nie},
+  {Nord}, {Norman}, {Olsen}, {Paat}, {Palanque-Delabrouille}, {Peng},
+  {Poppett}, {Poremba}, {Prakash}, {Rabinowitz}, {Raichoor}, {Rezaie},
+  {Robertson}, {Roe}, {Ross}, {Ross}, {Rudnick}, {Safonova}, {Saha},
+  {S{\'a}nchez}, {Savary}, {Schweiker}, {Scott}, {Seo}, {Shan}, {Silva},
+  {Slepian}, {Soto}, {Sprayberry}, {Staten}, {Stillman}, {Stupak}, {Summers},
+  {Sien Tie}, {Tirado}, {Vargas-Maga{\~n}a}, {Vivas}, {Wechsler}, {Williams},
+  {Yang}, {Yang}, {Yapici}, {Zaritsky}, {Zenteno}, {Zhang}, {Zhang}, {Zhou}, \&
+  {Zhou}}]{lsoverview}
+{Dey}, A., {Schlegel}, D.~J., {Lang}, D., {et~al.} 2019, \aj, 157, 168
+
+\bibitem[{Doyle {et~al.}(2000)Doyle, Deeg, Kozhevnikov, Oetiker, Martín, Blue,
+  Rottler, Stone, Ninkov, Jenkins, Schneider, Dunham, Doyle, \&
+  Paleologou}]{exoplanet}
+Doyle, L.~R., Deeg, H.~J., Kozhevnikov, V.~P., {et~al.} 2000, The Astrophysical
+  Journal, 535, 338
+
+\bibitem[{{Flaugher} {et~al.}(2015){Flaugher}, {Diehl}, {Honscheid}, {Abbott},
+  {Alvarez}, {Angstadt}, {Annis}, {Antonik}, {Ballester}, {Beaufore},
+  {Bernstein}, {Bernstein}, {Bigelow}, {Bonati}, {Boprie}, {Brooks},
+  {Buckley-Geer}, {Campa}, {Cardiel-Sas}, {Castander}, {Castilla}, {Cease},
+  {Cela-Ruiz}, {Chappa}, {Chi}, {Cooper}, {da Costa}, {Dede}, {Derylo},
+  {DePoy}, {de Vicente}, {Doel}, {Drlica-Wagner}, {Eiting}, {Elliott}, {Emes},
+  {Estrada}, {Fausti Neto}, {Finley}, {Flores}, {Frieman}, {Gerdes},
+  {Gladders}, {Gregory}, {Gutierrez}, {Hao}, {Holland}, {Holm}, {Huffman},
+  {Jackson}, {James}, {Jonas}, {Karcher}, {Karliner}, {Kent}, {Kessler},
+  {Kozlovsky}, {Kron}, {Kubik}, {Kuehn}, {Kuhlmann}, {Kuk}, {Lahav}, {Lathrop},
+  {Lee}, {Levi}, {Lewis}, {Li}, {Mandrichenko}, {Marshall}, {Martinez},
+  {Merritt}, {Miquel}, {Mu{\~n}oz}, {Neilsen}, {Nichol}, {Nord}, {Ogando},
+  {Olsen}, {Palaio}, {Patton}, {Peoples}, {Plazas}, {Rauch}, {Reil}, {Rheault},
+  {Roe}, {Rogers}, {Roodman}, {Sanchez}, {Scarpine}, {Schindler}, {Schmidt},
+  {Schmitt}, {Schubnell}, {Schultz}, {Schurter}, {Scott}, {Serrano}, {Shaw},
+  {Smith}, {Soares-Santos}, {Stefanik}, {Stuermer}, {Suchyta}, {Sypniewski},
+  {Tarle}, {Thaler}, {Tighe}, {Tran}, {Tucker}, {Walker}, {Wang}, {Watson},
+  {Weaverdyck}, {Wester}, {Woods}, {Yanny}, \& {DES Collaboration}}]{decam}
+{Flaugher}, B., {Diehl}, H.~T., {Honscheid}, K., {et~al.} 2015, \aj, 150, 150
+
+\bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{a}}){Gaia
+  Collaboration}, {Brown}, {Vallenari}, {Prusti}, {de Bruijne}, {Mignard},
+  {Drimmel}, {Babusiaux}, {Bailer-Jones}, {Bastian}, \& et~al.}]{gaiaDR1}
+{Gaia Collaboration}, {Brown}, A.~G.~A., {Vallenari}, A., {et~al.}
+  2016{\natexlab{a}}, \aap, 595, A2
+
+\bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{b}}){Gaia
+  Collaboration}, {Prusti}, {de Bruijne}, {Brown}, {Vallenari}, {Babusiaux},
+  {Bailer-Jones}, {Bastian}, {Biermann}, {Evans}, \& et~al.}]{gaia}
+{Gaia Collaboration}, {Prusti}, T., {de Bruijne}, J.~H.~J., {et~al.}
+  2016{\natexlab{b}}, \aap, 595, A1
+
+\bibitem[{{Hogg} \& {Lang}(2013)}]{gaussgals}
+{Hogg}, D.~W., \& {Lang}, D. 2013, \pasp, 125, 719
+
+\bibitem[{{Lang} {et~al.}(2016){Lang}, {Hogg}, \& {Schlegel}}]{unwise-phot}
+{Lang}, D., {Hogg}, D.~W., \& {Schlegel}, D.~J. 2016, \aj, 151, 36
+
+\bibitem[{{Melin} {et~al.}(2006){Melin}, {Bartlett}, \& {Delabrouille}}]{melin}
+{Melin}, J.-B., {Bartlett}, J.~G., \& {Delabrouille}, J. 2006, \aap, 459, 341
+
+\bibitem[{{Rykoff} {et~al.}(2014){Rykoff}, {Rozo}, {Busha}, {Cunha},
+  {Finoguenov}, {Evrard}, {Hao}, {Koester}, {Leauthaud}, {Nord}, {Pierre},
+  {Reddick}, {Sadibekova}, {Sheldon}, \& {Wechsler}}]{redmapper}
+{Rykoff}, E.~S., {Rozo}, E., {Busha}, M.~T., {et~al.} 2014, \apj, 785, 104
+
+\bibitem[{{Szalay} {et~al.}(1999){Szalay}, {Connolly}, \&
+  {Szokoly}}]{szalay1999}
+{Szalay}, A.~S., {Connolly}, A.~J., \& {Szokoly}, G.~P. 1999, \aj, 117, 68
+
+\bibitem[{{The Dark Energy Survey Collaboration}(2005)}]{des}
+{The Dark Energy Survey Collaboration}. 2005, ArXiv Astrophysics e-prints,
+  astro-ph/0510346
+
+\bibitem[{{Valdes} {et~al.}(2014){Valdes}, {Gruendl}, \& {DES
+  Project}}]{cppipeline}
+{Valdes}, F., {Gruendl}, R., \& {DES Project}. 2014, in Astronomical Society of
+  the Pacific Conference Series, Vol. 485, Astronomical Data Analysis Software
+  and Systems XXIII, ed. N.~{Manset} \& P.~{Forshay}, 379
+
+\bibitem[{{Willman} {et~al.}(2005){Willman}, {Blanton}, {West}, {Dalcanton},
+  {Hogg}, {Schneider}, {Wherry}, {Yanny}, \& {Brinkmann}}]{willman1}
+{Willman}, B., {Blanton}, M.~R., {West}, A.~A., {et~al.} 2005, \aj, 129, 2692
+
+\bibitem[{{Zackay} \& {Ofek}(2017)}]{zackay1}
+{Zackay}, B., \& {Ofek}, E.~O. 2017, \apj, 836, 187
+
+\end{thebibliography}
 
 \appendix
 
@@ -1940,9 +2046,6 @@ Therefore, the estimator saturates the Cram\'er--Rao bound.
     \end{scriptsize}
   \end{center}
 \end{table}
-
-
-
 
 
 \end{document}
