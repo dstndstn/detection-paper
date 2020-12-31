@@ -1,19 +1,15 @@
-\documentclass[11pt,letterpaper,preprint]{aastex63}
-
-%%%%% TODO
-
-% - fix Hogg's affiliations (Flatiron etc)
-
-
-
-
-
-
+\documentclass[11pt,letterpaper]{aastex63}
 
 \usepackage{bm}
 \usepackage{calc}
 \usepackage{amssymb, amsmath}
 \usepackage{hyperref}
+
+% Trying to get rid of section headers at end of page
+%\raggedbottom
+%\widowpenalty=10000
+%\clubpenalty=10000
+
 \newcounter{address}
 \newcommand{\doctype}{paper}
 \newcommand{\equationname}{equation}
@@ -98,8 +94,12 @@
 
 \newcommand{\erf}{\textrm{erf}}
 
+\shorttitle{Point-source detection}
+\shortauthors{Lang and Hogg}
+
 \begin{document}
 \title{Principled point-source detection in collections of astronomical images}
+\date{Dec 31, 2020}
 \author{Dustin Lang}
 %\altaffiliation{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
 % \affiliation{%
@@ -108,17 +108,21 @@
 %   50 Saint George Street, Toronto, ON, M5S 3H4, Canada}
 \affiliation{%
   Perimeter Institute for Theoretical Physics,
-  31 Caroline Street North, Waterloo, ON, N2L 2Y5, Canada}
+  31 Caroline Street North, Waterloo, ON N2L 2Y5, Canada}
 \affiliation{%
   Department of Physics \& Astronomy,
   University of Waterloo,
-  200 University Avenue West, Waterloo, ON, N2L 3G1, Canada}
+  200 University Avenue West, Waterloo, ON N2L 3G1, Canada}
 
 \author{David W. Hogg}
 \affiliation{%
+  Center for Computational Astrophysics,
+  Flatiron Institute,
+  162 Fifth Ave, New York, NY 10010, USA}
+\affiliation{%
   Center for Cosmology and Particle Physics,
   Department of Physics,
-  New York University, 4 Washington Place, New York, NY 10003, USA}
+  New York University, 726 Broadway, New York, NY 10003, USA}
 \affiliation{%
   Max-Planck-Institut f\"ur Astronomie,
   K\"onigstuhl 17, D-69117 Heidelberg, Germany}
@@ -145,21 +149,14 @@ the objects we wish to detect.  We show that this approach is superior
 to some methods traditionally employed, and that other traditional
 methods can be seen as instances of SED-matched filtering with implied
 (and often unreasonable) priors.
-%
-% We suggest a set of SED filters and how one ought to proceed: lower
-% the detection threshold to ensure that all sources of interest are
-% detected, then fit for their properties and keep or discard sources
-% based on their utility for the question at hand.
-%
+We present a Bayesian formulation, including a flux prior that leads to
+a closed-form expression with low computational cost.
 \end{abstract}
-
-%such as the \emph{chi-squared coadd} (Szalay \emph{et al.} 1999), 
 
 \keywords{
     methods:~statistical ---
     techniques:~image~processing
 }
-
 
 \section{Introduction}
 
@@ -1171,19 +1168,19 @@ orthogonal to these three SED directions.
     % These figures come from bayes-figure.py.
     \includegraphics[width=0.45\textwidth]{prob-contours-c}
     \includegraphics[width=0.45\textwidth]{prob-1d}
-    \caption{The effect of the luminosity prior in Bayesian
+    \caption{The effect of the flux prior in Bayesian
       SED-matched source detection.  In order to produce closed-form
-      integrals, we use an exponential prior on the luminosity; here
+      integrals, we use an exponential prior on the flux; here
       we show the effect of the exponential scale factor ($\alpha$) on
       the results.  \emph{Left:} Probability contours for the ``Red''
-      foreground model, as before, and with a luminosity function that
+      foreground model, as before, and with a flux prior that
       prefers brighter sources---larger observed fluxes are considered
       more probable.  \emph{Right:} A one-dimensional example showing
-      the effect of changing the luminosity function by a factor of
+      the effect of changing the flux prior by a factor of
       two.  The dashed model places more prior belief in larger
       fluxes, and therefore must produce smaller probabilites at low
       flux levels.  This illustrates that care must be taken with the
-      scale factor of the luminosity function prior.
+      scale factor of the flux prior.
       \label{fig:scaling}
     }
     \end{center}
@@ -1333,57 +1330,50 @@ of exposures is available in Tables \ref{tab:exposures} and
 \begin{figure}
   \begin{center}
     \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
-    \caption{Bayesian SED-matched detection method compared to $g+r+i$
-      single-band detection.  The color-space locations of sources
-      that are detected by both methods are shown as faint points, and
-      sources that are detected by only one method or the other are
-      highlighted.  In this experiment, the detection thresholds were
-      tuned so that both methods produced the same number of
-      detections; this compares each method's best detections.  The
-      Bayesian-only detections have the colors of real objects, while
-      the $g+r+i$-only detections tend to be single-band sources,
-      including cosmic rays, asteroids, and very red sources.
-      Cutouts of these sources are shown in \figref{fig:only}.
+    \caption{Bayesian SED-matched detection method compared to the
+      union of $g$, $r$, and $i$ single-band detection.  The
+      color-space locations of sources that are detected by both
+      methods are shown as faint points, and sources that are detected
+      by only one method or the other are highlighted.  In this
+      experiment, the detection thresholds were tuned so that both
+      methods produced the same number of detections; this compares
+      each method's best detections.  The Bayesian-only detections
+      have the colors of real objects, while the $gri$-union
+      detections tend to be single-band sources, including cosmic
+      rays, asteroids, and very red sources.  Cutouts of these sources
+      are shown in \figref{fig:only}.
       \label{fig:bayes-vs-gri}}
   \end{center}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p!]
   \begin{center}
     \begin{tabular}{cc}
       Detected by Bayesian only &
-      Detected by $g+r+i$ only \\
-      \includegraphics[width=0.4\textwidth]{bayes-only}
+      Detected by $gri$-union only \\
+      \includegraphics[width=0.39\textwidth]{bayes-only}
       %\hspace{0.03\textwidth}
       &
-      \includegraphics[width=0.4\textwidth]{gri-only}
+      \includegraphics[width=0.39\textwidth]{gri-only}
     \end{tabular}
-    \caption{Bayesian SED-matched detection method compared to
-      $g+r+i$ single-band detection, where each method is allowed to
-      detect the same total number of sources.  \emph{Left:} Examples
-      of sources that are detected by only the Bayesian SED-matched
-      detection method.  These have the colors of real objects and
-      appear to be all faint galaxies.  \emph{Right:} Examples of
-      sources that are detected by only the $g+r+i$ single-band
-      detection method.  These include cosmic rays, asteroids, and
-      very red sources.
+    \caption{Bayesian SED-matched detection method compared to the
+      union of $g$, $r$, and $i$ single-band detections, where each
+      method is allowed to detect the same total number of sources.
+      \emph{Left:} Examples of sources that are detected by only the
+      Bayesian SED-matched detection method.  These have the colors of
+      real objects and appear to be all faint galaxies.  \emph{Right:}
+      Examples of sources that are detected by only the $gri$-union
+      method.  These include cosmic rays,
+      asteroids, and very red sources.
       %
-      If we clip outlier pixels while forming the detection maps, we
-      can eliminate these cosmic rays before the detection step; the
-      $g+r+i$ method then preferentially detects sources with extreme
-      colors.  Since real images will often contain artifacts
-      and moving objects, the fact that the $g+r+i$ method \emph{prefers} these
-      objects to real sources is problematic; the Bayesian method, on
-      the other hand, requires sources with such unexpected colors to have
-      much higher signal than it does for real sources.
       \label{fig:only}}
   \end{center}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[p!]
   \begin{center}
-    \includegraphics[height=0.4\textwidth]{galaxies}
-    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
+    \includegraphics[height=0.39\textwidth]{galaxies}
+    \includegraphics[height=0.39\textwidth]{galaxies-relsn}
     \caption{\emph{Left:} Detections from an extended-source detector,
       sorted by the difference in detection strength between the
       ``yellow galaxy'' and ``yellow point source'' detectors.  The
@@ -1483,24 +1473,34 @@ ratio of $2000$, which yields approximately 3055 sources in good
 regions of the image.  For a comparison, we run the same detection
 procedure first on our $g$-band map, then on the $r$-band map, and
 finally on the $i$-band map, with a detection threshold of $50 \sigma$
-for each band.  We merge detected sources if they are within 5 pixels.
-This yields a total of 3201 sources in good regions.  In order to find
+for each band, and keeping the union of all detections.  We merge
+detected sources if they are within 5 pixels of each other.  This
+yields a total of 3201 sources in good regions.  In order to find
 sources that are detected by one method and not the other, we first
-cut to the brightest 3055 $g+r+i$ detections (based on maximum
+cut to the brightest 3055 $gri$-union detections (based on maximum
 signal-to-noise in the three bands) so that the two lists of sources
 are the same length.  We then find sources that are not within an
 above-threshold region in the other map.  That is, we ignore Bayesian
 detections where the maximum of $g$, $r$, or $i$ signal-to-noise is
-above $50$, and we drop $g+r+i$ detections where the Bayesian
+above $50$, and we drop $gri$-union detections where the Bayesian
 log-probability is above $2000$.  This yields 163 unique Bayesian
-detections and 112 unique $g+r+i$ detections.  As shown in Figures
+detections and 112 unique $gri$-union detections.  As shown in Figures
 \ref{fig:bayes-vs-gri} and \ref{fig:only}, the sources detected by
 only the Bayesian method have the colors of real sources and appear to
-be all real galaxies, while the sources detected by only the $g+r+i$
+be all real galaxies, while the sources detected by only the $gri$-union
 method include a large number of cosmic rays and asteroids, as well as
 a number of real very red sources.
+If we clip outlier pixels while forming the detection maps, we
+can eliminate these cosmic rays before the detection step; the
+$gri$-union method then preferentially detects sources with extreme
+colors.  Since real images will often contain artifacts
+and moving objects, the fact that the $gri$-union method \emph{prefers} these
+objects to real sources is problematic; the Bayesian method, on
+the other hand, requires sources with such unexpected colors to have
+much higher signal than it does for real sources.
 
 
+%\clearpage
 \subsection{Galaxy detection}
 
 
@@ -1523,35 +1523,43 @@ few-percent improvement in detection efficiency versus a PSF-tuned
 filter, for typical galaxies in DECam images.
 
 
-\section{Discussion}
-
---similarities and differences from Szalay et al 1999 -- SED-matched
-filters $\sim$ ``optimal subspace filtering''
-
---No weights go to zero -- all images contribute *something*, in
-proportion to t he information they bring.  Contrast with lucky
-imaging and some co-adding schemes.
-
---sub-pixel shifts: lower threshold so that max pixel is above
-threshold; post-process to cut out peaks that really were below
-threshold.
-
---Practicalities: bad pixels / masks, interpolation, etc?
-
 \section{Conclusions}
 
---What to do with a detection image; how to proceed.  Build models,
-    fit simultaneously to all images in the ``stack''.
+We have reviewed the ubiquitous \emph{matched filter} and shown how it
+can be used to detect point sources in collections of astronomical
+images.  Our new contribution is to extend the matched filter to SED
+space in order to combine images taken through multiple bandpass
+filters.  This is a natural extension, but requires specifying the
+color of the sources to be detected most sensitively.  A Bayesian
+extension of this idea allows us to marginalize over the colors of the
+sources to be detected, ideally driven by theoretical or empirical
+models of the sources to be detected.  The Bayesian formulation also
+requires specifying a prior over the fluxes of sources.  We present an
+exponential prior that leads to a closed-form expression for the fully
+marginalized Bayesian detection probability; this can be computed
+inexpensively.
 
 
-\acknowledgements
+A pleasing aspect of the matched-filtering approach---including our
+extension to SED-matched filtering---is that it can correctly use all
+available data.  Images that are known \emph{a priori} to contribute
+little information due to their noise levels or because the source is
+known to have small flux in that band, are downweighted but not
+ignored entirely.  This property will becomes increasingly useful as
+multi-wavelength, many-exposure, multi-instrument studies become more
+prominent.
 
+
+
+\acknowledgments
+
+We thank
 Ben Weiner (University of Arizona),
 Julianne Dalcanton (University of Washington),
 Brad Holden (UCO/Lick Observatories),
 Micha Gorelick (Fast Forward Labs),
 Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
-all provided helpful comments and discussion.
+for helpful comments and discussion.
 
 Research at Perimeter Institute is supported in part by the Government
 of Canada through the Department of Innovation, Science and Economic
