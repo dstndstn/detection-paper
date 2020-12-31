@@ -834,23 +834,25 @@ variance is also reduced in a corresponding way, so this does not
 dilute the weight of high-precision measurements.
 
 
-%%%% FIXME -- mixture model!
-In practice, we advocate computing such maps for a set of spectral
-energy distributions that sparsely sample the space of sources of
-interest.  By performing multiple significance tests, more false
-positives will be generated, but we argue that one can maintain the
-same false positive rate by slightly increasing the detection
-threshold.  Since we effectively extract more of the available
+
+In practice, for those unwilling to use the Bayesian method presented
+below, we would advocate computing SED-matched detection maps for a
+set of spectral energy distributions that sparsely sample the space of
+sources of interest, and take the union of sources detected.  By
+performing multiple significance tests, more false positives will be
+generated, so it will be necessary to slightly increasing the
+detection threshold to maintain false positives at an acceptable
+level.  Since we effectively extract more of the available
 signal-to-noise by weighting the bands appropriately, our method
 should still achieve superior completeness at a given purity.
-%
+
 More broadly, we argue that source detection should be used as in
 \emph{initial} seed of the likely positions of sources, but that only
 after \emph{inference} of the proposed source's properties using the
 individual images should one decide whether the source should be kept.
 This leads toward using slightly lower detection thresholds (that will
 produce more false positives due to noise), plus additional
-thresholding to determine which sources should be kept.
+thresholding after fitting to determine which sources should be kept.
 
 
 \subsection{Comments}
