@@ -359,7 +359,7 @@ devation $\psfw$ pixels has a norm approximately:
 \begin{equation}
   \norm{\bm{\psf^G}} \simeq \frac{1}{2 \sqrt{\pi} \psfw} \quad .
 \end{equation}
-The per-pixel error in the \detmap\ is given by
+The per-pixel uncertainty in the \detmap\ is given by
 \begin{equation}
 \sigma_{D} = \frac{\sigma}{\psfnorm} \quad .
 \end{equation}
@@ -409,7 +409,8 @@ $\tau$ is the integral of the high tail of the normal distribution.
 For $\tau = 5 \sigma_D$, the fraction of pixels above threshold due to
 noise is about $2.9\times10^{-7}$, which seems tiny except that we
 will be evaluating millions of pixels; in a 4k$\times$4k image we
-would expect approximately $5$ false positive detections.
+would expect approximately $5$ false positive detections due to statistical
+fluctuations alone.
 
 There is nothing special about $5 \sigma_D$ as a detection threshold; it
 is simply a choice of tradeoff between allowing some false positives
@@ -552,8 +553,8 @@ profiles.
 
 In practice, our mixture-of-Gaussians approximations to standard
 exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
-convenient for this task.
-
+convenient for this task, since they allow efficient separable
+real-space correlation operations.
 
 
 \section{Detecting a point source in multiple images}
@@ -610,7 +611,7 @@ then the flux estimate $F_i$ is
 \begin{eqnarray}
 F_i &=& R_i(\kappa_i \, D_i)
 \end{eqnarray}
-with per-pixel error
+with per-pixel uncertainty
 \begin{eqnarray}
 \sigma_{F_i} &=& \frac{\kappa_i \, \sigma_{i}}{\psfnorm_i}
 \end{eqnarray}
@@ -619,7 +620,7 @@ and we combine the estimates from multiple images via
 F^{\star} &=& \frac{\displaystyle\sum_i F_i \, \sigma^{-2}_{F_i}}{\displaystyle\sum_i \sigma^{-2}_{F_i}}
 \label{eq:onebandmap}
 \end{eqnarray}
-which has per-pixel error
+which has per-pixel uncertainty
 \begin{eqnarray}
   \sigma_{F_{\star}} &=& \left( \sum_i \sigma^{-2}_{F_i} \right)^{-\frac{1}{2}}    \quad .
   \label{eq:onebandstd}
@@ -676,9 +677,9 @@ in loss of signal-to-noise or detection efficiency.
     in the combination of the two images; the detection map
     signal-to-noise (dashed line at top) equals the sum-in-quadrature
     of the two images.  However, if we instead coadd the images and
-    then detect the source in the coadd, we lose a significant
-    fraction of the signal-to-noise, regardless of the weighting
-    factor applied to the two images.
+    then detect the source in the coadd (solid curve), we lose a
+    significant fraction of the signal-to-noise, regardless of the
+    weighting factor applied to the two images.
     \label{fig:dontcoadd}}
   \end{center}
 \end{figure}
@@ -771,7 +772,7 @@ to produce the maximum-likelihood estimate for $F$:
        \frac{\displaystyle\sum_j D_j \, s_j \, \sigdj^{-2}}%
             {\displaystyle\sum_j s_j^2 \, \sigdj^{-2}}
 \end{eqnarray}
-with per-pixel error
+with per-pixel uncertainty
 \begin{eqnarray}
   \hat{\sigma}_F &=& \left( \sum_j s_j^2 \sigdj^{-2} \right)^{-\frac{1}{2}}
   \quad .
@@ -779,8 +780,8 @@ with per-pixel error
 
 
 For example, if we treat $r$ band as the canonical band and our
-objects of interest have color $r-i = 1$, then we expect the flux in
-$i$ to be a factor of $2.5$ greater than the flux in $r$; $s_i = 2.5$,
+objects of interest have color $r-i = 1$ mag, then we expect the flux in
+$i$ to be a factor of $\sim2.5$ greater than the flux in $r$; $s_i = 2.5$,
 and we will scale our $i$-band detection map $D_i$ by $1/s_i = 0.4$ to
 produce a prediction for the $r$-band flux.  Since the sources are
 expected to be brighter in $i$ band, we must \emph{scale down} the
@@ -795,14 +796,14 @@ below, we would advocate computing SED-matched detection maps for a
 set of spectral energy distributions that sparsely sample the space of
 sources of interest, and take the union of sources detected.  By
 performing multiple significance tests, more false positives will be
-generated, so it will be necessary to slightly increasing the
+generated, so it will be necessary to slightly increase the
 detection threshold to maintain false positives at an acceptable
 level.  Since we effectively extract more of the available
 signal-to-noise by weighting the bands appropriately, our method
 should still achieve superior completeness at a given purity.
 
 More broadly, we argue that source detection should be used as in
-\emph{initial} seed of the likely positions of sources, but that only
+\emph{initial} seed of the likely position of a source, but that only
 after \emph{inference} of the proposed source's properties using the
 individual images should one decide whether the source should be kept.
 This leads toward using slightly lower detection thresholds (that will
@@ -1053,7 +1054,7 @@ simulations to yield an acceptable false positive rate.
     \includegraphics[width=0.4\textwidth]{prob-rel-a}
     \caption{Bayesian SED-matched source detection with a single-SED prior, for illustration.
       The foreground model is that sources have fluxes that lie along a ``Red''
-      SED with color $g-r = 1$.
+      SED with color $g-r \simeq 1$.
       \emph{Left:} Probability contours for the foreground model are inclined in the
       direction of the prior.  The flux prior prefers small fluxes, but has some
       probability mass extended toward larger fluxes.
@@ -1078,7 +1079,7 @@ simulations to yield an acceptable false positive rate.
     \includegraphics[width=0.4\textwidth]{prob-rel-b}
     \caption{Bayesian SED-matched source detection with a three-SED prior.
       The prior is that astronomical sources are a
-      mixture of $49\%$ ``Red'' (color $g-r = 1$ mag),
+      mixture of $49\%$ ``Red'' (color $g-r \simeq 1$ mag),
       $49\%$ ``Flat'' (color $g - r = 0$ mag),
       and $2\%$ $r$-band only ($g$ flux is zero).
       \emph{Left:} Probability contours for the foreground model are extended in the
@@ -1103,7 +1104,7 @@ probability contours of the background model (equation \ref{eq:pbg})
 and the foreground model (equation \ref{eq:pfg}), for the simplest
 case where our SED prior $p(s)$ is a delta function at $s_{g} =
 \frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``Red'' detection
-filter that assumes a $g - r$ color of 1 magnitude.  As expected, the
+filter that assumes a $g - r$ color of $\sim 1$ magnitude.  As expected, the
 probability contours of the foreground model shift away from negative
 fluxes and toward fluxes that are consistent with the expected color.
 The exponential prior on flux causes the foreground model to prefer
