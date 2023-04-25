@@ -23,7 +23,7 @@ Finally, we look at an empirical (DECaLS) SED.
 
 '''
 def bayes_figures():
-    plt.subplots_adjust(left=0.1, right=0.98, bottom=0.1, top=0.98)
+    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.1, top=0.98)
 
     # Assuming unit variance on the detection maps; signal = S/N.
     sig_g = 1.
@@ -57,6 +57,46 @@ def bayes_figures():
     pratio_ronly = get_pratio(d_j, sig_j, sed_ronly)
     pratio_flat  = get_pratio(d_j, sig_j, sed_flat)
 
+    figU = True
+
+    # chi-squared equivalent
+    if figU:
+
+        uextent = [-11, 11, -11, 11]
+        ugvals = np.linspace(uextent[0], uextent[1], 320)
+        urvals = np.linspace(uextent[2], uextent[3], 320)
+        ud_j = np.array(np.meshgrid(ugvals, urvals))
+
+        p_bg_u = (1./np.prod(np.sqrt(2.*np.pi)*sig_j) *
+                  np.exp(-0.5 * np.sum((ud_j / sig_j[:,np.newaxis,np.newaxis])**2, axis=0)))
+
+        th = np.linspace(0., 2.*np.pi, 36, endpoint=False)
+        #th = np.linspace(0., 0.5 * np.pi, 36, endpoint=True)
+        #th = th[2:-2]
+        seds_uniform = np.vstack((np.cos(th), np.sin(th))).T
+        #seds_uniform /= np.sum(np.abs(seds_uniform), axis=1)[:,np.newaxis]
+        print('uniform seds:', seds_uniform.shape)
+
+        pratios_u = np.array([get_pratio(ud_j, sig_j, s) for s in seds_uniform])
+        print('pratios_u:', pratios_u.shape)
+
+        pratio_u = np.sum(pratios_u * 1./len(th), axis=0)
+        p_fg_u = p_bg_u * pratio_u
+        
+        plt.clf()
+        contour_plot(p_bg_u, p_fg_u, [(s, '0.5') for s in seds_uniform],
+                     extent=uextent, sedlw=0.5)
+        plt.axis(uextent)
+        plt.savefig('prob-contours-u.pdf')
+
+        plt.clf()
+        rel_contour_plot(pratio_u, [(s, '0.5') for s in seds_uniform],
+                         extent=uextent, sedlw=0.5)
+        plt.axis(uextent)
+        plt.savefig('prob-rel-u.pdf')
+
+        return
+
 
 
     figA = True
@@ -76,13 +116,13 @@ def bayes_figures():
         # print(falsepos * 4e3*4e3, 'false positives per 4k x 4k image')
 
         plt.clf()
-        contour_plot(p_bg, p_fg_a, [(sed_red, 'r')])
+        contour_plot(p_bg, p_fg_a, [(sed_red, 'r')], extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
         plt.savefig('prob-contours-a.pdf')
 
         plt.clf()
-        rel_contour_plot(pratio_a, [(sed_red, 'r')])
+        rel_contour_plot(pratio_a, [(sed_red, 'r')], extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-rel-a.pdf')
 
@@ -92,12 +132,12 @@ def bayes_figures():
 
         plt.clf()
         plotseds = [(sed_red, 'r'), (sed_flat, 'b'), (sed_ronly, 'm')]
-        contour_plot(p_bg, p_fg_b, plotseds)
+        contour_plot(p_bg, p_fg_b, plotseds, extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-contours-b.pdf')
 
         plt.clf()
-        rel_contour_plot(pratio_b, plotseds)
+        rel_contour_plot(pratio_b, plotseds, extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-rel-b.pdf')
 
@@ -119,7 +159,8 @@ def bayes_figures():
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
                      label1='Foreground model, faint luminosity function',
-                     label2='Foreground model, bright luminosity function')
+                     label2='Foreground model, bright luminosity function',
+                     extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
         plt.savefig('prob-contours-c.pdf')
@@ -134,7 +175,8 @@ def bayes_figures():
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
                      label1='Foreground model',
-                     label2='Foreground model, s * 2')
+                     label2='Foreground model, s * 2',
+                     extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
         plt.savefig('prob-contours-d.pdf')
@@ -207,33 +249,36 @@ def contour_plot(p_bg, p_fg, seds,
                  style1=dict(linestyles='-', alpha=0.3, linewidths=3, colors='k'),
                  style2=dict(linestyles='-', colors='b'),
                  label1='Background (noise) model',
-                 label2='Foreground (source) model'):
+                 label2='Foreground (source) model',
+                 extent=None,
+                 sedlw=3):
     levs = np.arange(-6, 0)
-    c1 = plt.contour(np.log10(p_bg), levels=levs, extent=dextent, **style1)
-    c2 = plt.contour(np.log10(p_fg), levels=levs, extent=dextent, **style2)
-    
+    c1 = plt.contour(np.log10(p_bg), levels=levs, extent=extent, **style1)
+    c2 = plt.contour(np.log10(p_fg), levels=levs, extent=extent, **style2)
+
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
     plt.axhline(0, color='k', alpha=0.2)
     plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
     for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=3)
+        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=sedlw)
     plt.axis('square')
     plt.legend([c2.collections[0], c1.collections[0]],
                [label2, label1],
                loc='lower right')
 
-def rel_contour_plot(pratio, seds):
+def rel_contour_plot(pratio, seds, extent=None,
+                     sedlw=3):
     levs = np.arange(0, 11)
-    plt.contour(np.log10(pratio), levels=levs, linestyles='-', extent=dextent, colors='k')
+    plt.contour(np.log10(pratio), levels=levs, linestyles='-', extent=extent, colors='k')
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
     plt.axhline(0, color='k', alpha=0.2)
     plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
     for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=3)
+        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=sedlw)
     plt.axis('square');
 
 
