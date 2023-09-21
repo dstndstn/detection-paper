@@ -57,7 +57,7 @@ def bayes_figures():
     pratio_ronly = get_pratio(d_j, sig_j, sed_ronly)
     pratio_flat  = get_pratio(d_j, sig_j, sed_flat)
 
-    figU = True
+    figU = False
 
     # chi-squared equivalent
     if figU:
@@ -165,6 +165,14 @@ def bayes_figures():
         plt.axis(axa)
         plt.savefig('prob-contours-c.pdf')
 
+        plotseds = [(sed_red, 'r')]
+        plt.clf()
+        levs = np.arange(0, 5)
+        rel_contour_plot(pratio_c, plotseds, extent=dextent, levs=levs)
+        rel_contour_plot(pratio_a, [], extent=dextent, levs=levs, contour_linestyle='--')
+        plt.axis(axa)
+        plt.savefig('prob-rel-c.pdf')
+
     if figD:
         sed_red3 = sed_red
         pratio_red3 = get_pratio(d_j, sig_j, sed_red3, alpha=0.5)
@@ -182,6 +190,9 @@ def bayes_figures():
         plt.savefig('prob-contours-d.pdf')
 
     if figE:
+        d_one = np.linspace(-10, +30, 500)
+        sed_1a = np.array([1.])
+        sed_1b = np.array([2.])
 
         flux_1a = d_one / sed_1a
         flux_1b = d_one / sed_1b
@@ -189,10 +200,6 @@ def bayes_figures():
         prior1a = np.exp(-flux_1a) * (flux_1a > 0)
         prior1b = np.exp(-flux_1b) * (flux_1b > 0)
 
-        sed_1a = np.array([1.])
-        sed_1b = np.array([2.])
-
-        d_one = np.linspace(-10, +30, 500)
         sig_one = np.array([1.])
         p_bg_one = 1./np.prod(np.sqrt(2.*np.pi)*sig_one) * np.exp(-0.5 * (d_one / sig_one)**2)
 
@@ -269,9 +276,11 @@ def contour_plot(p_bg, p_fg, seds,
                loc='lower right')
 
 def rel_contour_plot(pratio, seds, extent=None,
-                     sedlw=3):
-    levs = np.arange(0, 11)
-    plt.contour(np.log10(pratio), levels=levs, linestyles='-', extent=extent, colors='k')
+                     sedlw=3, contour_linestyle='-', levs=None):
+    if levs is None:
+        levs = np.arange(0, 11)
+    plt.contour(np.log10(pratio), levels=levs, linestyles=contour_linestyle,
+                extent=extent, colors='k')
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
     plt.axhline(0, color='k', alpha=0.2)
