@@ -3,6 +3,7 @@
 \usepackage{bm}
 \usepackage{amssymb}
 \usepackage{amsmath}
+\usepackage{multirow}
 
 % Trying to get rid of section headers at end of page
 %\raggedbottom
@@ -219,7 +220,7 @@ properties (positions, colors, and so on) ought to be measured
 (inferred) from the raw pixels in the collection of input images via a
 likelihood function.  That measurement and likelihood function is
 beyond the scope of this paper, but the subject of a parallel research
-program (eg, \cite{unwise-phot}).
+program (eg, \cite{unwise-phot}, \cite{lsoverview}).
 
 \section{Our image model}
 
@@ -234,7 +235,7 @@ Specifically, we will make the following strong assumptions
   zero-mean assumption can be seen as assuming perfect background
   subtraction (sky estimation);
 \item the image is well sampled;
-\item the (perhaps tiny) image contains \emph{only} one point
+\item the (perhaps tiny) image contains \emph{at most} one point
   source with an unknown flux and position;
 \item the source is centered within a pixel; %(we will relax this
   % later);
@@ -268,7 +269,7 @@ distribution of each pixel value, which allows us to prove the
 optimality of the methods we present.
 %
 We will consider a discrete image made up of a square array of pixels
-$\jvec$, each of which has value $I_{\jvec}$, where we
+indexed by $\jvec$, each of which has value $I_{\jvec}$, where we
 use $\jvec$ as a two-dimensional focal-plane position, measured in
 integer pixel units.
 %
@@ -410,12 +411,164 @@ For $\tau = 5 \sigma_D$, the fraction of pixels above threshold due to
 noise is about $2.9\times10^{-7}$, which seems tiny except that we
 will be evaluating millions of pixels; in a 4k$\times$4k image we
 would expect approximately $5$ false positive detections due to statistical
-fluctuations alone.
+fluctuations.
 
 There is nothing special about $5 \sigma_D$ as a detection threshold; it
 is simply a choice of tradeoff between allowing some false positives
 while preventing too many false negatives (lost detections).  In
 different situations, higher or lower thresholds could be preferable.
+
+Formally, in a frequentist statistical setting, we consider the
+problem of devising a test that will maximize the probability of true
+detections while holding the probability of false detections fixed.
+The \emph{Neyman--Pearson lemma} \citep{neymanpearson} states that for
+two simple hypotheses, a \emph{likelihood-ratio test} yields maximal
+\emph{power} (true detection rate) given a fixed \emph{size}
+(false-positive detection rate).  In traditional discussions of source
+detection, the \emph{foreground} hypothesis---that a source
+exists---is left implicit, and we simply talk about rejecting the
+\emph{null} hypothesis that there is no source.  In order to apply the
+Neyman--Pearson lemma, we must put forward a specific \emph{simple}
+(non-parameterized) foreground hypothesis.  That is, our foreground
+hypothesis could be ``there is a source with a flux of 1 count per
+second centered in this pixel''.  It turns out that the threshold
+(decision region) prescribed by the Neyman--Pearson lemma is
+determined solely by the false-positive criterion, a property of the
+null hypothesis alone, so the same threshold is chosen regardless of
+the (positive) flux level of the foreground hypothesis!  Specifically,
+for the case of the Gaussian probabilities we are considering, we must
+choose a false positive rate that we are willing to accept.  For
+instance, if we want our test to produce only one false positive per
+$10^9$ tests, then we can use the \emph{inverse survival function} for
+the Gaussian to calculate that we should set our threshold to
+approximately $6 \sigma_D$.  With that threshold, the positive tail of
+the null-hypothesis distribution (the integral above $6 \sigma_D$) is
+less than $10^{-9}$.
+
+% Neyman-Pearson (1933) eqn 25 is the lemma in question!
+
+In a Bayesian setting, we can formalize the detection task as a
+\emph{Bayesian decision theory} problem (as in
+\cite{astrometrydotnet}).  In Bayesian decision theory, we must first
+write down the \emph{utility} of each outcome---true detection, false
+detection, true rejection,and false rejection---and then we compute a
+threshold that will yield the greatest \emph{expected utility}.  The
+table of utilities is shown in Table \ref{tab:utilities}.
+
+\newcommand{\mcc}[1]{\makebox[6em][c]{#1}}
+\newcommand\tstrut{\rule[-0.5ex]{0pt}{3ex}}
+\newcommand{\truepos}{\ensuremath{\mathrm{TP}}}
+\newcommand{\falsepos}{\ensuremath{\mathrm{FP}}}
+\newcommand{\trueneg}{\ensuremath{\mathrm{TN}}}
+\newcommand{\falseneg}{\ensuremath{\mathrm{FN}}}
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|c|c|c@{\extracolsep{\fill}}|c|}
+  \cline{3-4}
+  \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{Source exists? \tstrut} \\
+  \cline{3-4}
+  \multicolumn{2}{c|}{} & \multicolumn{1}{c|}{\mcc{Yes}} & \mcc{No \tstrut} \\
+  \hline
+  \multirow{2}{*}{Decision} & Detect & \mcc{$u(\truepos)$} & \mcc{$u(\falsepos)$ \tstrut} \\
+  \cline{2-4}
+  & Reject & \mcc{$u(\falseneg)$} & \mcc{$u(\trueneg)$ \tstrut} \\
+  \hline
+\end{tabular}
+\end{center}
+\caption{Table of utilities for a Bayesian decision theory framing of
+  the source detection problem.  We must write down how good or bad
+  each outcome is in order to arrive at a threshold that will maximize
+  our expected utility.  The utilities $u(\cdot)$ are in arbitrary
+  linear units of subjective goodness.\label{tab:utilities}}
+\end{table}
+
+\newcommand{\squareparens}[1]{\left[ \, #1 \, \right]}
+\renewcommand{\expect}[1]{\mathbb{E}\squareparens{#1}}
+\newcommand{\fg}{\ensuremath{F}}
+\newcommand{\bg}{\ensuremath{B}}
+\newcommand{\data}{\ensuremath{\textrm{data}}}
+\newcommand{\given}{\,\vert\,}
+
+In addition to our table of utilities, we also need the posterior
+probability distributions for both the ``foreground'' model (there is a
+star), $p(\fg \given \data)$, and ``background'' model (there is no star), $p(\bg \given \data)$.
+The expected utility of detecting a source is:
+\begin{align}
+\expect{u \given \mathrm{Detect}, \data}
+%&= u(\truepos) \, p(\truepos \given \data) + u(\falsepos) \, p(\falsepos \given \data) \\
+&= u(\truepos) \, p(\fg \given \data) + u(\falsepos) \, p(\bg \given \data)
+\end{align}
+while the expected utility of not claiming a detection is:
+\begin{align}
+\expect{u \given \mathrm{Reject}, \data}
+%&= u(\falseneg) \, p(\falseneg \given \data) + u(\trueneg) \, p(\trueneg \given \data) \\
+&= u(\falseneg) \, p(\fg \given \data) + u(\trueneg) \, p(\bg \given \data) \quad .
+\end{align}
+We should claim a detection if:
+\begin{align}
+\expect{u \given \mathrm{Detect}, \data} 
+&>
+\expect{u \given \mathrm{Reject}, \data} \\
+%
+u(\truepos) \, p(\fg \given \data) + u(\falsepos) \, p(\bg \given \data)
+&>
+u(\falseneg) \, p(\fg \given \data) + u(\trueneg) \, p(\bg \given \data) \\
+%
+%\big( u(\truepos) - u(\falseneg) \big) \  \frac{p(\fg \given \data)}{p(\bg \given \data)}
+%&>
+%u(\trueneg) - u(\falsepos) \\
+%
+\frac{p(\fg \given \data)}{p(\bg \given \data)}
+&>
+\frac{u(\trueneg) - u(\falsepos)}{u(\truepos) - u(\falseneg)} \\
+%
+\frac{p(\data \given \fg)}{p(\data \given \bg)}
+ &> \frac{p(\bg)}{p(\fg)} \ \frac{u(\trueneg) - u(\falsepos)}{u(\truepos) - u(\falseneg)} \quad ,
+\label{eq:kthresh}
+\end{align}
+where the term on the left-hand side is a likelihood ratio---the same
+quantity used in the frequentist test.  The term on the right-hand
+side depends on both the \emph{priors} of the foreground and
+background models---which is related to the fraction of pixels that
+truly contain stars---and the utilities, which describes how we are
+willing to trade true detections against false positives.
+
+Typically, in source detection we want to be relatively conservative:
+false positive detections are considered to be quite bad, so we can
+set $u(\falsepos)$ to be a very negative number.  True positive
+detections are quite good, so $u(\truepos)$ is a moderate positive
+value.  True negatives (correctly deciding that there is no source in
+a pixel) are slightly good ($u(\trueneg)$ is slightly positive), and
+false negatives (missing a true source) are moderately bad
+($u(\falseneg)$ is moderately negative).  The ratio is then
+\begin{equation}
+  \frac{u(\trueneg) - u(\falsepos)}{u(\truepos) - u(\falseneg)} = \frac{+\textrm{small} - -\textrm{big}}{+\textrm{moderate} - -\textrm{moderate}}
+\end{equation}
+
+Similarly, the priors push us to be somewhat conservative: in
+wide-field optical imaging such as the DESI Legacy Imaging Surveys
+\citep{lsoverview} data release 9, there are roughly 2 billion source
+detections in roughly $20,000$ square degrees of imaging, which
+corresponds to roughly 1 source per 2000 pixels.  A higher-density
+survey such as the Dark Energy Camera Plane Survey 2 (DECaPS2)
+\citep{decaps2} has a density of roughly one source per 300 pixels.
+The ratio of priors $p(\bg) / p(\fg)$ should therefore be set based on
+the properties of the images to be handled, but likely on the order of
+$1000$.
+
+We have not yet specified our foreground model, that a source exists.
+Since we must be able to write down a likelihood function, this will
+require us to specify a flux for the star.  In practice, and as
+described below, we would place a prior over fluxes and integrate it
+out, but for the purposes of building intuition, assume that the
+foreground model is that the star has a flux corresponding to
+$5 \sigma_D$.  For utilities, take $u(\falsepos) = -\$1000$, 
+$u(\trueneg) = u(\truepos) = \$1$, and $u(\falseneg) = -\$1$, and
+set the ratio of priors to $p(\bg)/p(\fg) = 2000$.
+This yields a likelihood ratio threshold of $10^6$, which occurs at
+roughly $5.3 \sigma_D$.
+
 
 \subsection{Comments}
 
@@ -431,11 +584,11 @@ map signal-to-noise is proportional to the cosine distance between the
 true PSF and the correlation kernel.  In typical ground-based images,
 this results in only a few percent loss in signal-to-noise.  For
 example, in our DESI Legacy Imagine Surveys images \citep{lsoverview},
-if we assume that our pixelized
-model of the PSF is correct, then a Gaussian approximation typically
-yields above $97\%$ efficiency.  A considerable side benefit of making
-this assumption is that one can use a fast separable real-space
-filtering routine to perform the correlation operation.
+if we assume that our pixelized model of the PSF is correct, then a
+Gaussian approximation typically yields above $97\%$ efficiency.  A
+considerable side benefit of making this assumption is that one can
+use a fast separable real-space filtering routine to perform the
+correlation operation.
 
 \paragraph{Biases}
 In this paper, we have assumed that backgrounds due to atmospheric
@@ -521,7 +674,7 @@ values below threshold.
 
 
 \paragraph{Sufficient statistic}  Correlation by the PSF summarizes
-all relevant information regarding the presence of a source at each
+all relevant information regarding the presence of a point source at each
 pixel; the detection map and its variance are sufficient to describe
 our knowledge.  In some astronomical source detection packages
 (including SourceExtractor), there is a notion of requiring more than
@@ -555,6 +708,9 @@ In practice, our mixture-of-Gaussians approximations to standard
 exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
 convenient for this task, since they allow efficient separable
 real-space correlation operations.
+
+% \paragraph{Thresholds}
+
 
 
 \section{Detecting a point source in multiple images}
@@ -679,7 +835,10 @@ in loss of signal-to-noise or detection efficiency.
     of the two images.  However, if we instead coadd the images and
     then detect the source in the coadd (solid curve), we lose a
     significant fraction of the signal-to-noise, regardless of the
-    weighting factor applied to the two images.
+    weighting factor applied to the two images.  This is, the solid
+    line \emph{never} reaches the dashed line; creating a coadd and
+    then detecting on it always loses signal-to-noise when the PSFs
+    are not identical.
     \label{fig:dontcoadd}}
   \end{center}
 \end{figure}
@@ -703,7 +862,7 @@ statistical distributions and should be uncontroversial.  In this
 section we propose a method that is, to our knowledge, new to
 astronomy, though it flows naturally from the multi-image matched
 filtering we have discussed. While it is fully defensible, it involves
-\emph{priors} so we expect will be slightly controversial.  We argue
+Bayesian \emph{priors} so we expect will be slightly controversial.  We argue
 that other proposed methods presume \emph{stronger} and usually
 \emph{unstated} priors.
 
@@ -798,8 +957,8 @@ sources of interest, and take the union of sources detected.  By
 performing multiple significance tests, more false positives will be
 generated, so it will be necessary to slightly increase the
 detection threshold to maintain false positives at an acceptable
-level.  Since we effectively extract more of the available
-signal-to-noise by weighting the bands appropriately, our method
+level.  Since the SED-matched filter effectively extracts more of the available
+signal-to-noise by weighting the bands appropriately, this method
 should still achieve superior completeness at a given purity.
 
 More broadly, we argue that source detection should be used as in
@@ -823,7 +982,7 @@ over bands $j$,
   \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
 \end{eqnarray}
 and a sufficiently large set of connected pixels with $\chi^2$ above a
-detection threshold is taken as evidence as a source.  See Figure
+detection threshold is taken as evidence for a source.  See Figure
 \ref{fig:sedmatched}.
 
 \begin{figure}
@@ -868,8 +1027,11 @@ noted in the paper, this includes sources with negative fluxes in
 every band.  While they suggest heuristics to trim such sources (for
 example, demanding $> -1 \sigma$ of flux in each band), the fact that
 these sources are detected in the first place hints at the primary
-issue with this method: that the ``source'' hypothesis is not
-physical.
+issue with this method: that rejecting the null hypothesis (that a
+large $\chi^2$ value is simply due to a statistical fluctuation) does
+not capture our knowledge about what astronomical sources look
+like---most trivially, that astronomical sources contribute positive
+flux; the implicit ``source'' hypothesis is not physical.
 
 Lacking a source model means that it is not always helpful to add more
 data: Consider the case where we have one informative band and several
@@ -977,7 +1139,8 @@ K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2}
 \end{eqnarray}
 which will be recognized as the zero-mean Gaussian probability of
 $\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
-background distribution!
+background distribution (\ie, the null hypothesis that there is no
+source)!
 
 Defining variables
 \begin{eqnarray}
@@ -1352,7 +1515,7 @@ of exposures is available in Tables \ref{tab:exposures} and
   \end{center}
 \end{figure}
 
-We use the standard NOAO DECam Community Pipeline \citep{cppipeline}
+We use the standard NOIRLab DECam Community Pipeline \citep{cppipeline}
 for calibration of the images, and then compute astrometric and
 photometric zeropoints, sky background models and PSF models, using
 the DESI Legacy Surveys pipeline \citep{lsoverview},
@@ -1412,7 +1575,8 @@ We build an empirical ``library'' of SEDs for these bands, which we
 use as a prior, by querying the Dark Energy Survey database in our
 region of interest.  We convert the \texttt{mag\_auto} measurements
 into fluxes, compute the fraction of flux contributed by the $g$, $r$,
-and $i$ bands, and histogram these values into a $21 \times 21$ grid.
+and $i$ bands, and histogram these values into a $21 \times 21$ grid in
+$g-r$, $r-i$ color space.
 Keeping bins containing more than $0.1 \%$ of the catalog entries, we
 find 63 bins populated, as shown in \figref{fig:prior}.  The prior
 includes some SED components that have zero flux in $g$ band, which
