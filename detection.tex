@@ -5,6 +5,12 @@
 \usepackage{bm}
 \usepackage{multirow}
 
+
+% X = sum_{i=0}^d max(0, x_i)^2
+% P(X) = 1/2^d sum_{k=0}^d (d choose k) P_chi2(k, X)
+% define P_chi2(0,x) = \delta(x)
+
+
 % Trying to get rid of section headers at end of page
 %\raggedbottom
 %\widowpenalty=10000
@@ -799,6 +805,10 @@ This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
 
+%%%%
+\subsubsection{Comment}
+It's all vibes.
+
 
 % \paragraph{Thresholds}
 
@@ -1109,7 +1119,7 @@ detection threshold is taken as evidence for a source.  See Figure
 
 As \cite{szalay1999} state, the $\chi^2$ detection method represents
 the probability that a pixel is drawn from the Gaussian sky background
-distribution (independently in each band).  A large value is
+distribution, independently in each band.  A large value is
 considered to reject this null hypothesis.  The ``source'' hypothesis
 is not stated, but implicitly, by choosing a constant $\chi^2$
 threshold, a source is assumed to have any non-zero flux uniformly
