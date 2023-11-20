@@ -69,6 +69,8 @@
 \newcommand{\trueneg}{\ensuremath{\mathrm{TN}}}
 \newcommand{\falseneg}{\ensuremath{\mathrm{FN}}}
 
+\newcommand{\chipos}{\chi_+}
+
 \keywords{
     methods:~statistical ---
     techniques:~image~processing
@@ -1071,94 +1073,6 @@ produce more false positives due to noise), plus additional
 thresholding after fitting to determine which sources should be kept.
 
 
-\subsection{Comments}
-
-\paragraph{Chi-squared coadd.}
-\cite{szalay1999} present the idea of using the $\chi^2$
-statistic of a set of images taken through different bandpass filters.
-That is, they take pixel-aligned and possibly PSF-filtered images
-(here we will use detection maps) and compute $\chi^2$ pixelwise
-over bands $j$,
-\begin{eqnarray}
-  \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
-\end{eqnarray}
-and a sufficiently large set of connected pixels with $\chi^2$ above a
-detection threshold is taken as evidence for a source.  See Figure
-\ref{fig:sedmatched}.
-
-\begin{figure}
-  \begin{center}
-    % This figure comes from detection-figs.py : chisq_fig()
-    \includegraphics[width=0.8\textwidth]{sed-matched}
-    \caption{SED-matched versus ``chi-squared'' detection filters.
-      The data points are (chi-squared) detections above $4.5 \sigma$
-      in one $g$-band and one $r$-band image taken with the Dark
-      Energy Camera, plotted in signal-to-noise space.  Points that
-      are not detected in deeper data are marked
-      as ``False''; these are mostly clustered around zero (due to
-      noise), with some scattered points near the axes due to
-      single-band artifacts such as cosmic rays. The main locus of
-      ``Real'' peaks correspond to real stars and galaxies with
-      typical colors.  The Chi-squared detection method selects all
-      sources outside the circle (including, in the naive formulation,
-      sources with negative flux in both bands).  A single-band
-      detection filter selects all sources above a vertical or
-      horizontal detection threshold.  Our ``Red'' SED-matched filter
-      selects sources where the fluxes in the two bands are consistent
-      with a red SED (in this case, a $g - r$ color of 1).  Note that
-      the threshold line is roughly orthogonal to the line between the
-      false positives and the true positives; it separates them
-      efficiently.  We have shown the chi-squared detection filter
-      with a threshold of $(5\sigma)^2$, which yields a higher false
-      positive rate than a $5\sigma$ threshold in a single-band or
-      SED-match filter.
-      \label{fig:sedmatched}
-    }
-  \end{center}
-\end{figure}
-
-As \cite{szalay1999} state, the $\chi^2$ detection method represents
-the probability that a pixel is drawn from the Gaussian sky background
-distribution, independently in each band.  A large value is
-considered to reject this null hypothesis.  The ``source'' hypothesis
-is not stated, but implicitly, by choosing a constant $\chi^2$
-threshold, a source is assumed to have any non-zero flux uniformly
-distributed on the surface of the signal-to-noise (hyper-)sphere.  As
-noted in the paper, this includes sources with negative fluxes in
-every band.  While they suggest heuristics to trim such sources (for
-example, demanding $> -1 \sigma$ of flux in each band), the fact that
-these sources are detected in the first place hints at the primary
-issue with this method: that rejecting the null hypothesis (that a
-large $\chi^2$ value is simply due to a statistical fluctuation) does
-not capture our knowledge about what astronomical sources look
-like---most trivially, that astronomical sources contribute positive
-flux; the implicit ``source'' hypothesis is not physical.
-
-Lacking a source model means that it is not always helpful to add more
-data: Consider the case where we have one informative band and several
-noisy (but still somewhat informative) bands.  The chi-squared method
-treats all bands equally, thus mixes the one informative band with all
-the uninformative bands.  When using multiple bands, the detection
-threshold must be increased to maintain a constant false detection
-rate (as detailed below), and therefore the number of true detected
-sources will be lower.
-
-As shown in Figure \ref{fig:sedmatched}, there is one additional
-caveat for the chi-squared detection method: a $(5\sigma)^2$ threshold
-yields a larger false positive rate than a standard single-band
-detection filter with a threshold of $5\sigma$; in order to achieve a
-desired false positive rate, the detection threshold must be set by
-analysis (with two bands, the survival function of the chi
-distribution at the equivalent of $5 \sigma$ for a Gaussian is roughly
-5.5; with three bands it is roughly 5.75) or simulations (as suggested
-by \cite{szalay1999}).
-
-\cite{szalay1999} in fact also suggest a method for detecting objects
-of a specific color that is similar but not identical to the approach
-we present here; they suggest projecting the multiple bands into
-subspaces and using their chi-squared approach in those subspaces,
-which means that the issues identified above still hold.
-
 
 \subsection{Going Bayesian}
 
@@ -1424,7 +1338,167 @@ posterior probability values.  This problem is illustrated in
 have not been able to find a scale-free prior that leads to tractable
 integrals.
 
+\section{Comparison to Chi-squared coadd}
 
+\cite{szalay1999} present the idea of using the $\chi^2$
+statistic of a set of images taken through different bandpass filters.
+That is, they take pixel-aligned and possibly PSF-filtered images
+(here we will use detection maps) and compute $\chi^2$ pixelwise
+over bands $j$,
+\begin{eqnarray}
+  \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
+\end{eqnarray}
+and a sufficiently large set of connected pixels with $\chi^2$ above a
+detection threshold is taken as evidence for a source.  See Figure
+\ref{fig:sedmatched}.
+
+\begin{figure}
+  \begin{center}
+    % This figure comes from detection-figs.py : chisq_fig()
+    \includegraphics[width=0.8\textwidth]{sed-matched}
+    \caption{SED-matched versus ``chi-squared'' detection filters.
+      The data points are (chi-squared) detections above $4.5 \sigma$
+      in one $g$-band and one $r$-band image taken with the Dark
+      Energy Camera, plotted in signal-to-noise space.  Points that
+      are not detected in deeper data are marked
+      as ``False''; these are mostly clustered around zero (due to
+      noise), with some scattered points near the axes due to
+      single-band artifacts such as cosmic rays. The main locus of
+      ``Real'' peaks correspond to real stars and galaxies with
+      typical colors.  The Chi-squared detection method selects all
+      sources outside the circle (including, in the naive formulation,
+      sources with negative flux in both bands).  A single-band
+      detection filter selects all sources above a vertical or
+      horizontal detection threshold.  Our ``Red'' SED-matched filter
+      selects sources where the fluxes in the two bands are consistent
+      with a red SED (in this case, a $g - r$ color of 1).  Note that
+      the threshold line is roughly orthogonal to the line between the
+      false positives and the true positives; it separates them
+      efficiently.  We have shown the chi-squared detection filter
+      with a threshold of $(5\sigma)^2$, which yields a higher false
+      positive rate than a $5\sigma$ threshold in a single-band or
+      SED-match filter.
+      \label{fig:sedmatched}
+    }
+  \end{center}
+\end{figure}
+
+As \cite{szalay1999} state, the $\chi^2$ detection method represents
+the probability that a pixel is drawn from the Gaussian sky background
+distribution, independently in each band.  A large value is
+considered to reject this null hypothesis.  The ``source'' hypothesis
+is not stated, but implicitly, by choosing a constant $\chi^2$
+threshold, a source is assumed to have any non-zero flux uniformly
+distributed on the surface of the signal-to-noise (hyper-)sphere.  As
+noted in the paper, this includes sources with negative fluxes in
+every band.  While they suggest heuristics to trim such sources (for
+example, demanding $> -1 \sigma$ of flux in each band), the fact that
+these sources are detected in the first place hints at the primary
+issue with this method: that rejecting the null hypothesis (that a
+large $\chi^2$ value is simply due to a statistical fluctuation) does
+not capture our knowledge about what astronomical sources look
+like---most trivially, that astronomical sources contribute positive
+flux; the implicit ``source'' hypothesis is not physical.
+
+Lacking a source model means that it is not always helpful to add more
+data: Consider the case where we have one informative band and several
+noisy (but still somewhat informative) bands.  The chi-squared method
+treats all bands equally, thus mixes the one informative band with all
+the uninformative bands.  When using multiple bands, the detection
+threshold must be increased to maintain a constant false detection
+rate, and therefore the number of true detected sources will be lower.
+
+
+Although not mentioned in \cite{szalay1999}, one extension to their
+method is to only count pixels with positive flux in the $\chi^2$
+sum.\footnote{This idea was recommended by the anonymous reviewer.}
+This is equivalent to taking, for each pixel, the maximum of the
+pixel's flux or zero, and computing the $\chi^2$ statistic on those
+values.  Consider the effect in a two-dimensional case.  In the
+all-negative-flux quadrant, this moves all pixels to the origin.  In
+the quadrants with one negative flux value, the pixels are projected
+onto the axis with positive flux.  These pixel values will therefore
+be distributed according to the $\chi^2$ distribution with \emph{one}
+degree of freedom.  In general, if we compute the modified $\chi^2$
+distribution $\chipos^2$, where
+\begin{eqnarray}
+  \chipos^2 = \sum_{j=0}^d \max(0, D_j)^2
+  \label{eqn:chipos}
+\end{eqnarray}
+then its probability distribution function is
+\begin{eqnarray}
+P(\chipos^2, d) = \frac{1}{2^d} \sum_{k=0}^d \binom{d}{k} P_{\chi^2}(\chipos^2, k)
+\end{eqnarray}
+where $P_{\chi^2}(v^2, k)$ is the probability distribution function of
+the regular chi-squared distribution with $k$ degrees of freedom (and defining
+$P_{\chi^2}(x, 0) = \delta(x))$), and $d$ is the number of bandpass
+filters to be measured, or degrees of freedom.  The
+$\binom{d}{k}$ term counts the number of (hyper-)quadrants with
+$k$ positive fluxes, and the $P_{\chi^2}$ term gives the distribution
+of those $k$ positive fluxes.  Using $\chipos^2$ as a detection filter
+results in fewer false positives that the original $\chi^2$ detection
+filter, which therefore allows the detection threshold to be decreased
+while maintaining the same false positive rate.  The false positive
+rate can be computed easily by substituting the survival function for
+the probability distribution function in the equation above.
+
+\subsection{Experiments}
+
+\begin{figure}
+  % python chi-squared-experiment.py
+  % cp 1.pdf chisq-pos-decision-boundary.pdf
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{chisq-pos-decision-boundary}
+  \end{center}
+  \caption{Decision boundaries in signal-to-noise space for the case
+    of two bands ($g$ and $r$), and for two variants of the $\chi^2$
+    and SED-matched detection methods.  For the $\chi^2$ detector, we
+    show the traditional version (labelled), and the $\chipos^2$
+    version defined in \eqnref{eqn:chipos}.  For the SED-matched
+    detector, we show a version that takes the union of detections
+    from three SEDs, and a Bayes version that sums the detection
+    probabilities between thesame three SEDs.  The SEDs include
+    $r$-only, $g=r-1$ (``red''), and $g=r$ (``flat'').  Pixels that
+    lie above and to the right of these curves (or anywhere outside
+    the $\chi^2$ circle) will be detected.  The thresholds have been
+    set so that each method produces the same false-positive rate
+    given pure Gaussian noise inputs.  This illustrates how the
+    $\chipos^2$ method detects more true sources, thanks to treating
+    negative fluxes differently than positive fluxes.  Notice that the
+    SED-matched decision boundaries are shaped to have lower
+    thresholds in directions that are consistent with the SEDs they
+    are tuned to, and how the asymptotic behaviors in the $r$ and $g$
+    directions are different because we chose (for purposes of
+    illustration) to omit a $g$-only filter.
+  \label{fig:chipos_boundary}}
+\end{figure}
+
+Figure \ref{fig:chipos_boundary} shows decision boundaries for the
+original $\chi^2$ method, the $\chipos^2$ variant described above, and
+two versions of the SED-matched filter.
+
+
+
+%%% FIXME --
+As shown in Figure \ref{fig:sedmatched}, there is one additional
+caveat for the chi-squared detection method: a $(5\sigma)^2$ threshold
+yields a larger false positive rate than a standard single-band
+detection filter with a threshold of $5\sigma$; in order to achieve a
+desired false positive rate, the detection threshold must be set by
+analysis (with two bands, the survival function of the chi
+distribution at the equivalent of $5 \sigma$ for a Gaussian is roughly
+5.5; with three bands it is roughly 5.75) or simulations (as suggested
+by \cite{szalay1999}).
+
+
+
+
+
+\cite{szalay1999} in fact also suggest a method for detecting objects
+of a specific color that is similar but not identical to the approach
+we present here; they suggest projecting the multiple bands into
+subspaces and using their chi-squared approach in those subspaces,
+which means that the issues identified above still hold.
 
 
 
@@ -1445,9 +1519,9 @@ use data from bands $g$, $r$ and $i$ only.  We select a set of 25
 exposures in each band from the 2016B semester, keeping at most one
 exposure per night per band.  The exposure times for each image are
 200 seconds in $g$, 400 seconds in $r$, and 360 seconds in $i$.  The
-images have a range of seeing and sky transparency values.  The list
-of exposures is available in Tables \ref{tab:exposures} and
-\ref{tab:exposuresi}.
+images have a range of seeing, sky background, and sky transparency
+values.  The list of exposures is available in Tables
+\ref{tab:exposures} and \ref{tab:exposuresi}.
 
 \begin{figure}
   \begin{center}
@@ -1790,159 +1864,159 @@ of Canada through the Department of Innovation, Science and Economic
 Development Canada and by the Province of Ontario through the Ministry
 of Colleges and Universities.
 
-%\bibliographystyle{plain}
-%\bibliographystyle{apj}
-%\bibliography{detection}
+\bibliographystyle{plain}
+\bibliographystyle{apj}
+\bibliography{detection}
 
-\begin{thebibliography}{}
-\expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
-
-\bibitem[{{Abbott} {et~al.}(2016){Abbott}, {Abbott}, {Abbott}, {Abernathy},
-  {Acernese}, {Ackley}, {Adams}, {Adams}, {Addesso}, {Adhikari}, \&
-  et~al.}]{ligo}
-{Abbott}, B.~P., {Abbott}, R., {Abbott}, T.~D., {et~al.} 2016, Physical Review
-  Letters, 116, 061102
-
-\bibitem[{Bernstein {et~al.}(2012)Bernstein, Kessler, Kuhlmann, Biswasal,
-  {et~al.}}]{dessn}
-Bernstein, J.~P., Kessler, R., Kuhlmann, S., Biswasal, R., {et~al.} 2012, \apj,
-  753, astro-ph/1111.1969
-
-\bibitem[{{Bertin}(2011)}]{psfex}
-{Bertin}, E. 2011, in Astronomical Society of the Pacific Conference Series,
-  Vol. 442, Astronomical Data Analysis Software and Systems XX, ed. I.~N.
-  {Evans}, A.~{Accomazzi}, D.~J. {Mink}, \& A.~H. {Rots}, 435
-
-\bibitem[{{Bolton} {et~al.}(2012){Bolton}, {Schlegel}, {Aubourg}, {Bailey},
-  {Bhardwaj}, {Brownstein}, {Burles}, {Chen}, {Dawson}, {Eisenstein}, {Gunn},
-  {Knapp}, {Loomis}, {Lupton}, {Maraston}, {Muna}, {Myers}, {Olmstead},
-  {Padmanabhan}, {P{\^a}ris}, {Percival}, {Petitjean}, {Rockosi}, {Ross},
-  {Schneider}, {Shu}, {Strauss}, {Thomas}, {Tremonti}, {Wake}, {Weaver}, \&
-  {Wood-Vasey}}]{bossspectro}
-{Bolton}, A.~S., {Schlegel}, D.~J., {Aubourg}, {\'E}., {et~al.} 2012, \aj, 144,
-  144
-
-\bibitem[{{Chambers} {et~al.}(2016){Chambers}, {Magnier}, {Metcalfe},
-  {Flewelling}, {Huber}, {Waters}, {Denneau}, {Draper}, {Farrow}, {Finkbeiner},
-  {Holmberg}, {Koppenhoefer}, {Price}, {Saglia}, {Schlafly}, {Smartt},
-  {Sweeney}, {Wainscoat}, {Burgett}, {Grav}, {Heasley}, {Hodapp}, {Jedicke},
-  {Kaiser}, {Kudritzki}, {Luppino}, {Lupton}, {Monet}, {Morgan}, {Onaka},
-  {Stubbs}, {Tonry}, {Banados}, {Bell}, {Bender}, {Bernard}, {Botticella},
-  {Casertano}, {Chastel}, {Chen}, {Chen}, {Cole}, {Deacon}, {Frenk},
-  {Fitzsimmons}, {Gezari}, {Goessl}, {Goggia}, {Goldman}, {Grebel}, {Hambly},
-  {Hasinger}, {Heavens}, {Heckman}, {Henderson}, {Henning}, {Holman}, {Hopp},
-  {Ip}, {Isani}, {Keyes}, {Koekemoer}, {Kotak}, {Long}, {Lucey}, {Liu},
-  {Martin}, {McLean}, {Morganson}, {Murphy}, {Nieto-Santisteban}, {Norberg},
-  {Peacock}, {Pier}, {Postman}, {Primak}, {Rae}, {Rest}, {Riess}, {Riffeser},
-  {Rix}, {Roser}, {Schilbach}, {Schultz}, {Scolnic}, {Szalay}, {Seitz},
-  {Shiao}, {Small}, {Smith}, {Soderblom}, {Taylor}, {Thakar}, {Thiel},
-  {Thilker}, {Urata}, {Valenti}, {Walter}, {Watters}, {Werner}, {White},
-  {Wood-Vasey}, \& {Wyse}}]{panstarrs}
-{Chambers}, K.~C., {Magnier}, E.~A., {Metcalfe}, N., {et~al.} 2016, ArXiv
-  e-prints, arXiv:1612.05560
-
-\bibitem[{{Dey} {et~al.}(2019){Dey}, {Schlegel}, {Lang}, {Blum}, {Burleigh},
-  {Fan}, {Findlay}, {Finkbeiner}, {Herrera}, {Juneau}, {Landriau}, {Levi},
-  {McGreer}, {Meisner}, {Myers}, {Moustakas}, {Nugent}, {Patej}, {Schlafly},
-  {Walker}, {Valdes}, {Weaver}, {Y{\`e}che}, {Zou}, {Zhou}, {Abareshi},
-  {Abbott}, {Abolfathi}, {Aguilera}, {Alam}, {Allen}, {Alvarez}, {Annis},
-  {Ansarinejad}, {Aubert}, {Beechert}, {Bell}, {BenZvi}, {Beutler}, {Bielby},
-  {Bolton}, {Brice{\~n}o}, {Buckley-Geer}, {Butler}, {Calamida}, {Carlberg},
-  {Carter}, {Casas}, {Castander}, {Choi}, {Comparat}, {Cukanovaite}, {Delubac},
-  {DeVries}, {Dey}, {Dhungana}, {Dickinson}, {Ding}, {Donaldson}, {Duan},
-  {Duckworth}, {Eftekharzadeh}, {Eisenstein}, {Etourneau}, {Fagrelius},
-  {Farihi}, {Fitzpatrick}, {Font-Ribera}, {Fulmer}, {G{\"a}nsicke},
-  {Gaztanaga}, {George}, {Gerdes}, {Gontcho}, {Gorgoni}, {Green}, {Guy},
-  {Harmer}, {Hernandez}, {Honscheid}, {Huang}, {James}, {Jannuzi}, {Jiang},
-  {Joyce}, {Karcher}, {Karkar}, {Kehoe}, {Kneib}, {Kueter-Young}, {Lan},
-  {Lauer}, {Le Guillou}, {Le Van Suu}, {Lee}, {Lesser}, {Perreault Levasseur},
-  {Li}, {Mann}, {Marshall}, {Mart{\'\i}nez-V{\'a}zquez}, {Martini}, {du Mas des
-  Bourboux}, {McManus}, {Meier}, {M{\'e}nard}, {Metcalfe},
-  {Mu{\~n}oz-Guti{\'e}rrez}, {Najita}, {Napier}, {Narayan}, {Newman}, {Nie},
-  {Nord}, {Norman}, {Olsen}, {Paat}, {Palanque-Delabrouille}, {Peng},
-  {Poppett}, {Poremba}, {Prakash}, {Rabinowitz}, {Raichoor}, {Rezaie},
-  {Robertson}, {Roe}, {Ross}, {Ross}, {Rudnick}, {Safonova}, {Saha},
-  {S{\'a}nchez}, {Savary}, {Schweiker}, {Scott}, {Seo}, {Shan}, {Silva},
-  {Slepian}, {Soto}, {Sprayberry}, {Staten}, {Stillman}, {Stupak}, {Summers},
-  {Sien Tie}, {Tirado}, {Vargas-Maga{\~n}a}, {Vivas}, {Wechsler}, {Williams},
-  {Yang}, {Yang}, {Yapici}, {Zaritsky}, {Zenteno}, {Zhang}, {Zhang}, {Zhou}, \&
-  {Zhou}}]{lsoverview}
-{Dey}, A., {Schlegel}, D.~J., {Lang}, D., {et~al.} 2019, \aj, 157, 168
-
-\bibitem[{Doyle {et~al.}(2000)Doyle, Deeg, Kozhevnikov, Oetiker, Martín, Blue,
-  Rottler, Stone, Ninkov, Jenkins, Schneider, Dunham, Doyle, \&
-  Paleologou}]{exoplanet}
-Doyle, L.~R., Deeg, H.~J., Kozhevnikov, V.~P., {et~al.} 2000, The Astrophysical
-  Journal, 535, 338
-
-\bibitem[{{Flaugher} {et~al.}(2015){Flaugher}, {Diehl}, {Honscheid}, {Abbott},
-  {Alvarez}, {Angstadt}, {Annis}, {Antonik}, {Ballester}, {Beaufore},
-  {Bernstein}, {Bernstein}, {Bigelow}, {Bonati}, {Boprie}, {Brooks},
-  {Buckley-Geer}, {Campa}, {Cardiel-Sas}, {Castander}, {Castilla}, {Cease},
-  {Cela-Ruiz}, {Chappa}, {Chi}, {Cooper}, {da Costa}, {Dede}, {Derylo},
-  {DePoy}, {de Vicente}, {Doel}, {Drlica-Wagner}, {Eiting}, {Elliott}, {Emes},
-  {Estrada}, {Fausti Neto}, {Finley}, {Flores}, {Frieman}, {Gerdes},
-  {Gladders}, {Gregory}, {Gutierrez}, {Hao}, {Holland}, {Holm}, {Huffman},
-  {Jackson}, {James}, {Jonas}, {Karcher}, {Karliner}, {Kent}, {Kessler},
-  {Kozlovsky}, {Kron}, {Kubik}, {Kuehn}, {Kuhlmann}, {Kuk}, {Lahav}, {Lathrop},
-  {Lee}, {Levi}, {Lewis}, {Li}, {Mandrichenko}, {Marshall}, {Martinez},
-  {Merritt}, {Miquel}, {Mu{\~n}oz}, {Neilsen}, {Nichol}, {Nord}, {Ogando},
-  {Olsen}, {Palaio}, {Patton}, {Peoples}, {Plazas}, {Rauch}, {Reil}, {Rheault},
-  {Roe}, {Rogers}, {Roodman}, {Sanchez}, {Scarpine}, {Schindler}, {Schmidt},
-  {Schmitt}, {Schubnell}, {Schultz}, {Schurter}, {Scott}, {Serrano}, {Shaw},
-  {Smith}, {Soares-Santos}, {Stefanik}, {Stuermer}, {Suchyta}, {Sypniewski},
-  {Tarle}, {Thaler}, {Tighe}, {Tran}, {Tucker}, {Walker}, {Wang}, {Watson},
-  {Weaverdyck}, {Wester}, {Woods}, {Yanny}, \& {DES Collaboration}}]{decam}
-{Flaugher}, B., {Diehl}, H.~T., {Honscheid}, K., {et~al.} 2015, \aj, 150, 150
-
-\bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{a}}){Gaia
-  Collaboration}, {Brown}, {Vallenari}, {Prusti}, {de Bruijne}, {Mignard},
-  {Drimmel}, {Babusiaux}, {Bailer-Jones}, {Bastian}, \& et~al.}]{gaiaDR1}
-{Gaia Collaboration}, {Brown}, A.~G.~A., {Vallenari}, A., {et~al.}
-  2016{\natexlab{a}}, \aap, 595, A2
-
-\bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{b}}){Gaia
-  Collaboration}, {Prusti}, {de Bruijne}, {Brown}, {Vallenari}, {Babusiaux},
-  {Bailer-Jones}, {Bastian}, {Biermann}, {Evans}, \& et~al.}]{gaia}
-{Gaia Collaboration}, {Prusti}, T., {de Bruijne}, J.~H.~J., {et~al.}
-  2016{\natexlab{b}}, \aap, 595, A1
-
-\bibitem[{{Hogg} \& {Lang}(2013)}]{gaussgals}
-{Hogg}, D.~W., \& {Lang}, D. 2013, \pasp, 125, 719
-
-\bibitem[{{Lang} {et~al.}(2016){Lang}, {Hogg}, \& {Schlegel}}]{unwise-phot}
-{Lang}, D., {Hogg}, D.~W., \& {Schlegel}, D.~J. 2016, \aj, 151, 36
-
-\bibitem[{{Melin} {et~al.}(2006){Melin}, {Bartlett}, \& {Delabrouille}}]{melin}
-{Melin}, J.-B., {Bartlett}, J.~G., \& {Delabrouille}, J. 2006, \aap, 459, 341
-
-\bibitem[{{Rykoff} {et~al.}(2014){Rykoff}, {Rozo}, {Busha}, {Cunha},
-  {Finoguenov}, {Evrard}, {Hao}, {Koester}, {Leauthaud}, {Nord}, {Pierre},
-  {Reddick}, {Sadibekova}, {Sheldon}, \& {Wechsler}}]{redmapper}
-{Rykoff}, E.~S., {Rozo}, E., {Busha}, M.~T., {et~al.} 2014, \apj, 785, 104
-
-\bibitem[{{Szalay} {et~al.}(1999){Szalay}, {Connolly}, \&
-  {Szokoly}}]{szalay1999}
-{Szalay}, A.~S., {Connolly}, A.~J., \& {Szokoly}, G.~P. 1999, \aj, 117, 68
-
-\bibitem[{{The Dark Energy Survey Collaboration}(2005)}]{des}
-{The Dark Energy Survey Collaboration}. 2005, ArXiv Astrophysics e-prints,
-  astro-ph/0510346
-
-\bibitem[{{Valdes} {et~al.}(2014){Valdes}, {Gruendl}, \& {DES
-  Project}}]{cppipeline}
-{Valdes}, F., {Gruendl}, R., \& {DES Project}. 2014, in Astronomical Society of
-  the Pacific Conference Series, Vol. 485, Astronomical Data Analysis Software
-  and Systems XXIII, ed. N.~{Manset} \& P.~{Forshay}, 379
-
-\bibitem[{{Willman} {et~al.}(2005){Willman}, {Blanton}, {West}, {Dalcanton},
-  {Hogg}, {Schneider}, {Wherry}, {Yanny}, \& {Brinkmann}}]{willman1}
-{Willman}, B., {Blanton}, M.~R., {West}, A.~A., {et~al.} 2005, \aj, 129, 2692
-
-\bibitem[{{Zackay} \& {Ofek}(2017)}]{zackay1}
-{Zackay}, B., \& {Ofek}, E.~O. 2017, \apj, 836, 187
-
-\end{thebibliography}
+% \begin{thebibliography}{}
+% \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
+% 
+% \bibitem[{{Abbott} {et~al.}(2016){Abbott}, {Abbott}, {Abbott}, {Abernathy},
+%   {Acernese}, {Ackley}, {Adams}, {Adams}, {Addesso}, {Adhikari}, \&
+%   et~al.}]{ligo}
+% {Abbott}, B.~P., {Abbott}, R., {Abbott}, T.~D., {et~al.} 2016, Physical Review
+%   Letters, 116, 061102
+% 
+% \bibitem[{Bernstein {et~al.}(2012)Bernstein, Kessler, Kuhlmann, Biswasal,
+%   {et~al.}}]{dessn}
+% Bernstein, J.~P., Kessler, R., Kuhlmann, S., Biswasal, R., {et~al.} 2012, \apj,
+%   753, astro-ph/1111.1969
+% 
+% \bibitem[{{Bertin}(2011)}]{psfex}
+% {Bertin}, E. 2011, in Astronomical Society of the Pacific Conference Series,
+%   Vol. 442, Astronomical Data Analysis Software and Systems XX, ed. I.~N.
+%   {Evans}, A.~{Accomazzi}, D.~J. {Mink}, \& A.~H. {Rots}, 435
+% 
+% \bibitem[{{Bolton} {et~al.}(2012){Bolton}, {Schlegel}, {Aubourg}, {Bailey},
+%   {Bhardwaj}, {Brownstein}, {Burles}, {Chen}, {Dawson}, {Eisenstein}, {Gunn},
+%   {Knapp}, {Loomis}, {Lupton}, {Maraston}, {Muna}, {Myers}, {Olmstead},
+%   {Padmanabhan}, {P{\^a}ris}, {Percival}, {Petitjean}, {Rockosi}, {Ross},
+%   {Schneider}, {Shu}, {Strauss}, {Thomas}, {Tremonti}, {Wake}, {Weaver}, \&
+%   {Wood-Vasey}}]{bossspectro}
+% {Bolton}, A.~S., {Schlegel}, D.~J., {Aubourg}, {\'E}., {et~al.} 2012, \aj, 144,
+%   144
+% 
+% \bibitem[{{Chambers} {et~al.}(2016){Chambers}, {Magnier}, {Metcalfe},
+%   {Flewelling}, {Huber}, {Waters}, {Denneau}, {Draper}, {Farrow}, {Finkbeiner},
+%   {Holmberg}, {Koppenhoefer}, {Price}, {Saglia}, {Schlafly}, {Smartt},
+%   {Sweeney}, {Wainscoat}, {Burgett}, {Grav}, {Heasley}, {Hodapp}, {Jedicke},
+%   {Kaiser}, {Kudritzki}, {Luppino}, {Lupton}, {Monet}, {Morgan}, {Onaka},
+%   {Stubbs}, {Tonry}, {Banados}, {Bell}, {Bender}, {Bernard}, {Botticella},
+%   {Casertano}, {Chastel}, {Chen}, {Chen}, {Cole}, {Deacon}, {Frenk},
+%   {Fitzsimmons}, {Gezari}, {Goessl}, {Goggia}, {Goldman}, {Grebel}, {Hambly},
+%   {Hasinger}, {Heavens}, {Heckman}, {Henderson}, {Henning}, {Holman}, {Hopp},
+%   {Ip}, {Isani}, {Keyes}, {Koekemoer}, {Kotak}, {Long}, {Lucey}, {Liu},
+%   {Martin}, {McLean}, {Morganson}, {Murphy}, {Nieto-Santisteban}, {Norberg},
+%   {Peacock}, {Pier}, {Postman}, {Primak}, {Rae}, {Rest}, {Riess}, {Riffeser},
+%   {Rix}, {Roser}, {Schilbach}, {Schultz}, {Scolnic}, {Szalay}, {Seitz},
+%   {Shiao}, {Small}, {Smith}, {Soderblom}, {Taylor}, {Thakar}, {Thiel},
+%   {Thilker}, {Urata}, {Valenti}, {Walter}, {Watters}, {Werner}, {White},
+%   {Wood-Vasey}, \& {Wyse}}]{panstarrs}
+% {Chambers}, K.~C., {Magnier}, E.~A., {Metcalfe}, N., {et~al.} 2016, ArXiv
+%   e-prints, arXiv:1612.05560
+% 
+% \bibitem[{{Dey} {et~al.}(2019){Dey}, {Schlegel}, {Lang}, {Blum}, {Burleigh},
+%   {Fan}, {Findlay}, {Finkbeiner}, {Herrera}, {Juneau}, {Landriau}, {Levi},
+%   {McGreer}, {Meisner}, {Myers}, {Moustakas}, {Nugent}, {Patej}, {Schlafly},
+%   {Walker}, {Valdes}, {Weaver}, {Y{\`e}che}, {Zou}, {Zhou}, {Abareshi},
+%   {Abbott}, {Abolfathi}, {Aguilera}, {Alam}, {Allen}, {Alvarez}, {Annis},
+%   {Ansarinejad}, {Aubert}, {Beechert}, {Bell}, {BenZvi}, {Beutler}, {Bielby},
+%   {Bolton}, {Brice{\~n}o}, {Buckley-Geer}, {Butler}, {Calamida}, {Carlberg},
+%   {Carter}, {Casas}, {Castander}, {Choi}, {Comparat}, {Cukanovaite}, {Delubac},
+%   {DeVries}, {Dey}, {Dhungana}, {Dickinson}, {Ding}, {Donaldson}, {Duan},
+%   {Duckworth}, {Eftekharzadeh}, {Eisenstein}, {Etourneau}, {Fagrelius},
+%   {Farihi}, {Fitzpatrick}, {Font-Ribera}, {Fulmer}, {G{\"a}nsicke},
+%   {Gaztanaga}, {George}, {Gerdes}, {Gontcho}, {Gorgoni}, {Green}, {Guy},
+%   {Harmer}, {Hernandez}, {Honscheid}, {Huang}, {James}, {Jannuzi}, {Jiang},
+%   {Joyce}, {Karcher}, {Karkar}, {Kehoe}, {Kneib}, {Kueter-Young}, {Lan},
+%   {Lauer}, {Le Guillou}, {Le Van Suu}, {Lee}, {Lesser}, {Perreault Levasseur},
+%   {Li}, {Mann}, {Marshall}, {Mart{\'\i}nez-V{\'a}zquez}, {Martini}, {du Mas des
+%   Bourboux}, {McManus}, {Meier}, {M{\'e}nard}, {Metcalfe},
+%   {Mu{\~n}oz-Guti{\'e}rrez}, {Najita}, {Napier}, {Narayan}, {Newman}, {Nie},
+%   {Nord}, {Norman}, {Olsen}, {Paat}, {Palanque-Delabrouille}, {Peng},
+%   {Poppett}, {Poremba}, {Prakash}, {Rabinowitz}, {Raichoor}, {Rezaie},
+%   {Robertson}, {Roe}, {Ross}, {Ross}, {Rudnick}, {Safonova}, {Saha},
+%   {S{\'a}nchez}, {Savary}, {Schweiker}, {Scott}, {Seo}, {Shan}, {Silva},
+%   {Slepian}, {Soto}, {Sprayberry}, {Staten}, {Stillman}, {Stupak}, {Summers},
+%   {Sien Tie}, {Tirado}, {Vargas-Maga{\~n}a}, {Vivas}, {Wechsler}, {Williams},
+%   {Yang}, {Yang}, {Yapici}, {Zaritsky}, {Zenteno}, {Zhang}, {Zhang}, {Zhou}, \&
+%   {Zhou}}]{lsoverview}
+% {Dey}, A., {Schlegel}, D.~J., {Lang}, D., {et~al.} 2019, \aj, 157, 168
+% 
+% \bibitem[{Doyle {et~al.}(2000)Doyle, Deeg, Kozhevnikov, Oetiker, Martín, Blue,
+%   Rottler, Stone, Ninkov, Jenkins, Schneider, Dunham, Doyle, \&
+%   Paleologou}]{exoplanet}
+% Doyle, L.~R., Deeg, H.~J., Kozhevnikov, V.~P., {et~al.} 2000, The Astrophysical
+%   Journal, 535, 338
+% 
+% \bibitem[{{Flaugher} {et~al.}(2015){Flaugher}, {Diehl}, {Honscheid}, {Abbott},
+%   {Alvarez}, {Angstadt}, {Annis}, {Antonik}, {Ballester}, {Beaufore},
+%   {Bernstein}, {Bernstein}, {Bigelow}, {Bonati}, {Boprie}, {Brooks},
+%   {Buckley-Geer}, {Campa}, {Cardiel-Sas}, {Castander}, {Castilla}, {Cease},
+%   {Cela-Ruiz}, {Chappa}, {Chi}, {Cooper}, {da Costa}, {Dede}, {Derylo},
+%   {DePoy}, {de Vicente}, {Doel}, {Drlica-Wagner}, {Eiting}, {Elliott}, {Emes},
+%   {Estrada}, {Fausti Neto}, {Finley}, {Flores}, {Frieman}, {Gerdes},
+%   {Gladders}, {Gregory}, {Gutierrez}, {Hao}, {Holland}, {Holm}, {Huffman},
+%   {Jackson}, {James}, {Jonas}, {Karcher}, {Karliner}, {Kent}, {Kessler},
+%   {Kozlovsky}, {Kron}, {Kubik}, {Kuehn}, {Kuhlmann}, {Kuk}, {Lahav}, {Lathrop},
+%   {Lee}, {Levi}, {Lewis}, {Li}, {Mandrichenko}, {Marshall}, {Martinez},
+%   {Merritt}, {Miquel}, {Mu{\~n}oz}, {Neilsen}, {Nichol}, {Nord}, {Ogando},
+%   {Olsen}, {Palaio}, {Patton}, {Peoples}, {Plazas}, {Rauch}, {Reil}, {Rheault},
+%   {Roe}, {Rogers}, {Roodman}, {Sanchez}, {Scarpine}, {Schindler}, {Schmidt},
+%   {Schmitt}, {Schubnell}, {Schultz}, {Schurter}, {Scott}, {Serrano}, {Shaw},
+%   {Smith}, {Soares-Santos}, {Stefanik}, {Stuermer}, {Suchyta}, {Sypniewski},
+%   {Tarle}, {Thaler}, {Tighe}, {Tran}, {Tucker}, {Walker}, {Wang}, {Watson},
+%   {Weaverdyck}, {Wester}, {Woods}, {Yanny}, \& {DES Collaboration}}]{decam}
+% {Flaugher}, B., {Diehl}, H.~T., {Honscheid}, K., {et~al.} 2015, \aj, 150, 150
+% 
+% \bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{a}}){Gaia
+%   Collaboration}, {Brown}, {Vallenari}, {Prusti}, {de Bruijne}, {Mignard},
+%   {Drimmel}, {Babusiaux}, {Bailer-Jones}, {Bastian}, \& et~al.}]{gaiaDR1}
+% {Gaia Collaboration}, {Brown}, A.~G.~A., {Vallenari}, A., {et~al.}
+%   2016{\natexlab{a}}, \aap, 595, A2
+% 
+% \bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{b}}){Gaia
+%   Collaboration}, {Prusti}, {de Bruijne}, {Brown}, {Vallenari}, {Babusiaux},
+%   {Bailer-Jones}, {Bastian}, {Biermann}, {Evans}, \& et~al.}]{gaia}
+% {Gaia Collaboration}, {Prusti}, T., {de Bruijne}, J.~H.~J., {et~al.}
+%   2016{\natexlab{b}}, \aap, 595, A1
+% 
+% \bibitem[{{Hogg} \& {Lang}(2013)}]{gaussgals}
+% {Hogg}, D.~W., \& {Lang}, D. 2013, \pasp, 125, 719
+% 
+% \bibitem[{{Lang} {et~al.}(2016){Lang}, {Hogg}, \& {Schlegel}}]{unwise-phot}
+% {Lang}, D., {Hogg}, D.~W., \& {Schlegel}, D.~J. 2016, \aj, 151, 36
+% 
+% \bibitem[{{Melin} {et~al.}(2006){Melin}, {Bartlett}, \& {Delabrouille}}]{melin}
+% {Melin}, J.-B., {Bartlett}, J.~G., \& {Delabrouille}, J. 2006, \aap, 459, 341
+% 
+% \bibitem[{{Rykoff} {et~al.}(2014){Rykoff}, {Rozo}, {Busha}, {Cunha},
+%   {Finoguenov}, {Evrard}, {Hao}, {Koester}, {Leauthaud}, {Nord}, {Pierre},
+%   {Reddick}, {Sadibekova}, {Sheldon}, \& {Wechsler}}]{redmapper}
+% {Rykoff}, E.~S., {Rozo}, E., {Busha}, M.~T., {et~al.} 2014, \apj, 785, 104
+% 
+% \bibitem[{{Szalay} {et~al.}(1999){Szalay}, {Connolly}, \&
+%   {Szokoly}}]{szalay1999}
+% {Szalay}, A.~S., {Connolly}, A.~J., \& {Szokoly}, G.~P. 1999, \aj, 117, 68
+% 
+% \bibitem[{{The Dark Energy Survey Collaboration}(2005)}]{des}
+% {The Dark Energy Survey Collaboration}. 2005, ArXiv Astrophysics e-prints,
+%   astro-ph/0510346
+% 
+% \bibitem[{{Valdes} {et~al.}(2014){Valdes}, {Gruendl}, \& {DES
+%   Project}}]{cppipeline}
+% {Valdes}, F., {Gruendl}, R., \& {DES Project}. 2014, in Astronomical Society of
+%   the Pacific Conference Series, Vol. 485, Astronomical Data Analysis Software
+%   and Systems XXIII, ed. N.~{Manset} \& P.~{Forshay}, 379
+% 
+% \bibitem[{{Willman} {et~al.}(2005){Willman}, {Blanton}, {West}, {Dalcanton},
+%   {Hogg}, {Schneider}, {Wherry}, {Yanny}, \& {Brinkmann}}]{willman1}
+% {Willman}, B., {Blanton}, M.~R., {West}, A.~A., {et~al.} 2005, \aj, 129, 2692
+% 
+% \bibitem[{{Zackay} \& {Ofek}(2017)}]{zackay1}
+% {Zackay}, B., \& {Ofek}, E.~O. 2017, \apj, 836, 187
+% 
+% \end{thebibliography}
 
 \appendix
 

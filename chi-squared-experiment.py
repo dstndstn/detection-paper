@@ -32,7 +32,7 @@ import sys
 import matplotlib.lines as mlines
 
 from bayes_figure import get_pratio
-        
+
 def sed_vec(th):
     r = np.deg2rad(th)
     #if th == 90.:
@@ -247,8 +247,8 @@ def main():
     # plt.imshow(x > sed_mixture_th, extent=sn_extent, origin='lower', interpolation='nearest')
     # plt.savefig('1.png')
 
-    sn_g = np.linspace(-5, +8, 600)
-    sn_r = np.linspace(-5, +8, 600)
+    sn_g = np.linspace(-5, +7, 600)
+    sn_r = np.linspace(-5, +7, 600)
     sn_shape = (len(sn_r), len(sn_g))
     sn = np.meshgrid(sn_g, sn_r)
     sn = np.vstack([x.ravel() for x in sn]).T
@@ -276,29 +276,43 @@ def main():
 
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
+    mpl_colors = colors
+
+    linestyles = ['solid', 'dashed', 'solid', 'dashed'] #, 'dashdot', 'dotted']
+    linewidths = [1, 3, 1, 3]
+    alphas = [1, 0.5, 1, 0.5]
+    xcolors = [colors[0], colors[0], colors[1], colors[1]]
+    #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
+    labels = ['$\chi^2$', '$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
 
     plt.clf()
-    p1 = plt.contour(chisq_raw_det,   extent=sn_extent, levels=[0.5], colors=[colors[0]])
-    p2 = plt.contour(chisq_pos_det,   extent=sn_extent, levels=[0.5], colors=[colors[1]])
-    p3 = plt.contour(sed_union_det,   extent=sn_extent, levels=[0.5], colors=[colors[2]])
-    p4 = plt.contour(sed_mixture_det, extent=sn_extent, levels=[0.5], colors=[colors[3]])
+    plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+    lines = []
+    for i,vals in enumerate([chisq_raw_det, chisq_pos_det, sed_union_det, sed_mixture_det]):
+        plt.contour(vals, extent=sn_extent, levels=[0.5], colors=[xcolors[i]], linestyles=[linestyles[i]], linewidths=[linewidths[i]], alpha=alphas[i])
+        lines.append(mlines.Line2D([], [], color=xcolors[i], label=labels[i], linestyle=linestyles[i], linewidth=linewidths[i], alpha=alphas[i]))
+        #p1 = plt.contour(chisq_raw_det,   extent=sn_extent, levels=[0.5], colors=[colors[0]])
+        #p2 = plt.contour(chisq_pos_det,   extent=sn_extent, levels=[0.5], colors=[colors[1]])
+        #p3 = plt.contour(sed_union_det,   extent=sn_extent, levels=[0.5], colors=[colors[2]])
+        #p4 = plt.contour(sed_mixture_det, extent=sn_extent, levels=[0.5], colors=[colors[3]])
 
-    lines = [mlines.Line2D([], [], color=colors[i], label=lab)
-             for i,lab in enumerate(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])]
+        #lines = [mlines.Line2D([], [], color=colors[i], label=lab)
+        #     for i,lab in enumerate(['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)'])]
     plt.legend(handles=lines)
-    plt.axhline(0.)
-    plt.axvline(0.)
-    plt.title('Decision boundaries for chi-squared versus SED-match detectors')
+    plt.axhline(0., color='k', alpha=0.25)
+    plt.axvline(0., color='k', alpha=0.25)
+    #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
     plt.xlabel('g-band S/N')
     plt.ylabel('r-band S/N')
     plt.savefig('1.png')
+    plt.savefig('1.pdf')
 
-
+    return
     #n_star = 1_000_000
     n_star = 1_000
     starnoise = np.random.normal(size=(n_star, n_bands))
 
-    k = 3
+    k = 2
     
     for sed_name, sed in real_seds:
 
@@ -334,9 +348,10 @@ def main():
         plt.xlabel('g-band S/N')
         plt.ylabel('r-band S/N')
         plt.plot(noisy[:,0], noisy[:,1], 'k.', alpha=0.1)
-        plt.savefig('%i.png' % k)
+        pfn = '%i.png' % k
+        plt.savefig(pfn)
+        print('Wrote', pfn)
         k += 1
-
 
     print('Detection-rate experiment...')
     n_star = 100_000
@@ -388,16 +403,64 @@ def main():
         rates.append([100. * np.sum(d) / n_star for d in [det1,det2,det3,det4]])
     rates = np.array(rates)
 
+    det_names = ['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture']
+
     plt.clf()
     plt.plot(colors, rates, '-')
     plt.xlabel('Star g-r color (mag)')
     plt.ylabel('Detection rate (\\%)')
-    plt.legend(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])
+    plt.legend(det_names)
     plt.title('Detection rate for stars of different colors')
     plt.axvline(0., linestyle='--', alpha=0.2, color='k')
     plt.axvline(1., linestyle=':', alpha=0.2, color='k')
     plt.savefig('9.png')
 
+
+    # Colors of false-positive detections for the different detectors.
+    print('Detection-rate experiment 3...')
+    n_star = 10_000_000
+    noisy = np.random.normal(size=(n_star, n_bands))
+    det1 = (chisq_detection_raw(noisy) > chi2_thresh)
+    det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
+    flux = noisy * noise_levels[np.newaxis, :]
+    det3 = (sed_union_detection(flux, noise_levels, model_seds) > sed_union_th)
+    det4 = (sed_mixture_detection(flux, noise_levels, model_seds) > sed_mixture_th)
+
+    plt.clf()
+    plt.subplots_adjust(hspace=0)
+    #colors = []
+    ymax = 0
+    for i,det in enumerate([det1,det2,det3,det4]):
+        print('Number of false dets for', det_names[i], ':', np.sum(det))
+        c = -2.5 * (np.log10(noisy[det,0]) - np.log10(noisy[det,1]))
+        #colors.append(c)
+        bad = np.sum(np.logical_or(noisy[det,0] <= 0, noisy[det,1] <= 0))
+        c = np.clip(c, -1, 3)
+        if bad > 0:
+            c = np.append(c, np.zeros(bad) + -2)
+        plt.subplot(4,1,i+1)
+        plt.hist(c, range=(-2, 3), bins=20, color=mpl_colors[i],
+                 label=det_names[i]) #, histtype='step')
+        if i == 1:
+            plt.ylabel('Number of false detections')
+        plt.axvline(0., linestyle='--', alpha=0.2, color='k')
+        plt.axvline(1., linestyle=':', alpha=0.2, color='k')
+        plt.legend()
+        if i > 0:
+            yl,yh = plt.ylim()
+            ymax = max(ymax, yh)
+    for i in range(4):
+        plt.subplot(4,1,i+1)
+        plt.ylim(0, ymax)
+    plt.xticks(np.arange(-2, 3+1), ['Nil']+['%i'%i for i in range(-1,3+1)])
+    plt.xlabel('"Star" g-r color (mag)')
+    #plt.legend(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])
+    plt.suptitle('False positive detections')
+    plt.savefig('10.png')
+
+
+
+    
 
 
 
