@@ -807,13 +807,14 @@ This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
 
-%%%%
 \subsubsection{Comment}
-It's all vibes.
 
+% It's all vibes, y'know?
 
-% \paragraph{Thresholds}
-
+While the frequentist and Bayesian frameworks have quite different
+descriptions of the detection process, each results in a threshold
+that the detection map must exceed, so from an operational perspective
+there is little difference between the two.
 
 
 \section{Detecting a point source in multiple images}
@@ -1349,39 +1350,40 @@ over bands $j$,
   \chi^2 &=& \sum_j \frac{D_j^2}{\sigma_{D_j}^2}
 \end{eqnarray}
 and a sufficiently large set of connected pixels with $\chi^2$ above a
-detection threshold is taken as evidence for a source.  See Figure
-\ref{fig:sedmatched}.
+detection threshold is taken as evidence for a source.
 
-\begin{figure}
-  \begin{center}
-    % This figure comes from detection-figs.py : chisq_fig()
-    \includegraphics[width=0.8\textwidth]{sed-matched}
-    \caption{SED-matched versus ``chi-squared'' detection filters.
-      The data points are (chi-squared) detections above $4.5 \sigma$
-      in one $g$-band and one $r$-band image taken with the Dark
-      Energy Camera, plotted in signal-to-noise space.  Points that
-      are not detected in deeper data are marked
-      as ``False''; these are mostly clustered around zero (due to
-      noise), with some scattered points near the axes due to
-      single-band artifacts such as cosmic rays. The main locus of
-      ``Real'' peaks correspond to real stars and galaxies with
-      typical colors.  The Chi-squared detection method selects all
-      sources outside the circle (including, in the naive formulation,
-      sources with negative flux in both bands).  A single-band
-      detection filter selects all sources above a vertical or
-      horizontal detection threshold.  Our ``Red'' SED-matched filter
-      selects sources where the fluxes in the two bands are consistent
-      with a red SED (in this case, a $g - r$ color of 1).  Note that
-      the threshold line is roughly orthogonal to the line between the
-      false positives and the true positives; it separates them
-      efficiently.  We have shown the chi-squared detection filter
-      with a threshold of $(5\sigma)^2$, which yields a higher false
-      positive rate than a $5\sigma$ threshold in a single-band or
-      SED-match filter.
-      \label{fig:sedmatched}
-    }
-  \end{center}
-\end{figure}
+%See Figure \ref{fig:sedmatched}.
+
+% \begin{figure}
+%   \begin{center}
+%     % This figure comes from detection-figs.py : chisq_fig()
+%     \includegraphics[width=0.8\textwidth]{sed-matched}
+%     \caption{SED-matched versus ``chi-squared'' detection filters.
+%       The data points are (chi-squared) detections above $4.5 \sigma$
+%       in one $g$-band and one $r$-band image taken with the Dark
+%       Energy Camera, plotted in signal-to-noise space.  Points that
+%       are not detected in deeper data are marked
+%       as ``False''; these are mostly clustered around zero (due to
+%       noise), with some scattered points near the axes due to
+%       single-band artifacts such as cosmic rays. The main locus of
+%       ``Real'' peaks correspond to real stars and galaxies with
+%       typical colors.  The Chi-squared detection method selects all
+%       sources outside the circle (including, in the naive formulation,
+%       sources with negative flux in both bands).  A single-band
+%       detection filter selects all sources above a vertical or
+%       horizontal detection threshold.  Our ``Red'' SED-matched filter
+%       selects sources where the fluxes in the two bands are consistent
+%       with a red SED (in this case, a $g - r$ color of 1).  Note that
+%       the threshold line is roughly orthogonal to the line between the
+%       false positives and the true positives; it separates them
+%       efficiently.  We have shown the chi-squared detection filter
+%       with a threshold of $(5\sigma)^2$, which yields a higher false
+%       positive rate than a $5\sigma$ threshold in a single-band or
+%       SED-match filter.
+%       \label{fig:sedmatched}
+%     }
+%   \end{center}
+% \end{figure}
 
 As \cite{szalay1999} state, the $\chi^2$ detection method represents
 the probability that a pixel is drawn from the Gaussian sky background
@@ -1401,16 +1403,17 @@ like---most trivially, that astronomical sources contribute positive
 flux; the implicit ``source'' hypothesis is not physical.
 
 Lacking a source model means that it is not always helpful to add more
-data: Consider the case where we have one informative band and several
-noisy (but still somewhat informative) bands.  The chi-squared method
-treats all bands equally, thus mixes the one informative band with all
-the uninformative bands.  When using multiple bands, the detection
-threshold must be increased to maintain a constant false detection
-rate, and therefore the number of true detected sources will be lower.
+data: Consider the case where we have one sensitive (highly
+informative) band and several noisy (but still somewhat informative)
+bands.  The chi-squared method treats all bands equally, thus mixes
+the one informative band with all the uninformative bands.  When using
+multiple bands, the detection threshold must be increased to maintain
+a constant false detection rate, and therefore the number of true
+detected sources will be lower.
 
 
 Although not mentioned in \cite{szalay1999}, one extension to their
-method is to only count pixels with positive flux in the $\chi^2$
+method is to count only pixels with positive flux in the $\chi^2$
 sum.\footnote{This idea was recommended by the anonymous reviewer.}
 This is equivalent to taking, for each pixel, the maximum of the
 pixel's flux or zero, and computing the $\chi^2$ statistic on those
@@ -1420,7 +1423,7 @@ the quadrants with one negative flux value, the pixels are projected
 onto the axis with positive flux.  These pixel values will therefore
 be distributed according to the $\chi^2$ distribution with \emph{one}
 degree of freedom.  In general, if we compute the modified $\chi^2$
-distribution $\chipos^2$, where
+distribution $\chipos^2$, with $d$ bands of data, then
 \begin{eqnarray}
   \chipos^2 = \sum_{j=0}^d \max(0, D_j)^2
   \label{eqn:chipos}
@@ -1429,12 +1432,12 @@ then its probability distribution function is
 \begin{eqnarray}
 P(\chipos^2, d) = \frac{1}{2^d} \sum_{k=0}^d \binom{d}{k} P_{\chi^2}(\chipos^2, k)
 \end{eqnarray}
-where $P_{\chi^2}(v^2, k)$ is the probability distribution function of
+where $P_{\chi^2}(x^2, k)$ is the probability distribution function of
 the regular chi-squared distribution with $k$ degrees of freedom (and defining
 $P_{\chi^2}(x, 0) = \delta(x))$), and $d$ is the number of bandpass
 filters to be measured, or degrees of freedom.  The
 $\binom{d}{k}$ term counts the number of (hyper-)quadrants with
-$k$ positive fluxes, and the $P_{\chi^2}$ term gives the distribution
+$k$ positive fluxes, and the $P_{\chi^2}(\cdot, k)$ term gives the distribution
 of those $k$ positive fluxes.  Using $\chipos^2$ as a detection filter
 results in fewer false positives that the original $\chi^2$ detection
 filter, which therefore allows the detection threshold to be decreased
@@ -1469,18 +1472,21 @@ the probability distribution function in the equation above.
     rate given pure Gaussian noise inputs (equivalent to a $4 \sigma$
     Gaussian).  This illustrates how the $\chipos^2$ method detects
     more true sources, thanks to treating negative fluxes differently
-    than positive fluxes.  Notice that the SED-matched decision
-    boundaries are shaped to have lower thresholds in directions that
-    are consistent with the SEDs they are tuned to, and how the
-    asymptotic behaviors in the $r$ and $g$ directions are different
-    because we chose (for purposes of illustration) to omit a $g$-only
-    filter.  \textbf{Right:} In this case, the noise in the $r$ filter
-    is set to be half as large as the noise in the $g$ filter---that
-    is, the $r$ image is more sensitive.  The $\chi^2$ methods do not
-    take sensitivities into account, so their decision boundaries are
-    unchanged.  The SED-matched methods, in contrast, take advantage
-    of the fact that one unit of flux will produce more signal in the
-    $r$ band, sculpt the decision boundaries accordingly.
+    than positive fluxes: the blue-dashed decision boundary detects
+    more sources with positive fluxes, and does not detect sources
+    where both fluxes are negative.  Notice that the SED-matched
+    decision boundaries are shaped to have lower thresholds in
+    directions that are consistent with the SEDs they are tuned to,
+    and how the asymptotic behaviors in the $r$ and $g$ directions are
+    different because we chose (for purposes of illustration) to omit
+    a $g$-only filter.  \textbf{Right:} In this case, the noise in the
+    $r$ filter is set to be half as large as the noise in the $g$
+    filter---that is, the $r$ image is more sensitive.  The $\chi^2$
+    methods do not take sensitivities into account, so their decision
+    boundaries are unchanged.  The SED-matched methods, in contrast,
+    take advantage of the fact that one unit of flux will produce more
+    signal in the $r$ band, sculpt the decision boundaries
+    accordingly.
   \label{fig:chipos_boundary}}
 \end{figure}
 
@@ -1867,6 +1873,7 @@ Ben Weiner (University of Arizona),
 Julianne Dalcanton (University of Washington),
 Brad Holden (UCO/Lick Observatories),
 Micha Gorelick (Fast Forward Labs),
+Kendrick Smith (Perimeter Institute),
 Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
 for helpful comments and discussion.
 

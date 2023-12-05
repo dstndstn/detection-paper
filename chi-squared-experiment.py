@@ -119,14 +119,15 @@ def sed_union_detection(fluxes, sig_fluxes, seds):
         x = np.maximum(x, pr)
     return x
 
-def sed_mixture_detection(fluxes, sig_fluxes, seds):
+def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=1.):
     # fluxes: npix x nbands array
     # sig_fluxes: nbands
     # seds: [(name, scalar sed, weight -- ignored)]
     x = 0.
     for sed in seds:
         name,sed_vec,wt = sed
-        pr = get_pratio(fluxes.T[:, :, np.newaxis], sig_fluxes, sed_vec)
+        pr = get_pratio(fluxes.T[:, :, np.newaxis], sig_fluxes, sed_vec,
+                        alpha=alpha)
         pr = pr[:,0]
         x = x + wt * pr
     return x
@@ -212,37 +213,38 @@ def main():
     for jnoise, noise_level in enumerate(noise_levels):
         print('Noise in g,r:', noise_level)
 
-        sn_g = np.linspace(-10, +10, 201)
-        sn_r = sn_g
-        dg = sn_g[1] - sn_g[0]
-        dr = sn_r[1] - sn_r[0]
-        sn_shape = (len(sn_r), len(sn_g))
-        snmesh = np.meshgrid(sn_g, sn_r)
-        sn = np.vstack([x.ravel() for x in snmesh]).T
-        sn_g,sn_r = snmesh
-        pbg = dg * dr * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g**2 + sn_r**2))
+        sn_g_th = np.linspace(-10, +10, 201)
+        sn_r_th = sn_g_th
+        dg = sn_g_th[1] - sn_g_th[0]
+        dr = sn_r_th[1] - sn_r_th[0]
+        sn_th_shape = (len(sn_r_th), len(sn_g_th))
+        snmesh = np.meshgrid(sn_g_th, sn_r_th)
+        sn_th = np.vstack([x.ravel() for x in snmesh]).T
+        sn_g_th,sn_r_th = snmesh
+        pbg = dg * dr * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g_th**2 + sn_r_th**2))
         print('sum pbg:', np.sum(pbg))
 
         # Union of SED-matched detections
-        flux = sn * noise_level[np.newaxis, :]
-        x = sed_union_detection(flux, noise_level, model_seds)
-        x = x.reshape(sn_shape)
+        flux_th = sn_th * noise_level[np.newaxis, :]
+        x = sed_union_detection(flux_th, noise_level, model_seds)
+        x = x.reshape(sn_th_shape)
         # Find threshold
         X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
                                        method='bisect', bracket=(0, 1e10))
-        print('Thresh:', X)
+        print('SED(union) Thresh:', X)
         assert(X.converged)
         sed_union_th = X.root
 
         # Mixture of SED-matched detections
-        x = sed_mixture_detection(flux, noise_level, model_seds)
-        x = x.reshape(sn_shape)
+        x = sed_mixture_detection(flux_th, noise_level, model_seds)
+        x = x.reshape(sn_th_shape)
         # Find threshold
         X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
                                        method='bisect', bracket=(0, 1e10))
-        print('Thresh:', X)
+        print('SED(mixture) Thresh:', X)
         assert(X.converged)
         sed_mixture_th = X.root
+
 
         # plt.clf()
         # sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
@@ -268,6 +270,11 @@ def main():
         x = sed_mixture_detection(flux, noise_level, model_seds)
         x = x.reshape(sn_shape)
         sed_mixture_det = (x > sed_mixture_th)
+
+        # # Mixture of SED-matched detections (alpha=alpha_sed)
+        # x = sed_mixture_detection(flux, noise_level, model_seds, alpha=alpha_sed)
+        # x = x.reshape(sn_shape)
+        # sed_mixture_det_a2 = (x > sed_mixture_th_a2)
 
         x = chisq_detection_raw(sn)
         x = x.reshape(sn_shape)
@@ -310,6 +317,50 @@ def main():
         plt.savefig('%i.png' % (1+jnoise))
         plt.savefig('%i.pdf' % (1+jnoise))
 
+
+        if jnoise == 0:
+
+            plt.clf()
+            plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+            lines = []
+            labels = []
+
+            for i,alpha_sed in enumerate([8., 4., 1., 0.01]): #, 0.25, 1., 4.]):
+                labels.append('SED (Bayes, alpha=%g)' % alpha_sed)
+
+                # Mixture of SED-matched detections (alpha=alpha_sed)
+                x = sed_mixture_detection(flux_th, noise_level, model_seds, alpha=alpha_sed)
+                x = x.reshape(sn_th_shape)
+                # Find threshold
+                X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
+                                               method='bisect', bracket=(0, 1e10))
+                print('SED(mixture, alpha=%g) Thresh:' % alpha_sed, X)
+                assert(X.converged)
+                thresh = X.root
+                #threshs.append(thresh)
+                #sed_mixture_th_a2 = X.root
+
+                x = sed_mixture_detection(flux, noise_level, model_seds, alpha=alpha_sed)
+                x = x.reshape(sn_shape)
+                sed_det = (x > thresh)
+                
+                plt.contour(sed_det, extent=sn_extent, levels=[0.5],
+                            colors=[xcolors[i]], linestyles=[linestyles[i]],
+                            linewidths=[linewidths[i]], alpha=alphas[i])
+                lines.append(mlines.Line2D(
+                    [], [], label=labels[i],
+                    color=xcolors[i], linestyle=linestyles[i],
+                    linewidth=linewidths[i], alpha=alphas[i]))
+            plt.legend(handles=lines)
+            plt.axhline(0., color='k', alpha=0.25)
+            plt.axvline(0., color='k', alpha=0.25)
+            #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
+            plt.xlabel('g-band S/N')
+            plt.ylabel('r-band S/N')
+            plt.savefig('alpha%i.png' % (1+jnoise))
+            plt.savefig('alpha%i.pdf' % (1+jnoise))
+
+        
     return
     #n_star = 1_000_000
     n_star = 1_000
