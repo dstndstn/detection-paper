@@ -1492,8 +1492,20 @@ the probability distribution function in the equation above.
 
 Figure \ref{fig:chipos_boundary} shows decision boundaries for the
 original $\chi^2$ method, the $\chipos^2$ variant described above, and
-two versions of the SED-matched filter.
-
+two versions of the SED-matched filter.  As expected, the $\chipos^2$
+method has a decision boundary that is similar to the $\chi^2$ method
+when fluxes are positive, but when one of the fluxes becomes negative,
+the method becomes insensitive to that flux, and therefore the
+decision boundary becomes horizontal or vertical in the $g$, $r$ flux
+plane.  The SED-match methods have more complicated decision
+boundaries.  The ``union'' method, which accepts a peak if it exceeds
+any of the SEDs being used, has a piecewise-linear decision boundary,
+where the lines are orthogonal to the SED vector directions in
+signal-to-noise space (\ie, scaled by the noise levels in the bands).
+The Bayesian SED-match method has a similar decision boundary shape,
+but with smooth transitions between the different SEDs, and with
+different effective threshold levels for the different SEDs, depending
+on their relative mixture weights.
 
 
 %%% FIXME --

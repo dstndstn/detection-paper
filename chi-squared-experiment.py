@@ -298,7 +298,8 @@ def main():
         labels = ['$\chi^2$', '$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
 
         plt.clf()
-        plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+        #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+        plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.95)
         lines = []
         for i,vals in enumerate([chisq_raw_det, chisq_pos_det, sed_union_det, sed_mixture_det]):
             plt.contour(vals, extent=sn_extent, levels=[0.5],
@@ -312,8 +313,10 @@ def main():
         plt.axhline(0., color='k', alpha=0.25)
         plt.axvline(0., color='k', alpha=0.25)
         #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
-        plt.xlabel('g-band S/N')
-        plt.ylabel('r-band S/N')
+        plt.xlabel('$g$-band S/N')
+        plt.ylabel('$r$-band S/N')
+        plt.title('$r$-band sensitivity = $g$-band sensitivity' +
+                  (' $\\times 2$' if (jnoise == 1) else ''))
         plt.savefig('%i.png' % (1+jnoise))
         plt.savefig('%i.pdf' % (1+jnoise))
 
@@ -361,7 +364,6 @@ def main():
             plt.savefig('alpha%i.pdf' % (1+jnoise))
 
         
-    return
     #n_star = 1_000_000
     n_star = 1_000
     starnoise = np.random.normal(size=(n_star, n_bands))
