@@ -231,20 +231,20 @@ def main():
     chi2_pos_thresh = chisq_pos_isf(n_bands, falsepos_rate)
     print('thresh:', chi2_pos_thresh)
 
+    sn_g_th = np.linspace(-10, +10, 201)
+    sn_r_th = sn_g_th
+    dg = sn_g_th[1] - sn_g_th[0]
+    dr = sn_r_th[1] - sn_r_th[0]
+    sn_th_shape = (len(sn_r_th), len(sn_g_th))
+    snmesh = np.meshgrid(sn_g_th, sn_r_th)
+    sn_th = np.vstack([x.ravel() for x in snmesh]).T
+    sn_g_th,sn_r_th = snmesh
+    pbg = dg * dr * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g_th**2 + sn_r_th**2))
+    print('sum pbg:', np.sum(pbg))
+
     # False pos rates for SED-matched detectors...
     for jnoise, noise_level in enumerate(noise_levels):
         print('Noise in g,r:', noise_level)
-
-        sn_g_th = np.linspace(-10, +10, 201)
-        sn_r_th = sn_g_th
-        dg = sn_g_th[1] - sn_g_th[0]
-        dr = sn_r_th[1] - sn_r_th[0]
-        sn_th_shape = (len(sn_r_th), len(sn_g_th))
-        snmesh = np.meshgrid(sn_g_th, sn_r_th)
-        sn_th = np.vstack([x.ravel() for x in snmesh]).T
-        sn_g_th,sn_r_th = snmesh
-        pbg = dg * dr * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g_th**2 + sn_r_th**2))
-        print('sum pbg:', np.sum(pbg))
 
         # Union of SED-matched detections
         flux_th = sn_th * noise_level[np.newaxis, :]
@@ -303,7 +303,7 @@ def main():
         alphas = [1, 0.5, 1, 0.5]
         xcolors = [colors[0], colors[0], colors[1], colors[1]]
         #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
-        labels = ['$\chi^2$', '$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+        labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
 
         plt.clf()
         #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
@@ -450,8 +450,8 @@ def main():
 
 
     print('Detection-rate experiment 2...')
-    #n_star = 1_000_000
-    n_star = 100_000
+    n_star = 1_000_000
+    #n_star = 100_000
     starnoise = np.random.normal(size=(n_star, n_bands))
     colors = np.linspace(-2, +4, 50)
     rates = []
@@ -473,8 +473,14 @@ def main():
         gflux = 10.**(gmag / -2.5)
         sed = np.array([gflux, rflux]) / np.hypot(gflux, rflux)
 
+        #print('color', color, 'sed:', sed)
+        # sqrt(chi2_thresh) ~= 4.55
         #sns = g_sigma * sed
-        sns = np.sqrt(chi2_thresh) * sed
+        #sns = np.sqrt(chi2_thresh) * sed
+        #sns = 4.4 * sed # 48%
+        sns = 4.44 * sed # 50%
+        #sns = 4.45 * sed # 50.5?
+        #sns = 4.5 * sed # 52.5
 
         noisy = sns[np.newaxis,:] + starnoise
         det1 = (chisq_detection_raw(noisy) > chi2_thresh)
@@ -494,7 +500,6 @@ def main():
                 plt.plot(noisy[det,0], noisy[det,1], 'b.', alpha=0.2)
                 plt.plot(noisy[~det,0], noisy[~det,1], 'r.', alpha=0.2)
             plt.savefig('9b.png')
-            
         
     rates = np.array(rates)
 
@@ -513,18 +518,20 @@ def main():
     plt.axvline(1., linestyle=':', alpha=0.2, color='k')
     plt.xlim(colors[0], colors[-1])
     plt.savefig('9.png')
+    plt.savefig('9.pdf')
 
-    return
+    #return
 
     # Colors of false-positive detections for the different detectors.
     print('Detection-rate experiment 3...')
+    noise_level = noise_levels[0]
     n_star = 10_000_000
     noisy = np.random.normal(size=(n_star, n_bands))
     det1 = (chisq_detection_raw(noisy) > chi2_thresh)
     det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
-    flux = noisy * noise_levels[np.newaxis, :]
-    det3 = (sed_union_detection(flux, noise_levels, model_seds) > sed_union_th)
-    det4 = (sed_mixture_detection(flux, noise_levels, model_seds) > sed_mixture_th)
+    flux = noisy * noise_level[np.newaxis, :]
+    det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
+    det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
 
     plt.clf()
     plt.subplots_adjust(hspace=0)

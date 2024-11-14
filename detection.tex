@@ -1451,6 +1451,7 @@ the probability distribution function in the equation above.
   % python chi-squared-experiment.py
   % cp 1.pdf chisq-pos-decision-boundary.pdf
   % cp 2.pdf chisq-pos-decision-boundary-sens.pdf
+  % cp 9.pdf chisq-pos-color.pdf
   \begin{center}
     \includegraphics[width=0.49\textwidth]{chisq-pos-decision-boundary}%
     \hspace{0.01\textwidth}%
@@ -1507,6 +1508,25 @@ but with smooth transitions between the different SEDs, and with
 different effective threshold levels for the different SEDs, depending
 on their relative mixture weights.
 
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.49\textwidth]{chisq-pos-color}%
+  \end{center}
+  \caption{Detection rates for the $\chi^2$-based and SED-matched
+    detection methods, as a function of the color of the star.  For
+    each color, we set the true fluxes in the $g$ and $r$ bands so
+    that their quadrature-summed signal-to-noise is constant (with the
+    constant chosen so that the $\chi^2$ method produced roughly 50\%
+    detection rate), and then added independent Gaussian noise.  The
+    threshold for each method was set so that their false positive
+    rates are equal.  Since the $\chi^2$ method does not care about
+    the color of the star, its performance is constant.  The
+    $\chipos^2$ method is also indifferent to the color of the star,
+    but as shown above, its refusal to accept stars with negative
+    fluxes allows a more aggressive detection threshold, allowing it
+    to detect more stars.  
+  \label{fig:chipos_colors}}
+\end{figure}
 
 Figure \ref{fig:detection_rates} shows the detection rates for the
 different detection methods, as a function of the color of the star.

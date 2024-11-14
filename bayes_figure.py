@@ -101,6 +101,7 @@ def bayes_figures():
 
     figA = True
     figB = True
+    figB2 = True
     figC = True
     figD = False
     figE = True
@@ -140,6 +141,29 @@ def bayes_figures():
         rel_contour_plot(pratio_b, plotseds, extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-rel-b.pdf')
+
+    if figB2:
+        alpha = 2.
+        sed_red2   = alpha * sed_red
+        sed_ronly2 = alpha * sed_ronly
+        sed_flat2  = alpha * sed_flat
+        pratio_red2   = get_pratio(d_j, sig_j, sed_red2)
+        pratio_ronly2 = get_pratio(d_j, sig_j, sed_ronly2)
+        pratio_flat2  = get_pratio(d_j, sig_j, sed_flat2)
+
+        pratio_b2 = 0.49 * pratio_red2 + 0.49 * pratio_flat2 + 0.02 * pratio_ronly2
+        p_fg_b2 = p_bg * pratio_b2
+
+        plt.clf()
+        plotseds2 = [(sed_red2, 'r'), (sed_flat2, 'b'), (sed_ronly2, 'm')]
+        contour_plot(p_bg, p_fg_b2, plotseds2, extent=dextent)
+        plt.axis(axa)
+        plt.savefig('prob-contours-b2.pdf')
+
+        plt.clf()
+        rel_contour_plot(pratio_b2, plotseds2, extent=dextent)
+        plt.axis(axa)
+        plt.savefig('prob-rel-b2.pdf')
 
     if figC:
         sed_red2 = sed_red * 2
@@ -219,7 +243,7 @@ def bayes_figures():
         plt.axhline(0., color='k', alpha=0.1)
         plt.xlim(-4,8)
         plt.yticks(np.arange(0, 0.41, 0.2))
-        plt.xlabel('Observed flux ($\sigma$)')
+        plt.xlabel(r'Observed flux ($\sigma$)')
         plt.legend()
         plt.ylabel('Posterior Probability')
         
@@ -264,8 +288,12 @@ def contour_plot(p_bg, p_fg, seds,
                  extent=None,
                  sedlw=3):
     levs = np.arange(-6, 0)
-    c1 = plt.contour(np.log10(p_bg), levels=levs, extent=extent, **style1)
-    c2 = plt.contour(np.log10(p_fg), levels=levs, extent=extent, **style2)
+    #c1 = plt.contour(np.log10(p_bg), levels=levs, extent=extent, **style1)
+    c1 = plt.contour(p_bg, levels=10.**np.array(levs), extent=extent, **style1)
+    #c1.set_label(label1)
+    #c2 = plt.contour(np.log10(p_fg), levels=levs, extent=extent, **style2)
+    c2 = plt.contour(p_fg, levels=10.**np.array(levs), extent=extent, **style2)
+    #c2.set_label(label2)
 
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
@@ -275,9 +303,31 @@ def contour_plot(p_bg, p_fg, seds,
     for sed,c in seds:
         plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=sedlw)
     plt.axis('square')
-    plt.legend([c2.collections[0], c1.collections[0]],
-               [label2, label1],
-               loc='lower right')
+    ax = plt.axis()
+
+    pp = []
+    for s in [style2,style1]:
+        s = s.copy()
+        ls = s['linestyles']
+        del s['linestyles']
+        s['linestyle'] = ls
+        ls = s['colors']
+        del s['colors']
+        s['color'] = ls
+        if 'linewidths' in s:
+            ls = s['linewidths']
+            del s['linewidths']
+            s['linewidth'] = ls
+        p = plt.plot([0,0],[0,0], **s)
+        pp.append(p[0])
+
+    plt.axis(ax)
+    #plt.legend([c2,c1], [label2,label1])
+    plt.legend(pp, [label2,label1])
+    #plt.legend()
+    #plt.legend([c2.collections[0], c1.collections[0]],
+    #           [label2, label1],
+    #           loc='lower right')
 
 def rel_contour_plot(pratio, seds, extent=None,
                      sedlw=3, contour_linestyle='-', levs=None):
