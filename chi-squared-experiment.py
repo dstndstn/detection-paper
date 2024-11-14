@@ -132,6 +132,28 @@ def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=1.):
         x = x + wt * pr
     return x
 
+def sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate):
+    x = sed_union_detection(flux_th, noise_level, model_seds)
+    x = x.reshape(pbg.shape)
+    # Find threshold
+    X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
+                                   method='bisect', bracket=(0, 1e10))
+    print('SED(union) Thresh:', X)
+    assert(X.converged)
+    return X.root
+
+def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate):
+    x = sed_mixture_detection(flux_th, noise_level, model_seds)
+    x = x.reshape(pbg.shape)
+    # Find threshold
+    X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
+                                   method='bisect', bracket=(0, 1e10))
+    print('SED(mixture) Thresh:', X)
+    assert(X.converged)
+    return X.root
+
+
+
 def main():
 
     real_sn = 6.
@@ -226,25 +248,11 @@ def main():
 
         # Union of SED-matched detections
         flux_th = sn_th * noise_level[np.newaxis, :]
-        x = sed_union_detection(flux_th, noise_level, model_seds)
-        x = x.reshape(sn_th_shape)
-        # Find threshold
-        X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
-                                       method='bisect', bracket=(0, 1e10))
-        print('SED(union) Thresh:', X)
-        assert(X.converged)
-        sed_union_th = X.root
+        print('flux_th', flux_th.shape, 'sn_th_shape', sn_th_shape, 'pbg', pbg.shape)
+        sed_union_th = sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
 
         # Mixture of SED-matched detections
-        x = sed_mixture_detection(flux_th, noise_level, model_seds)
-        x = x.reshape(sn_th_shape)
-        # Find threshold
-        X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
-                                       method='bisect', bracket=(0, 1e10))
-        print('SED(mixture) Thresh:', X)
-        assert(X.converged)
-        sed_mixture_th = X.root
-
+        sed_mixture_th = sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
 
         # plt.clf()
         # sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
@@ -364,75 +372,81 @@ def main():
             plt.savefig('alpha%i.pdf' % (1+jnoise))
 
         
-    #n_star = 1_000_000
-    n_star = 1_000
-    starnoise = np.random.normal(size=(n_star, n_bands))
+    if False:
+        noise_level = noise_levels[0]
 
-    k = 2
+        #n_star = 1_000_000
+        n_star = 1_000
+        starnoise = np.random.normal(size=(n_star, n_bands))
     
-    for sed_name, sed in real_seds:
-
-        sns = g_sigma * sed
-        print('SED', sed_name, 'S/N values:', sns)
-
-        noisy = sns[np.newaxis,:] + starnoise
-
-        det1 = (chisq_detection_raw(noisy) > chi2_thresh)
-        det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
-        flux = noisy * noise_levels[np.newaxis, :]
-        det3 = (sed_union_detection(flux, noise_levels, model_seds) > sed_union_th)
-        det4 = (sed_mixture_detection(flux, noise_levels, model_seds) > sed_mixture_th)
-
-        print('Detection rates:')
-        print('  chi2(raw)    %6.2f %%' % (100. * np.sum(det1) / n_star))
-        print('  chi2(pos)    %6.2f %%' % (100. * np.sum(det2) / n_star))
-        print('  sed(union)   %6.2f %%' % (100. * np.sum(det3) / n_star))
-        print('  sed(mixture) %6.2f %%' % (100. * np.sum(det4) / n_star))
+        k = 2
         
+        for sed_name, sed in real_seds:
+    
+            sns = g_sigma * sed
+            print('SED', sed_name, 'S/N values:', sns)
+    
+            noisy = sns[np.newaxis,:] + starnoise
+    
+            det1 = (chisq_detection_raw(noisy) > chi2_thresh)
+            det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
+            flux = noisy * noise_level[np.newaxis, :]
+            det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
+            det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
+    
+            print('Detection rates:')
+            print('  chi2(raw)    %6.2f %%' % (100. * np.sum(det1) / n_star))
+            print('  chi2(pos)    %6.2f %%' % (100. * np.sum(det2) / n_star))
+            print('  sed(union)   %6.2f %%' % (100. * np.sum(det3) / n_star))
+            print('  sed(mixture) %6.2f %%' % (100. * np.sum(det4) / n_star))
+            
+            plt.clf()
+            p1 = plt.contour(chisq_raw_det,   extent=sn_extent, levels=[0.5], colors=[colors[0]])
+            p2 = plt.contour(chisq_pos_det,   extent=sn_extent, levels=[0.5], colors=[colors[1]])
+            p3 = plt.contour(sed_union_det,   extent=sn_extent, levels=[0.5], colors=[colors[2]])
+            p4 = plt.contour(sed_mixture_det, extent=sn_extent, levels=[0.5], colors=[colors[3]])
+    
+            lines = [mlines.Line2D([], [], color=colors[i], label=lab)
+                     for i,lab in enumerate(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])]
+            plt.legend(handles=lines)
+            plt.axhline(0.)
+            plt.axvline(0.)
+            plt.title('Decision boundaries for chi-squared versus SED-match detectors')
+            plt.xlabel('g-band S/N')
+            plt.ylabel('r-band S/N')
+            plt.plot(noisy[:,0], noisy[:,1], 'k.', alpha=0.1)
+            pfn = '%i.png' % k
+            plt.savefig(pfn)
+            print('Wrote', pfn)
+            k += 1
+
+    noise_level = noise_levels[0]
+
+    if False:
+        print('Detection-rate experiment...')
+        n_star = 100_000
+        starnoise = np.random.normal(size=(n_star, n_bands))
+        #angles = np.linspace(90., 0., 19)
+        angles = np.linspace(105., -15., 50)
+        rates = []
+        for angle in angles:
+            sed = sed_vec(angle)
+            sns = g_sigma * sed
+            noisy = sns[np.newaxis,:] + starnoise
+            det1 = (chisq_detection_raw(noisy) > chi2_thresh)
+            det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
+            flux = noisy * noise_level[np.newaxis, :]
+            det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
+            det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
+            rates.append([100. * np.sum(d) / n_star for d in [det1,det2,det3,det4]])
+        rates = np.array(rates)
+    
         plt.clf()
-        p1 = plt.contour(chisq_raw_det,   extent=sn_extent, levels=[0.5], colors=[colors[0]])
-        p2 = plt.contour(chisq_pos_det,   extent=sn_extent, levels=[0.5], colors=[colors[1]])
-        p3 = plt.contour(sed_union_det,   extent=sn_extent, levels=[0.5], colors=[colors[2]])
-        p4 = plt.contour(sed_mixture_det, extent=sn_extent, levels=[0.5], colors=[colors[3]])
-
-        lines = [mlines.Line2D([], [], color=colors[i], label=lab)
-                 for i,lab in enumerate(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])]
-        plt.legend(handles=lines)
-        plt.axhline(0.)
-        plt.axvline(0.)
-        plt.title('Decision boundaries for chi-squared versus SED-match detectors')
-        plt.xlabel('g-band S/N')
-        plt.ylabel('r-band S/N')
-        plt.plot(noisy[:,0], noisy[:,1], 'k.', alpha=0.1)
-        pfn = '%i.png' % k
-        plt.savefig(pfn)
-        print('Wrote', pfn)
-        k += 1
-
-    print('Detection-rate experiment...')
-    n_star = 100_000
-    starnoise = np.random.normal(size=(n_star, n_bands))
-    #angles = np.linspace(90., 0., 19)
-    angles = np.linspace(105., -15., 50)
-    rates = []
-    for angle in angles:
-        sed = sed_vec(angle)
-        sns = g_sigma * sed
-        noisy = sns[np.newaxis,:] + starnoise
-        det1 = (chisq_detection_raw(noisy) > chi2_thresh)
-        det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
-        flux = noisy * noise_levels[np.newaxis, :]
-        det3 = (sed_union_detection(flux, noise_levels, model_seds) > sed_union_th)
-        det4 = (sed_mixture_detection(flux, noise_levels, model_seds) > sed_mixture_th)
-        rates.append([100. * np.sum(d) / n_star for d in [det1,det2,det3,det4]])
-    rates = np.array(rates)
-
-    plt.clf()
-    plt.plot(angles, rates, '-')
-    plt.xlabel('SED angle (deg)')
-    plt.ylabel('Detection rate (%)')
-    plt.legend(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])
-    plt.savefig('8.png')
+        plt.plot(angles, rates, '-')
+        plt.xlabel('SED angle (deg)')
+        plt.ylabel('Detection rate (\\%)')
+        plt.legend(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])
+        plt.savefig('8.png')
 
 
     print('Detection-rate experiment 2...')
@@ -441,7 +455,17 @@ def main():
     starnoise = np.random.normal(size=(n_star, n_bands))
     colors = np.linspace(-2, +4, 50)
     rates = []
-    for color in colors:
+
+    noise_level = noise_levels[0]
+    # recompute SED thresholds
+    flux_th = sn_th * noise_level[np.newaxis, :]
+    sed_union_th = sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
+    sed_mixture_th = sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
+
+    print('chi2_thresh', chi2_thresh)
+    
+    for icolor,color in enumerate(colors):
+        print(icolor, 'color', color)
         # g mag - r mag = color
         rmag = 0
         gmag = color
@@ -449,28 +473,48 @@ def main():
         gflux = 10.**(gmag / -2.5)
         sed = np.array([gflux, rflux]) / np.hypot(gflux, rflux)
 
-        sns = g_sigma * sed
+        #sns = g_sigma * sed
+        sns = np.sqrt(chi2_thresh) * sed
+
         noisy = sns[np.newaxis,:] + starnoise
         det1 = (chisq_detection_raw(noisy) > chi2_thresh)
         det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
-        flux = noisy * noise_levels[np.newaxis, :]
-        det3 = (sed_union_detection(flux, noise_levels, model_seds) > sed_union_th)
-        det4 = (sed_mixture_detection(flux, noise_levels, model_seds) > sed_mixture_th)
+        flux = noisy * noise_level[np.newaxis, :]
+        det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
+        det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
         rates.append([100. * np.sum(d) / n_star for d in [det1,det2,det3,det4]])
+
+        if icolor == 21:
+            print('SED:', sed)
+            print('S/N:', sns)
+
+            plt.clf()
+            for idet,det in enumerate([det1,det2,det3,det4]):
+                plt.subplot(2,2,idet+1)
+                plt.plot(noisy[det,0], noisy[det,1], 'b.', alpha=0.2)
+                plt.plot(noisy[~det,0], noisy[~det,1], 'r.', alpha=0.2)
+            plt.savefig('9b.png')
+            
+        
     rates = np.array(rates)
 
-    det_names = ['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture']
+    det_names = labels #['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture']
 
     plt.clf()
-    plt.plot(colors, rates, '-')
-    plt.xlabel('Star g-r color (mag)')
+    for i,rate in enumerate(rates.T):
+        plt.plot(colors, rate,
+                 color=xcolors[i], linestyle=linestyles[i],
+                 linewidth=linewidths[i], alpha=alphas[i])
+    plt.xlabel('Star $g - r$ color (mag)')
     plt.ylabel('Detection rate (\\%)')
     plt.legend(det_names)
     plt.title('Detection rate for stars of different colors')
     plt.axvline(0., linestyle='--', alpha=0.2, color='k')
     plt.axvline(1., linestyle=':', alpha=0.2, color='k')
+    plt.xlim(colors[0], colors[-1])
     plt.savefig('9.png')
 
+    return
 
     # Colors of false-positive detections for the different detectors.
     print('Detection-rate experiment 3...')

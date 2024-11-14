@@ -243,6 +243,10 @@ def get_pratio(d_j, sig_j, sed_i, alpha = 1.):
     Get the probability ratio (fg/bg) for given data points and SED.
 
     alpha: exponential prior on total flux
+
+    d_j: (n_bands, nx, ny)
+    sig_j: (n_bands)
+    sed_i: (n_bands)
     '''
     a_i = alpha - np.sum(d_j * sed_i[:,np.newaxis,np.newaxis] / sig_j[:,np.newaxis,np.newaxis]**2, axis=0)
     b_i = 0.5 * np.sum(sed_i**2 / sig_j**2)
