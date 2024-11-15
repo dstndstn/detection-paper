@@ -1564,7 +1564,7 @@ their efficiency is highest for stars that match the priors.
     method were set to produce approximately equal numbers of false
     positives.  Detections in the quadrants with negative fluxes are
     shown in separate bins, and ``stars'' with extreme flux ratios are
-    clipped to the color range shown, $-1$ to $+3$.  The $chi^2$
+    clipped to the color range shown, $-1$ to $+3$.  The $\chi^2$
     method generates false positives in all quadrants equally.  The
     $\chipos^2$ method does not generate any both-negative false
     positives, and generates fewer false positives with one negative
@@ -1805,7 +1805,7 @@ the DESI Legacy Surveys pipeline \citep{lsoverview},
 \textsl{legacypipe}\footnote{Publicly available at
   \niceurl{https://github.com/legacysurvey/legacypipe}.}.
 The astrometric
-calibration uses Gaia (DR1) as the reference catalog \citep{gaia,
+calibration uses Gaia (DR2) as the reference catalog \citep{gaia,
   gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \citep{psfex}.
@@ -1866,7 +1866,7 @@ includes some SED components that have zero flux in $g$ band, which
 correspond to very red sources.
 
 
-We run the Bayesian detection proceduce described in Equation
+We run the Bayesian detection procedure described in Equation
 \ref{eq:pfg}, computing in log space to avoid numerical overflow.
 This takes a few minutes on a single core with our unoptimized
 implementation.
