@@ -242,6 +242,102 @@ def main():
     pbg = dg * dr * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g_th**2 + sn_r_th**2))
     print('sum pbg:', np.sum(pbg))
 
+    det_names = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+    prop_cycle = plt.rcParams['axes.prop_cycle']
+    colors = prop_cycle.by_key()['color']
+    mpl_colors = colors
+
+    linestyles = ['solid', 'dashed', 'solid', 'dashed'] #, 'dashdot', 'dotted']
+    linewidths = [1, 3, 1, 3]
+    alphas = [1, 0.5, 1, 0.5]
+    xcolors = [colors[0], colors[0], colors[1], colors[1]]
+    #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
+    labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+
+    # Colors of false-positive detections for the different detectors.
+    if True:
+        print('Detection-rate experiment 3...')
+        noise_level = noise_levels[0]
+
+        # recompute SED thresholds
+        flux_th = sn_th * noise_level[np.newaxis, :]
+        sed_union_th = sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
+        sed_mixture_th = sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate)
+
+        n_star = 100_000_000
+        noisy = np.random.normal(size=(n_star, n_bands))
+        # immediately cut stars within 3-sigma of zero
+        noisy = noisy[np.sum(noisy**2, axis=1)>9., :]
+        print('Cut to', len(noisy), '>3sigma')
+        
+        det1 = (chisq_detection_raw(noisy) > chi2_thresh)
+        det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
+        flux = noisy * noise_level[np.newaxis, :]
+        det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
+        det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
+    
+        plt.clf()
+        plt.subplots_adjust(hspace=0.05, top=0.95)
+        BOTH_NEG = -3
+        R_NEG = -2
+        G_NEG = 4
+    
+        histrange = BOTH_NEG, G_NEG
+    
+        ymax = 0
+        for i,det in enumerate([det1,det2,det3,det4]):
+            print('Number of false dets for', det_names[i], ':', np.sum(det))
+            g = noisy[det, 0]
+            r = noisy[det, 1]
+            ok = np.flatnonzero((g > 0) * (r > 0))
+            # good colors
+            c = -2.5 * (np.log10(g[ok]) - np.log10(r[ok]))
+            c = np.clip(c, -1, 2.9999)
+
+            # fluxes in bad quadrants
+            for condition,code,codetxt in [((g <= 0) * (r <= 0), BOTH_NEG, 'both neg'),
+                                           ((g <= 0) * (r >  0), G_NEG,    'g neg'),
+                                           ((g >  0) * (r <= 0), R_NEG,    'r neg')]:
+                nbad = np.sum(condition)
+                print('  %i with %s' % (nbad, codetxt))
+                if nbad > 0:
+                    c = np.append(c, [code] * nbad)
+
+            plt.subplot(4,1,i+1)
+            plt.hist(c, range=histrange, bins=28, color=mpl_colors[i],
+                     label=det_names[i])
+            if i == 1:
+                plt.ylabel('Number of false detections', ha='center', y=0)
+            plt.axvline(0., linestyle='--', alpha=0.2, color='k')
+            plt.axvline(1., linestyle=':', alpha=0.2, color='k')
+            plt.axvline(-1, linestyle='-', alpha=0.1, color='k')
+            plt.axvline(+3, linestyle='-', alpha=0.1, color='k')
+            plt.legend(loc='upper right')
+            if True:#i > 0:
+                yl,yh = plt.ylim()
+                ymax = max(ymax, yh)
+            if i < 3:
+                plt.xticks([])
+        for i in range(4):
+            plt.subplot(4,1,i+1)
+            plt.ylim(0, ymax + 3)
+        ticks = list(range(-1, 3+1))
+        plt.xticks([BOTH_NEG, R_NEG] + ticks + [G_NEG],
+                   [r'$g,r<0$', r'$r<0$'] + ['%i'%i for i in ticks] + [r'$g<0$'])
+        plt.xlabel(r"``Star'' $g-r$ color (mag)")
+        plt.suptitle('False positive detections')
+        plt.savefig('10.png')
+        plt.savefig('10.pdf')
+
+        sys.exit(0)
+
+
+
+
+
+
+
+
     # False pos rates for SED-matched detectors...
     for jnoise, noise_level in enumerate(noise_levels):
         print('Noise in g,r:', noise_level)
@@ -294,16 +390,6 @@ def main():
 
         sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
 
-        prop_cycle = plt.rcParams['axes.prop_cycle']
-        colors = prop_cycle.by_key()['color']
-        mpl_colors = colors
-
-        linestyles = ['solid', 'dashed', 'solid', 'dashed'] #, 'dashdot', 'dotted']
-        linewidths = [1, 3, 1, 3]
-        alphas = [1, 0.5, 1, 0.5]
-        xcolors = [colors[0], colors[0], colors[1], colors[1]]
-        #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
-        labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
 
         plt.clf()
         #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
@@ -521,49 +607,6 @@ def main():
     plt.savefig('9.pdf')
 
     #return
-
-    # Colors of false-positive detections for the different detectors.
-    print('Detection-rate experiment 3...')
-    noise_level = noise_levels[0]
-    n_star = 10_000_000
-    noisy = np.random.normal(size=(n_star, n_bands))
-    det1 = (chisq_detection_raw(noisy) > chi2_thresh)
-    det2 = (chisq_detection_pos(noisy) > chi2_pos_thresh)
-    flux = noisy * noise_level[np.newaxis, :]
-    det3 = (sed_union_detection(flux, noise_level, model_seds) > sed_union_th)
-    det4 = (sed_mixture_detection(flux, noise_level, model_seds) > sed_mixture_th)
-
-    plt.clf()
-    plt.subplots_adjust(hspace=0)
-    #colors = []
-    ymax = 0
-    for i,det in enumerate([det1,det2,det3,det4]):
-        print('Number of false dets for', det_names[i], ':', np.sum(det))
-        c = -2.5 * (np.log10(noisy[det,0]) - np.log10(noisy[det,1]))
-        #colors.append(c)
-        bad = np.sum(np.logical_or(noisy[det,0] <= 0, noisy[det,1] <= 0))
-        c = np.clip(c, -1, 3)
-        if bad > 0:
-            c = np.append(c, np.zeros(bad) + -2)
-        plt.subplot(4,1,i+1)
-        plt.hist(c, range=(-2, 3), bins=20, color=mpl_colors[i],
-                 label=det_names[i]) #, histtype='step')
-        if i == 1:
-            plt.ylabel('Number of false detections')
-        plt.axvline(0., linestyle='--', alpha=0.2, color='k')
-        plt.axvline(1., linestyle=':', alpha=0.2, color='k')
-        plt.legend()
-        if i > 0:
-            yl,yh = plt.ylim()
-            ymax = max(ymax, yh)
-    for i in range(4):
-        plt.subplot(4,1,i+1)
-        plt.ylim(0, ymax)
-    plt.xticks(np.arange(-2, 3+1), ['Nil']+['%i'%i for i in range(-1,3+1)])
-    plt.xlabel('"Star" g-r color (mag)')
-    #plt.legend(['Chi2 (raw)', 'Chi2 (pos)', 'SED union', 'SED mixture'])
-    plt.suptitle('False positive detections')
-    plt.savefig('10.png')
 
 
 

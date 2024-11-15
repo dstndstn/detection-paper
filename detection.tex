@@ -1433,17 +1433,17 @@ then its probability distribution function is
 P(\chipos^2, d) = \frac{1}{2^d} \sum_{k=0}^d \binom{d}{k} P_{\chi^2}(\chipos^2, k)
 \end{eqnarray}
 where $P_{\chi^2}(x^2, k)$ is the probability distribution function of
-the regular chi-squared distribution with $k$ degrees of freedom (and defining
-$P_{\chi^2}(x, 0) = \delta(x))$), and $d$ is the number of bandpass
-filters to be measured, or degrees of freedom.  The
-$\binom{d}{k}$ term counts the number of (hyper-)quadrants with
-$k$ positive fluxes, and the $P_{\chi^2}(\cdot, k)$ term gives the distribution
-of those $k$ positive fluxes.  Using $\chipos^2$ as a detection filter
-results in fewer false positives that the original $\chi^2$ detection
-filter, which therefore allows the detection threshold to be decreased
-while maintaining the same false positive rate.  The false positive
-rate can be computed easily by substituting the survival function for
-the probability distribution function in the equation above.
+the regular chi-squared distribution with $k$ degrees of freedom (and
+defining $P_{\chi^2}(x, 0) = \delta(x))$), and $d$ is the number of
+bandpass filters to be measured, or degrees of freedom.  The
+$\binom{d}{k}$ term (``$d$ choose $k$'') counts the number of (hyper-)quadrants with $k$
+positive fluxes, and the $P_{\chi^2}(\cdot, k)$ term gives the distribution of those $k$ positive fluxes.  Using
+$\chipos^2$ as a detection filter results in fewer false positives
+that the original $\chi^2$ detection filter, which therefore allows
+the detection threshold to be decreased while maintaining the same
+false positive rate.  The false positive rate can be computed easily
+by substituting the survival function for the probability distribution
+function in the equation above.
 
 \subsection{Experiments}
 
@@ -1452,6 +1452,7 @@ the probability distribution function in the equation above.
   % cp 1.pdf chisq-pos-decision-boundary.pdf
   % cp 2.pdf chisq-pos-decision-boundary-sens.pdf
   % cp 9.pdf chisq-pos-color.pdf
+  % cp 10.pdf chisq-false-det.pdf
   \begin{center}
     \includegraphics[width=0.49\textwidth]{chisq-pos-decision-boundary}%
     \hspace{0.01\textwidth}%
@@ -1517,19 +1518,74 @@ on their relative mixture weights.
     each color, we set the true fluxes in the $g$ and $r$ bands so
     that their quadrature-summed signal-to-noise is constant (with the
     constant chosen so that the $\chi^2$ method produced roughly 50\%
-    detection rate), and then added independent Gaussian noise.  The
-    threshold for each method was set so that their false positive
-    rates are equal.  Since the $\chi^2$ method does not care about
-    the color of the star, its performance is constant.  The
-    $\chipos^2$ method is also indifferent to the color of the star,
-    but as shown above, its refusal to accept stars with negative
-    fluxes allows a more aggressive detection threshold, allowing it
-    to detect more stars.  
+    detection rate), and then added independent Gaussian noise with
+    equal variance in the two bands.  The threshold for each method
+    was set so that their false positive rates were equal.  Since the
+    $\chi^2$ method does not care about the color of the star, its
+    performance is constant.  The $\chipos^2$ method has a slight
+    sensitivity to the color of the star: at the color extremes where
+    the flux is concentrated in one band, noise can scatter the star
+    to have negative flux, which makes the $\chipos^2$ method less
+    likely to detect it.  But the largest effect is due to the
+    $\chipos^2$ method having a lower detection threshold because
+    ignoring negative fluxes results in a lower false positive rate, giving it an overall greater detection rate than the $\chi^2$ method.
+    As expected, the SED-matched methods show a ``tuning'' effect
+    where they are most efficient at detecting stars of the expected
+    colors, which in this case are, as before, ``flat'' (color zero),
+    ``red'' (color one), and ``r-band-only''; for the Bayesian methods
+    these are weighted $49\%$, $49\%$, and $2\%$, respectively.  The vertical dashed lines mark these ``tuned'' colors.  As a
+    result, very blue stars are unexpected and their detection
+    efficiency drops sharply, while very red stars are expected (even
+    if at a low rate) and show a fair detection rate.  Interestingly,
+    the Bayesian method peaks at color $0.5$, because these stars are
+    acceptable to \emph{both} the ``flat'' and ``red'' SEDs.
   \label{fig:chipos_colors}}
 \end{figure}
 
-Figure \ref{fig:detection_rates} shows the detection rates for the
+Figure \ref{fig:chipos_colors} shows the detection rates for the
 different detection methods, as a function of the color of the star.
+The $\chi^2$ method treats stars of all colors equally.  The
+$\chipos^2$ method demonstrates an overall higher efficiency, because
+its threshold can be set higher because it generates fewer false
+positives with negative fluxes; it shows a slight efficiency drop for
+stars of extreme colors, because if the true flux in a band is close
+to zero, then a noise fluctuation may cause its measured flux to be
+negative, which the $\chipos^2$ method clips to zero, reducing its
+detection strength.  The SED-matched methods show a tuning effect:
+their efficiency is highest for stars that match the priors.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.49\textwidth]{chisq-false-det}%
+  \end{center}
+  \caption{The colors of false positive detections for each method.
+    We generated 100 million samples of Gaussian noise with equal
+    variance for the $g$ and $r$ fluxes.  The thresholds for each
+    method were set to produce approximately equal numbers of false
+    positives.  Detections in the quadrants with negative fluxes are
+    shown in separate bins, and ``stars'' with extreme flux ratios are
+    clipped to the color range shown, $-1$ to $+3$.  The $chi^2$
+    method generates false positives in all quadrants equally.  The
+    $\chipos^2$ method does not generate any both-negative false
+    positives, and generates fewer false positives with one negative
+    flux.  The SED-matched methods do not generate any false positives
+    with negative $r$ flux, and generally produce false positives in
+    accordance with the SEDs they expect to find.
+  \label{fig:chipos_false}}
+\end{figure}
+
+Figure \ref{fig:chipos_false} shows the colors of false detections
+generated by the different detection methods when given 100 million
+samples of Gaussian noise of equal variance in $g$ and $r$ bands.  The
+thresholds are set so that each method generates roughly the same
+number of false positives.  As expected, the $\chi^2$ method generates
+false positives equally in each quadrant of the $g$, $r$ plane.  The
+$\chipos^2$ method does not generate any false positives in the
+all-negative quadrant, and generates a smaller number with one
+negative flux.  The SED-matched methods in this case do not generate
+any all-negative or $r$-negative detections; the false detections are
+preferentially distributed to match the priors for the colors of
+stars.
 
 %%% FIXME --
 % As shown in Figure \ref{fig:sedmatched}, there is one additional
@@ -1543,15 +1599,15 @@ different detection methods, as a function of the color of the star.
 % by \cite{szalay1999}).
 
 
-
-
 %%% FIXME --
 \cite{szalay1999} in fact also suggest a method for detecting objects
-of a specific color that is similar but not identical to the approach
-we present here; they suggest projecting the multiple bands into
-subspaces and using their chi-squared approach in those subspaces,
-which means that the issues identified above still hold.
-
+of a specific color that is similar but not identical to the
+SED-matched approaches we present here; they suggest projecting the
+multiple bands into subspaces and using their chi-squared approach in
+those subspaces.  Since the projected values may still go negative and
+be accepted by the $\chi^2$ detector, we expect the issues
+demonstrated here to still hold for this modified method, though we
+have not investigated it in detail.
 
 
 \section{Experiments}
