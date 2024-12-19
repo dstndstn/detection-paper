@@ -4,22 +4,24 @@ matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
-import pylab as plt
-import numpy as np
-import fitsio
+import os
 import sys
 import time
-from astrometry.util.fits import *
+import pylab as plt
+import numpy as np
+from functools import reduce
+import fitsio
+from astrometry.util.fits import fits_table
 from astrometry.util.file import pickle_to_file, unpickle_from_file
 from astrometry.util.util import Tan
-from astrometry.util.plotutils import *
-from astrometry.util.starutil import *
-from astrometry.util.starutil_numpy import *
+from astrometry.util.plotutils import PlotSequence
+#from astrometry.util.starutil import *
+#from astrometry.util.starutil_numpy import *
 from astrometry.libkd.spherematch import match_xy, match_radec
 from collections import Counter
-from scipy.ndimage.filters import *
-from scipy.ndimage.measurements import label, find_objects
-from scipy.ndimage.morphology import binary_dilation, binary_fill_holes
+#from scipy.ndimage.filters import *
+from scipy.ndimage import label, find_objects
+from scipy.ndimage import binary_dilation, binary_fill_holes
 from scipy.special import erfc, logsumexp
 
 
@@ -235,13 +237,13 @@ def detect_sources(snmap, threshold):
         #    plt.imshow((blob_loc==(i+1))*sn_loc, interpolation='nearest', origin='lower')
         #    plt.subplot(2,2,3)
         #    plt.plot(x, y, 'ro')
-    return np.array(px),np.array(py)
+    return blobs, np.array(px),np.array(py)
 
 
 
 def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
                      wcs):
-    x,y = detect_sources(detect_sn, 100.)
+    _,x,y = detect_sources(detect_sn, 100.)
     sources = fits_table()
     sources.x = x
     sources.y = y
@@ -335,7 +337,7 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         else:
             snmap = np.maximum(snmap, s.snmap)
     for thresh in [30]: #10, 30, 100]:
-        x,y = detect_sources(snmap, thresh)
+        _,x,y = detect_sources(snmap, thresh)
         tsources = fits_table()
         tsources.x = x
         tsources.y = y
@@ -688,7 +690,7 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
         # Bayes took 276.118402 CPU-seconds
 
     sz = 20
-    bx,by = detect_sources(lprb, 2000)
+    _,bx,by = detect_sources(lprb, 2000)
     bsources = fits_table()
     bsources.x = bx
     bsources.y = by
@@ -715,9 +717,9 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     bsources_orig = bsources.copy()
     
     # g + r + i detections
-    xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
-    xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
-    xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
+    _,xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
+    _,xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
+    _,xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
     print('Detected', len(xg),len(xr),len(xi), 'gri')
     xm,ym = xg.copy(),yg.copy()
     for xx,yy in [(xr,yr),(xi,yi)]:
@@ -812,7 +814,7 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     #bsources = bsources_orig
     # Detect at a higher threshold to get ~2400 sources
     Bhot = binary_fill_holes(lprb > 4000.)
-    bx,by = detect_sources(lprb, 4000.)
+    _,bx,by = detect_sources(lprb, 4000.)
     bsources = fits_table()
     bsources.x = bx
     bsources.y = by
@@ -893,7 +895,7 @@ def galaxy_figs(sedlist, good, wcs, img):
     for s in sedlist:
         s.galsnmap = sedsn(gdetmaps, gdetivs, s.sed)
     yellow_gal = sedlist[1].galsnmap
-    x,y = detect_sources(yellow_gal, 100.)
+    _,x,y = detect_sources(yellow_gal, 100.)
     
     gals = fits_table()
     gals.x = x
@@ -965,8 +967,8 @@ def chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs):
     red_sed = [1., 2.5]
 
     # Detect on the single image
-    #c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 3.)
-    c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 4.5)
+    #_,c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 3.)
+    _,c3x,c3y = detect_sources(np.hypot(g_sn1, r_sn1), 4.5)
     keep = goodpix1[c3y, c3x]
     c3x = c3x[keep]
     c3y = c3y[keep]
@@ -1099,6 +1101,309 @@ def main():
     #galaxy_figs(sedlist, good, wcs, img)
 
     #bayes_figs(DES, detmaps, detivs, good, wcs, img)
-    
+
+def find_peaks(img, thresh, goodmap=None):
+    # peaks
+    # (we leave a margin of 1 pixel around the edges)
+    iy,ix = np.nonzero((img[1:-1, 1:-1] >= thresh) *
+                       (img[1:-1, 1:-1] > img[ :-2,  :-2]) *
+                       (img[1:-1, 1:-1] > img[ :-2, 1:-1]) *
+                       (img[1:-1, 1:-1] > img[ :-2, 2:  ]) *
+                       (img[1:-1, 1:-1] > img[1:-1,  :-2]) *
+                       (img[1:-1, 1:-1] > img[1:-1, 2:  ]) *
+                       (img[1:-1, 1:-1] > img[2:  ,  :-2]) *
+                       (img[1:-1, 1:-1] > img[2:  , 1:-1]) *
+                       (img[1:-1, 1:-1] > img[2:  , 2:  ]))
+    ix += 1
+    iy += 1
+    if goodmap is not None:
+        Igood = np.flatnonzero(goodmap[iy,ix])
+        ix,iy = ix[Igood], iy[Igood]
+    return ix, iy
+
+def chisq_detection_raw(detmaps, detivs, goodmap, thresh=25.):#, peaks=False):
+    chisq = 0.
+    for detmap, detiv in zip(detmaps, detivs):
+        sn = detmap * np.sqrt(detiv)
+        chisq = chisq + sn**2
+    #if not peaks:
+    #    blobs,x,y = detect_sources(chisq, thresh)
+    #else:
+    x,y = find_peaks(chisq, thresh, goodmap)
+    # return in sorted order (brightest first)
+    sval = chisq[y,x]
+    I = np.argsort(-sval)
+    x,y = x[I],y[I]
+    return x,y, chisq
+
+def chisq_detection_pos(detmaps, detivs, goodmap, thresh=25.):
+    chisq = 0.
+    for detmap, detiv in zip(detmaps, detivs):
+        sn = detmap * np.sqrt(detiv)
+        chisq = chisq + np.maximum(sn, 0)**2
+    x,y = find_peaks(chisq, thresh, goodmap)
+    # return in sorted order (brightest first)
+    sval = chisq[y,x]
+    I = np.argsort(-sval)
+    x,y = x[I],y[I]
+    return x,y, chisq
+
+def image_grid(x, y, rgb, s=15, Nmax=100):
+
+    H,W,three = rgb.shape
+    I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
+    x,y = x[I],y[I]
+
+    n = min(Nmax, len(x))
+    C = int(np.ceil(1.1 * np.sqrt(n)))
+    R = int(np.ceil(n / C))
+    if R*C < len(x):
+        print('Only showing', R*C, 'of', len(x), 'image cutouts')
+    plt.clf()
+    plt.subplots_adjust(hspace=0, wspace=0)
+    for i in range(len(x)):
+        if i >= R*C:
+            break
+        plt.subplot(R,C,1+i)
+        plt.imshow(rgb[y[i]-s:y[i]+s+1, x[i]-s:x[i]+s+1,:],
+                   interpolation='nearest', origin='lower')
+        plt.xticks([]); plt.yticks([])
+
+
+def new_main():
+    basedir = 'detection-paper-data/'
+    brickname = 'custom-036450m04600'
+    brick = brickname
+    bri = brickname[:3]
+
+    bands = ['g', 'r', 'i']
+
+    # g_det = fitsio.read(os.path.join(basedir, 'detmap-g.fits'))
+    # g_detiv = fitsio.read(os.path.join(basedir, 'detiv-g.fits'))
+    # r_det = fitsio.read(os.path.join(basedir, 'detmap-r.fits'))
+    # r_detiv = fitsio.read(os.path.join(basedir, 'detiv-r.fits'))
+    # i_det = fitsio.read(os.path.join(basedir, 'detmap-i.fits'))
+    # i_detiv = fitsio.read(os.path.join(basedir, 'detiv-i.fits'))
+    # detmaps_deep = [g_det, r_det, i_det]
+    # detivs_deep = [g_detiv, r_detiv, i_detiv]
+
+    g_det = fitsio.read(os.path.join(basedir, 'detmap-one-g.fits'))
+    g_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-g.fits'))
+    r_det = fitsio.read(os.path.join(basedir, 'detmap-one-r.fits'))
+    r_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-r.fits'))
+    i_det = fitsio.read(os.path.join(basedir, 'detmap-one-i.fits'))
+    i_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-i.fits'))
+
+    detmaps = [g_det, r_det, i_det]
+    detivs = [g_detiv, r_detiv, i_detiv]
+
+    #detmaps = [d[:500, :500] for d in detmaps]
+    #detivs  = [d[:500, :500] for d in detivs]
+
+    nco = [fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
+                                    'legacysurvey-%s-nexp-%s.fits.fz' % (brick, band)))
+           for band in bands]
+    goodmap = reduce(np.logical_and, [n>10 for n in nco])
+    print('Number of good pixels:', np.sum(goodmap))
+
+    fake_detmaps = [np.random.normal(size=d.shape) * 1/np.sqrt(iv) for d,iv in zip(detmaps, detivs)]
+
+    gco = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
+                        'legacysurvey-%s-image-g.fits.fz' % brick))
+    rco = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
+                       'legacysurvey-%s-image-r.fits.fz' % brick))
+    ico = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
+                       'legacysurvey-%s-image-i.fits.fz' % brick))
+    # stretch
+    s = 16
+    scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
+    rgb = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
+
+    # Confirm that they're ~Gaussian distributed
+    # plt.clf()
+    # for detmap,detiv,band in zip(detmaps, detivs, bands):
+    #     plt.hist((detmap * np.sqrt(detiv))[detiv > 0], range=(-5, +5), bins=40, histtype='step', label=band)
+    # for detmap,detiv,band in zip(fake_detmaps, detivs, bands):
+    #     plt.hist((detmap * np.sqrt(detiv))[detiv > 0], range=(-5, +5), bins=40, histtype='step', label='Fake ' + band)
+    # plt.xlabel('Detection map S/N')
+    # plt.ylabel('Number of pixels')
+    # plt.legend()
+    # plt.savefig('detsn.png')
+
+    # Peak-based detection gives better looking results
+    # blobs, x, y, chisq = chisq_detection_raw(detmaps, detivs)
+    # Igood = np.flatnonzero(goodmap[y,x])
+    # print('Chi-squared method: found', len(x), 'sources in', len(np.unique(blobs))-1, 'blobs,', len(Igood), 'with good N exposures')
+    # x,y = x[Igood], y[Igood]
+    # sval = chisq[y,x]
+    # I = np.argsort(-sval)
+    # x,y = x[I],y[I]
+    # plt.clf()
+    # plt.imshow(chisq, interpolation='nearest', origin='lower', cmap='gray',
+    #            vmin=0, vmax=100)
+    # plt.colorbar()
+    # plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    # plt.savefig('chisq-det.png')
+
+    from chi_squared_experiment import chisq_pos_isf
+    import scipy
+
+    g = scipy.stats.norm()
+    g_sigma = 5.
+    falsepos_rate = g.sf(g_sigma)
+    print('Gaussian %.3f sigma survival function:' % g_sigma, falsepos_rate)
+    n_bands = len(bands)
+    ch = scipy.stats.chi2(n_bands)
+    chi2_thresh = ch.isf(falsepos_rate)
+    print('Chi2 thresh:', chi2_thresh)
+    ch1 = scipy.stats.chi2(1)
+    chi2_pos_thresh = chisq_pos_isf(n_bands, falsepos_rate)
+    print('Chi2-pos thresh:', chi2_pos_thresh)
+
+    x, y, chisq = chisq_detection_raw(fake_detmaps, detivs, goodmap,
+                                      thresh=chi2_thresh)
+    print('Chi-squared method: found', len(x), 'sources in fake data')
+
+    x, y, chisq = chisq_detection_pos(fake_detmaps, detivs, goodmap,
+                                      thresh=chi2_pos_thresh)
+    print('Chi-squared-pos method: found', len(x), 'sources in fake data')
+
+    x, y, chisq = chisq_detection_raw(detmaps, detivs, goodmap,
+                                      thresh=chi2_thresh)
+    print('Chi-squared method: found', len(x), 'sources')
+    chi_x,chi_y = x.copy(),y.copy()
+    chi_map = chisq.copy()
+
+    H,W = chisq.shape
+
+    # rgb = plt.imread(os.path.join(basedir, 'coadd', bri, brick,
+    #                               'legacysurvey-%s-image.jpg' % brick))
+    # rgb = np.flipud(rgb)
+
+    # Cut not near edges
+    # Cut to sources in 500x500 subimage
+    subH,subW = 500,500
+    #subslice = slice(0, subH), slice(0, subW)
+    s=15
+    I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
+    x = x[I]
+    y = y[I]
+    print('Showing', len(x), 'in subimage')
+    subslice = slice(0, subH), slice(0, subW)
+    #subrgb = rgb[0:subH, 0:subW, :]
+    ax = [s, subW-s, s, subH-s]
+
+    plt.clf()
+    plt.imshow(chisq[subslice] * goodmap[subslice],
+               interpolation='nearest', origin='lower', cmap='gray',
+               vmin=0, vmax=chi2_thresh*2)
+    plt.colorbar()
+    plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    plt.axis(ax)
+    plt.title('Chisq peaks')
+    plt.savefig('chisq-peaks.png')
+
+    image_grid(x, y, rgb)
+    plt.suptitle('Chi-squared detections')
+    plt.savefig('chisq-images.png')
+
+    x, y, chisq = chisq_detection_pos(detmaps, detivs, goodmap,
+                                      thresh=chi2_pos_thresh)
+    print('Chi-squared-pos method: found', len(x), 'sources')
+    chi_pos_x,chi_pos_y = x.copy(),y.copy()
+    chi_pos_map = chisq.copy()
+
+    I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
+    x,y = x[I],y[I]
+    print('Showing', len(x), 'in subimage')
+
+    plt.clf()
+    plt.imshow(chisq[subslice] * goodmap[subslice],
+               interpolation='nearest', origin='lower', cmap='gray',
+               vmin=0, vmax=chi2_pos_thresh*2)
+    plt.colorbar()
+    plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    plt.axis(ax)
+    plt.title('Chisq-pos peaks')
+    plt.savefig('chisq-pos-peaks.png')
+
+    image_grid(x, y, rgb)
+    plt.suptitle('Chi-squared-pos detections')
+    plt.savefig('chisq-pos-images.png')
+
+
+    # sedlist = [
+    #     SED('Blue',   'c',      'D', colorsed(0., 0.)),
+    #     SED('Yellow', 'orange', 'o', colorsed(1., 0.3)),
+    #     SED('Red',    'r',      's', colorsed(1.5, 1.)),
+    #     SED('g-only', 'g',      '^', np.array([1., 0., 0.])),
+    #     SED('r-only', 'pink',   'v', np.array([0., 1., 0.])),
+    #     SED('i-only', 'm',      '*', np.array([0., 0., 1.])),
+    # ]
+    # for s in sedlist:
+    #     print('%8s' % s.name, '   '.join(['%6.3f' % x for x in s.sed]))
+    # for s in sedlist:
+    #     s.snmap = sedsn(detmaps, detivs, s.sed)
+
+    from astrometry.libkd.spherematch import match_xy
+
+    I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 10)
+
+    plt.clf()
+    plt.hist(d)
+    plt.xlabel('Match distance (pixels)')
+    plt.ylabel('Number of matches')
+    plt.savefig('chi-match.png')
+
+    I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
+
+    print(len(I), 'chi and', len(J), 'chi-pos sources matched within 2 pix')
+    print(len(np.unique(I)), 'chi unique and', len(np.unique(J)), 'chi-pos unique')
+
+    U = np.ones(len(chi_x), bool)
+    U[I] = False
+    K = np.flatnonzero(U)
+    print(len(K), 'unmatched chisq detections')
+
+    V = np.ones(len(chi_pos_x), bool)
+    V[J] = False
+    L = np.flatnonzero(V)
+    print(len(L), 'unmatched chi+ detections')
+
+    Nmax = 200
+    x,y = chi_x[K], chi_y[K]
+    image_grid(x, y, rgb)
+    plt.suptitle('Chi-squared detections not in chi-pos')
+    plt.savefig('chisq-not-chipos-images.png')
+
+    x,y = chi_pos_x[L], chi_pos_y[L]
+    image_grid(x, y, rgb)
+    plt.suptitle('Chi-pos detections not in chi-squared')
+    plt.savefig('chipos-not-chisq-images.png')
+
+    plt.clf()
+    ha = dict(histtype='step', range=(0, chi2_pos_thresh*2), bins=40, log=True)
+    plt.hist(chi_pos_map[chi_pos_y, chi_pos_x], label='Chi+ detections', **ha)
+    plt.hist(chi_pos_map[chi_y[I], chi_x[I]], label='Chi detections', **ha)
+    plt.hist(chi_pos_map[chi_y[U], chi_x[U]], label='Chi-only detections', **ha)
+    plt.hist(chi_pos_map[chi_pos_y[V], chi_pos_x[V]], label='Chi+-only detections',
+             **ha)
+    plt.xlabel('Value in chi+ map')
+    plt.ylabel('Number of detections')
+    plt.legend(loc='upper left')
+    plt.savefig('chipos-vals.png')
+
+    plt.clf()
+    ha = dict(histtype='step', range=(0, chi2_thresh*2), bins=40, log=True)
+    plt.hist(chi_map[chi_pos_y, chi_pos_x], label='Chi+ detections', **ha)
+    plt.hist(chi_map[chi_y[I], chi_x[I]], label='Chi detections', **ha)
+    plt.hist(chi_map[chi_y[U], chi_x[U]], label='Chi-only detections', **ha)
+    plt.hist(chi_map[chi_pos_y[V], chi_pos_x[V]], label='Chi+-only detections', **ha)
+    plt.xlabel('Value in chisq map')
+    plt.ylabel('Number of detections')
+    plt.legend(loc='upper left')
+    plt.savefig('chisq-vals.png')
+
 if __name__ == '__main__':
-    main()
+    new_main()
+    #main()

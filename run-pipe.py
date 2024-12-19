@@ -1,3 +1,4 @@
+
 from __future__ import print_function
 import os
 import numpy as np
@@ -8,7 +9,11 @@ from astrometry.util.stages import CallGlobalTime, runstage
 
 from legacypipe.detection import _detmap
 
-def detection_maps(tims, targetwcs, bands, mp):
+def detection_maps(tims, targetwcs, bands, mp, minmax=True):
+    '''
+    minmax: remove the min and max images in the coadd?
+    '''
+
     # Render the per-band detection maps
     H,W = targetwcs.shape
     ibands = dict([(b,i) for i,b in enumerate(bands)])
@@ -17,43 +22,47 @@ def detection_maps(tims, targetwcs, bands, mp):
     detivs  = [np.zeros((H,W), np.float32) for b in bands]
     satmaps = [np.zeros((H,W), bool)       for b in bands]
 
-    # default_max = -1e12
-    # default_min = +1e12
-    maxdetmaps = [np.empty((H,W), np.float32) for b in bands]
-    maxdetivs  = [np.zeros((H,W), np.float32) for b in bands]
-    mindetmaps = [np.empty((H,W), np.float32) for b in bands]
-    mindetivs  = [np.zeros((H,W), np.float32) for b in bands]
-    # for d in maxdetmaps:
-    #     d[:,:] = default_max
-    # for d in mindetmaps:
-    #     d[:,:] = default_min
-    
-    for tim, (Yo,Xo,incmap,inciv,sat) in zip(
-        tims, mp.map(_detmap, [(tim, targetwcs, H, W) for tim in tims])):
+    if minmax:
+        maxdetmaps = [np.empty((H,W), np.float32) for b in bands]
+        maxdetivs  = [np.empty((H,W), np.float32) for b in bands]
+        mindetmaps = [np.empty((H,W), np.float32) for b in bands]
+        mindetivs  = [np.empty((H,W), np.float32) for b in bands]
+        default_max = -1e12
+        default_min = +1e12
+        for d in maxdetmaps:
+            d[:,:] = default_max
+        for d in mindetmaps:
+            d[:,:] = default_min
+
+    apodize = 10
+    for tim, (band, Yo, Xo, incmap, inciv, sat) in zip(
+        tims, mp.map(_detmap, [(tim, targetwcs, apodize) for tim in tims])):
         if Yo is None:
             continue
         ib = ibands[tim.band]
 
-        # Keep track of the min & max values going into the coadd
-        Kmax = np.flatnonzero(incmap > maxdetmaps[ib][Yo,Xo])
-        if len(Kmax):
-            maxdetmaps[ib][Yo[Kmax],Xo[Kmax]] = incmap[Kmax]
-            maxdetivs [ib][Yo[Kmax],Xo[Kmax]] = inciv [Kmax]
-        Kmin = np.flatnonzero(incmap < mindetmaps[ib][Yo,Xo])
-        if len(Kmin):
-            mindetmaps[ib][Yo[Kmin],Xo[Kmin]] = incmap[Kmin]
-            mindetivs [ib][Yo[Kmin],Xo[Kmin]] = inciv [Kmin]
-        
+        if minmax:
+            # Keep track of the min & max values going into the coadd
+            Kmax = np.flatnonzero(incmap > maxdetmaps[ib][Yo,Xo])
+            if len(Kmax):
+                maxdetmaps[ib][Yo[Kmax],Xo[Kmax]] = incmap[Kmax]
+                maxdetivs [ib][Yo[Kmax],Xo[Kmax]] = inciv [Kmax]
+            Kmin = np.flatnonzero(incmap < mindetmaps[ib][Yo,Xo])
+            if len(Kmin):
+                mindetmaps[ib][Yo[Kmin],Xo[Kmin]] = incmap[Kmin]
+                mindetivs [ib][Yo[Kmin],Xo[Kmin]] = inciv [Kmin]
+
         detmaps[ib][Yo,Xo] += incmap * inciv
         detivs [ib][Yo,Xo] += inciv
         if sat is not None:
             satmaps[ib][Yo,Xo] |= sat
 
-    # Subtract off the min & max.
-    for detmap,detiv,minmap,miniv,maxmap,maxiv in zip(detmaps, detivs, mindetmaps, mindetivs, maxdetmaps, maxdetivs):
-        detmap -= (minmap * miniv + maxmap * maxiv)
-        detiv  -= (miniv + maxiv)
-            
+    if minmax:
+        # Subtract off the min & max.
+        for detmap,detiv,minmap,miniv,maxmap,maxiv in zip(detmaps, detivs, mindetmaps, mindetivs, maxdetmaps, maxdetivs):
+            detmap -= (minmap * miniv + maxmap * maxiv)
+            detiv  -= (miniv + maxiv)
+
     for detmap,detiv in zip(detmaps, detivs):
         detmap /= np.maximum(1e-16, detiv)
     return detmaps, detivs, satmaps
@@ -68,12 +77,27 @@ def stage_detect(targetrd=None, pixscale=None, targetwcs=None,
                  **kwargs):
     #from legacypipe.detection import (detection_maps, sed_matched_filters,
     #                    run_sed_matched_filters, segment_and_group_sources)
-    from scipy.ndimage.morphology import binary_dilation
-    from scipy.ndimage.measurements import label, find_objects, center_of_mass
+    from scipy.ndimage import binary_dilation
+    from scipy.ndimage import label, find_objects, center_of_mass
 
+    # Also compute a single exposure per band
+    print('Computing single-exposure detection maps...')
+    # One each in g,r,i with good seeing
+    good_expnums = [563982, 569613, 567442]
+    onetims = [tim for tim in tims if tim.imobj.expnum in good_expnums]
+    detmaps, detivs, satmap = detection_maps(onetims, targetwcs, bands, mp,
+                                             minmax=False)
+    for i,band in enumerate(bands):
+        fn = os.path.join(survey.output_dir, 'detmap-one-%s.fits' % band)
+        fitsio.write(fn, detmaps[i].astype(np.float32), clobber=True)
+        print('Wrote', fn)
+        fn = os.path.join(survey.output_dir, 'detiv-one-%s.fits' % band)
+        fitsio.write(fn, detivs[i].astype(np.float32), clobber=True)
+        print('Wrote', fn)
+
+    # Compute the coadded detection maps
     print('Computing detection maps...')
     detmaps, detivs, satmap = detection_maps(tims, targetwcs, bands, mp)
-
     for i,band in enumerate(bands):
         fn = os.path.join(survey.output_dir, 'detmap-%s.fits' % band)
         fitsio.write(fn, detmaps[i].astype(np.float32), clobber=True)
@@ -210,6 +234,18 @@ def main():
     optdict = vars(opt)
     verbose = optdict.pop('verbose')
 
+    if verbose == 0:
+        lvl = logging.INFO
+    else:
+        lvl = logging.DEBUG
+    logging.basicConfig(level=lvl, format='%(message)s', stream=sys.stdout)
+    # tractor logging is *soooo* chatty
+    logging.getLogger('tractor.engine').setLevel(lvl + 10)
+    # silence "findfont: score(<Font 'DejaVu Sans Mono' ...)" messages
+    logging.getLogger('matplotlib.font_manager').disabled = True
+    # route warnings through the logging system
+    logging.captureWarnings(True)
+
     survey, kwargs = get_runbrick_kwargs(**optdict)
     if kwargs in [-1,0]:
         return kwargs
@@ -217,7 +253,8 @@ def main():
     #kwargs.update(prereqs_update={'detect': 'mask_junk',
     #                              'galdetect': 'mask_junk'})
 
-    kwargs.update(prereqs_update={'detect': 'tims'})
+    #kwargs.update(prereqs_update={'detect': 'tims'})
+    kwargs.update(prereqs_update={'detect': 'outliers'})
     
     stagefunc = CallGlobalTime('stage_%s', globals())
     kwargs.update(stagefunc=stagefunc)
