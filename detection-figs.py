@@ -9,6 +9,7 @@ import sys
 import time
 import pylab as plt
 import numpy as np
+import scipy
 from functools import reduce
 import fitsio
 from astrometry.util.fits import fits_table
@@ -1105,17 +1106,26 @@ def main():
 def find_peaks(img, thresh, goodmap=None):
     # peaks
     # (we leave a margin of 1 pixel around the edges)
-    iy,ix = np.nonzero((img[1:-1, 1:-1] >= thresh) *
-                       (img[1:-1, 1:-1] > img[ :-2,  :-2]) *
-                       (img[1:-1, 1:-1] > img[ :-2, 1:-1]) *
-                       (img[1:-1, 1:-1] > img[ :-2, 2:  ]) *
-                       (img[1:-1, 1:-1] > img[1:-1,  :-2]) *
-                       (img[1:-1, 1:-1] > img[1:-1, 2:  ]) *
-                       (img[1:-1, 1:-1] > img[2:  ,  :-2]) *
-                       (img[1:-1, 1:-1] > img[2:  , 1:-1]) *
-                       (img[1:-1, 1:-1] > img[2:  , 2:  ]))
-    ix += 1
-    iy += 1
+
+    # iy,ix = np.nonzero((img[1:-1, 1:-1] >= thresh) *
+    #                    (img[1:-1, 1:-1] > img[ :-2,  :-2]) *
+    #                    (img[1:-1, 1:-1] > img[ :-2, 1:-1]) *
+    #                    (img[1:-1, 1:-1] > img[ :-2, 2:  ]) *
+    #                    (img[1:-1, 1:-1] > img[1:-1,  :-2]) *
+    #                    (img[1:-1, 1:-1] > img[1:-1, 2:  ]) *
+    #                    (img[1:-1, 1:-1] > img[2:  ,  :-2]) *
+    #                    (img[1:-1, 1:-1] > img[2:  , 1:-1]) *
+    #                    (img[1:-1, 1:-1] > img[2:  , 2:  ]))
+    #ix += 1
+    #iy += 1
+
+    iy,ix = np.nonzero((img >= thresh) *
+                       (img >= scipy.ndimage.maximum_filter(img, 5)))
+    #H,W = img.shape
+    #K = np.flatnonzero((ix >= 2) * (iy >= 2) * (ix < W-2) * (iy < H-2))
+    #iy = iy[K]
+    #ix = ix[K]
+
     if goodmap is not None:
         Igood = np.flatnonzero(goodmap[iy,ix])
         ix,iy = ix[Igood], iy[Igood]
@@ -1171,17 +1181,25 @@ def sed_union_detection(seds, goodmap, thresh=5.):
 
 
 
-def image_grid(x, y, rgb, s=15, Nmax=100):
+def image_grid(x, y, rgb, s=15, Nmax=100, first_and_last=True):
 
     H,W,three = rgb.shape
     I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
     x,y = x[I],y[I]
 
     n = min(Nmax, len(x))
-    C = int(np.ceil(1.1 * np.sqrt(n)))
+    C = int(np.ceil(1.0 * np.sqrt(n)))
     R = int(np.ceil(n / C))
     if R*C < len(x):
         print('Only showing', R*C, 'of', len(x), 'image cutouts')
+
+        if first_and_last:
+            R2 = R - R//2
+            I = np.hstack((np.arange(C * R//2),
+                           np.arange(len(x) - C*R2, len(x))))
+            x = x[I]
+            y = y[I]
+
     plt.clf()
     plt.subplots_adjust(hspace=0, wspace=0)
     for i in range(len(x)):
@@ -1305,59 +1323,62 @@ def new_main():
     # Blue, Yellow, Red, i-only
     union_seds = sedlist[:3] + [sedlist[-1]]
 
-    n_fakes = 10
-    big_fake_detmaps = []
-    for i in range(n_fakes):
-        fakes = []
-        for iv in detivs:
-            with np.errstate(divide='ignore'):
-                r = np.random.normal(size=iv.shape) / np.sqrt(iv)
-            r[iv <= 0] = 0.
-            fakes.append(r)
-        big_fake_detmaps.append(fakes)
-    del fakes
-    del r
-
-    # def union_false_pos_rate(thresh, big_fake_detmaps, detivs, goodmap, union_seds):
-    #     n_det = 0
-    #     n_pix = len(big_fake_detmaps) * np.sum(goodmap)
-    #     for fdm in big_fake_detmaps:
-    #         for s in union_seds:
-    #             s.snmap = sedsn(fdm, detivs, s.sed)
-    #         x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
-    #         n_det += len(x)
-    #         del maxsn
-    #     print('threshold', thresh, 'false pos:', n_det, '-> rate', n_det/n_pix)
-    #     return n_det / n_pix
-    # # Find threshold
-    # X = scipy.optimize.root_scalar(
-    #     lambda th: union_false_pos_rate(th, big_fake_detmaps, detivs, goodmap,
-    #                                     union_seds) - falsepos_rate,
-    #     method='bisect', bracket=(g_sigma, g_sigma*2.))
-    # print('SED(union) Thresh:', X)
-    # assert(X.converged)
-    # sed_union_thresh = X.root
-
-    target_det = falsepos_rate * n_fakes * np.sum(goodmap)
-    target_det = int(np.floor(target_det))
-    print('Aiming for', target_det, 'false positive detections -> rate', target_det / (n_fakes * np.sum(goodmap)))
-
-    thresh = g_sigma
-    all_snvals = []
-    for fdm in big_fake_detmaps:
-        for s in union_seds:
-            s.snmap = sedsn(fdm, detivs, s.sed)
-        x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
-        snvals = maxsn[y, x]
-        all_snvals.append(snvals)
-    all_snvals = np.hstack(all_snvals)
-    all_snvals.sort()
-    print('Thresholds:', all_snvals[target_det-1:target_det+2])
-    # Could interpolate...
-    sed_union_thresh = all_snvals[target_det]
-    print('Threshold:', sed_union_thresh)
-
-    del big_fake_detmaps
+    if True:
+        sed_union_thresh = 5.1
+    else:
+        n_fakes = 10
+        big_fake_detmaps = []
+        for i in range(n_fakes):
+            fakes = []
+            for iv in detivs:
+                with np.errstate(divide='ignore'):
+                    r = np.random.normal(size=iv.shape) / np.sqrt(iv)
+                r[iv <= 0] = 0.
+                fakes.append(r)
+            big_fake_detmaps.append(fakes)
+        del fakes
+        del r
+    
+        # def union_false_pos_rate(thresh, big_fake_detmaps, detivs, goodmap, union_seds):
+        #     n_det = 0
+        #     n_pix = len(big_fake_detmaps) * np.sum(goodmap)
+        #     for fdm in big_fake_detmaps:
+        #         for s in union_seds:
+        #             s.snmap = sedsn(fdm, detivs, s.sed)
+        #         x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
+        #         n_det += len(x)
+        #         del maxsn
+        #     print('threshold', thresh, 'false pos:', n_det, '-> rate', n_det/n_pix)
+        #     return n_det / n_pix
+        # # Find threshold
+        # X = scipy.optimize.root_scalar(
+        #     lambda th: union_false_pos_rate(th, big_fake_detmaps, detivs, goodmap,
+        #                                     union_seds) - falsepos_rate,
+        #     method='bisect', bracket=(g_sigma, g_sigma*2.))
+        # print('SED(union) Thresh:', X)
+        # assert(X.converged)
+        # sed_union_thresh = X.root
+    
+        target_det = falsepos_rate * n_fakes * np.sum(goodmap)
+        target_det = int(np.floor(target_det))
+        print('Aiming for', target_det, 'false positive detections -> rate', target_det / (n_fakes * np.sum(goodmap)))
+    
+        thresh = g_sigma
+        all_snvals = []
+        for fdm in big_fake_detmaps:
+            for s in union_seds:
+                s.snmap = sedsn(fdm, detivs, s.sed)
+            x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
+            snvals = maxsn[y, x]
+            all_snvals.append(snvals)
+        all_snvals = np.hstack(all_snvals)
+        all_snvals.sort()
+        print('Thresholds:', all_snvals[target_det-1:target_det+2])
+        # Could interpolate...
+        sed_union_thresh = all_snvals[target_det]
+        print('Threshold:', sed_union_thresh)
+    
+        del big_fake_detmaps
 
     # Compute SED S/Ns for fake data!
     for s in union_seds:
@@ -1467,9 +1488,11 @@ def new_main():
     plt.savefig('chi-match.png')
 
 
-    for a_name,a_x,a_y, b_name,b_x,b_y in [
-        ('chisq', chi_x, chi_y, 'chipos', chi_pos_x, chi_pos_y),
-        ('chipos', chi_pos_x, chi_pos_y, 'sed-union', union_x, union_y),
+    for a_name,a_x,a_y,a_map, b_name,b_x,b_y,b_map in [
+        ('chisq', chi_x, chi_y, chi_map,
+         'chipos', chi_pos_x, chi_pos_y, chi_pos_map),
+        ('chipos', chi_pos_x, chi_pos_y, chi_pos_map,
+         'sed-union', union_x, union_y, union_map),
         ]:
 
         I,J,d = match_xy(a_x, a_y, b_x, b_y, 2)
@@ -1490,11 +1513,15 @@ def new_main():
 
         Nmax = 200
         x,y = a_x[K], a_y[K]
+        I = np.argsort(-a_map[y, x])
+        x,y = x[I],y[I]
         image_grid(x, y, rgb)
         plt.suptitle('%s detections not in %s' % (a_name, b_name))
         plt.savefig('unmatched-%s-%s.png' % (a_name, b_name))
 
         x,y = b_x[L], b_y[L]
+        I = np.argsort(-b_map[y, x])
+        x,y = x[I],y[I]
         image_grid(x, y, rgb)
         plt.suptitle('%s detections not in %s' % (b_name, a_name))
         plt.savefig('unmatched-%s-%s.png' % (b_name, a_name))
