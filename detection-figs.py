@@ -1148,6 +1148,29 @@ def chisq_detection_pos(detmaps, detivs, goodmap, thresh=25.):
     x,y = x[I],y[I]
     return x,y, chisq
 
+def sed_union_detection(seds, goodmap, thresh=5.):
+    maxsn = 0.
+    for sed in seds:
+        sn = sed.snmap
+        maxsn = np.maximum(maxsn, sn)
+    x,y = find_peaks(maxsn, thresh, goodmap)
+    # return in sorted order (brightest first)
+    sval = maxsn[y,x]
+    I = np.argsort(-sval)
+    x,y = x[I],y[I]
+    return x,y, maxsn
+
+# def sed_union_threshold(seds, falsepos_rate):
+#     x = x.reshape(pbg.shape)
+#     # Find threshold
+#     X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
+#                                    method='bisect', bracket=(0, 1e10))
+#     print('SED(union) Thresh:', X)
+#     assert(X.converged)
+#     return X.root
+
+
+
 def image_grid(x, y, rgb, s=15, Nmax=100):
 
     H,W,three = rgb.shape
@@ -1206,7 +1229,13 @@ def new_main():
     goodmap = reduce(np.logical_and, [n>10 for n in nco])
     print('Number of good pixels:', np.sum(goodmap))
 
-    fake_detmaps = [np.random.normal(size=d.shape) * 1/np.sqrt(iv) for d,iv in zip(detmaps, detivs)]
+    #fake_detmaps = [np.random.normal(size=d.shape) * 1/np.sqrt(iv) for d,iv in zip(detmaps, detivs)]
+    fake_detmaps = []
+    for iv in detivs:
+        with np.errstate(divide='ignore'):
+            r = np.random.normal(size=iv.shape) / np.sqrt(iv)
+        r[iv <= 0] = 0.
+        fake_detmaps.append(r)
 
     gco = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
                         'legacysurvey-%s-image-g.fits.fz' % brick))
@@ -1260,6 +1289,85 @@ def new_main():
     chi2_pos_thresh = chisq_pos_isf(n_bands, falsepos_rate)
     print('Chi2-pos thresh:', chi2_pos_thresh)
 
+    sedlist = [
+        SED('Blue',   'c',      'D', colorsed(0., 0.)),
+        SED('Yellow', 'orange', 'o', colorsed(1., 0.3)),
+        SED('Red',    'r',      's', colorsed(1.5, 1.)),
+        SED('g-only', 'g',      '^', np.array([1., 0., 0.])),
+        SED('r-only', 'pink',   'v', np.array([0., 1., 0.])),
+        SED('i-only', 'm',      '*', np.array([0., 0., 1.])),
+    ]
+    for s in sedlist:
+        print('%8s' % s.name, '   '.join(['%6.3f' % x for x in s.sed]))
+    #for s in sedlist:
+    #    s.snmap = sedsn(detmaps, detivs, s.sed)
+
+    # Blue, Yellow, Red, i-only
+    union_seds = sedlist[:3] + [sedlist[-1]]
+
+    n_fakes = 10
+    big_fake_detmaps = []
+    for i in range(n_fakes):
+        fakes = []
+        for iv in detivs:
+            with np.errstate(divide='ignore'):
+                r = np.random.normal(size=iv.shape) / np.sqrt(iv)
+            r[iv <= 0] = 0.
+            fakes.append(r)
+        big_fake_detmaps.append(fakes)
+    del fakes
+    del r
+
+    # def union_false_pos_rate(thresh, big_fake_detmaps, detivs, goodmap, union_seds):
+    #     n_det = 0
+    #     n_pix = len(big_fake_detmaps) * np.sum(goodmap)
+    #     for fdm in big_fake_detmaps:
+    #         for s in union_seds:
+    #             s.snmap = sedsn(fdm, detivs, s.sed)
+    #         x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
+    #         n_det += len(x)
+    #         del maxsn
+    #     print('threshold', thresh, 'false pos:', n_det, '-> rate', n_det/n_pix)
+    #     return n_det / n_pix
+    # # Find threshold
+    # X = scipy.optimize.root_scalar(
+    #     lambda th: union_false_pos_rate(th, big_fake_detmaps, detivs, goodmap,
+    #                                     union_seds) - falsepos_rate,
+    #     method='bisect', bracket=(g_sigma, g_sigma*2.))
+    # print('SED(union) Thresh:', X)
+    # assert(X.converged)
+    # sed_union_thresh = X.root
+
+    target_det = falsepos_rate * n_fakes * np.sum(goodmap)
+    target_det = int(np.floor(target_det))
+    print('Aiming for', target_det, 'false positive detections -> rate', target_det / (n_fakes * np.sum(goodmap)))
+
+    thresh = g_sigma
+    all_snvals = []
+    for fdm in big_fake_detmaps:
+        for s in union_seds:
+            s.snmap = sedsn(fdm, detivs, s.sed)
+        x,y,maxsn = sed_union_detection(union_seds, goodmap, thresh)
+        snvals = maxsn[y, x]
+        all_snvals.append(snvals)
+    all_snvals = np.hstack(all_snvals)
+    all_snvals.sort()
+    print('Thresholds:', all_snvals[target_det-1:target_det+2])
+    # Could interpolate...
+    sed_union_thresh = all_snvals[target_det]
+    print('Threshold:', sed_union_thresh)
+
+    del big_fake_detmaps
+
+    # Compute SED S/Ns for fake data!
+    for s in union_seds:
+        s.snmap = sedsn(fake_detmaps, detivs, s.sed)
+    x, y, usn = sed_union_detection(union_seds, goodmap, sed_union_thresh)
+    print('Union SED method: found', len(x), 'sources in fake data')
+    # Compute SED S/Ns for real data!
+    for s in union_seds:
+        s.snmap = sedsn(detmaps, detivs, s.sed)
+
     x, y, chisq = chisq_detection_raw(fake_detmaps, detivs, goodmap,
                                       thresh=chi2_thresh)
     print('Chi-squared method: found', len(x), 'sources in fake data')
@@ -1268,31 +1376,48 @@ def new_main():
                                       thresh=chi2_pos_thresh)
     print('Chi-squared-pos method: found', len(x), 'sources in fake data')
 
+
+
+    H,W = detmaps[0].shape
+    # Cut to sources in 500x500 subimage
+    subH,subW = 500,500
+    subslice = slice(0, subH), slice(0, subW)
+    #subrgb = rgb[0:subH, 0:subW, :]
+    s = 15
+    ax = [s, subW-s, s, subH-s]
+
+    x, y, usn = sed_union_detection(union_seds, goodmap, sed_union_thresh)
+    print('Union SED method: found', len(x), 'sources')
+    union_x,union_y = x.copy(),y.copy()
+    union_map = usn.copy()
+
+    I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
+    x,y = x[I],y[I]
+    print('Showing', len(x), 'in subimage')
+    plt.clf()
+    plt.imshow(union_map[subslice] * goodmap[subslice],
+               interpolation='nearest', origin='lower', cmap='gray',
+               vmin=0, vmax=sed_union_thresh*2)
+    plt.colorbar()
+    plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    plt.axis(ax)
+    plt.title('SED Union peaks')
+    plt.savefig('sed-union-peaks.png')
+
+    image_grid(x, y, rgb)
+    plt.suptitle('SED Union detections')
+    plt.savefig('sed-union-images.png')
+
+
     x, y, chisq = chisq_detection_raw(detmaps, detivs, goodmap,
                                       thresh=chi2_thresh)
     print('Chi-squared method: found', len(x), 'sources')
     chi_x,chi_y = x.copy(),y.copy()
     chi_map = chisq.copy()
 
-    H,W = chisq.shape
-
-    # rgb = plt.imread(os.path.join(basedir, 'coadd', bri, brick,
-    #                               'legacysurvey-%s-image.jpg' % brick))
-    # rgb = np.flipud(rgb)
-
-    # Cut not near edges
-    # Cut to sources in 500x500 subimage
-    subH,subW = 500,500
-    #subslice = slice(0, subH), slice(0, subW)
-    s=15
     I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
-    x = x[I]
-    y = y[I]
+    x,y = x[I],y[I]
     print('Showing', len(x), 'in subimage')
-    subslice = slice(0, subH), slice(0, subW)
-    #subrgb = rgb[0:subH, 0:subW, :]
-    ax = [s, subW-s, s, subH-s]
-
     plt.clf()
     plt.imshow(chisq[subslice] * goodmap[subslice],
                interpolation='nearest', origin='lower', cmap='gray',
@@ -1331,20 +1456,6 @@ def new_main():
     plt.suptitle('Chi-squared-pos detections')
     plt.savefig('chisq-pos-images.png')
 
-
-    # sedlist = [
-    #     SED('Blue',   'c',      'D', colorsed(0., 0.)),
-    #     SED('Yellow', 'orange', 'o', colorsed(1., 0.3)),
-    #     SED('Red',    'r',      's', colorsed(1.5, 1.)),
-    #     SED('g-only', 'g',      '^', np.array([1., 0., 0.])),
-    #     SED('r-only', 'pink',   'v', np.array([0., 1., 0.])),
-    #     SED('i-only', 'm',      '*', np.array([0., 0., 1.])),
-    # ]
-    # for s in sedlist:
-    #     print('%8s' % s.name, '   '.join(['%6.3f' % x for x in s.sed]))
-    # for s in sedlist:
-    #     s.snmap = sedsn(detmaps, detivs, s.sed)
-
     from astrometry.libkd.spherematch import match_xy
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 10)
@@ -1355,32 +1466,47 @@ def new_main():
     plt.ylabel('Number of matches')
     plt.savefig('chi-match.png')
 
+
+    for a_name,a_x,a_y, b_name,b_x,b_y in [
+        ('chisq', chi_x, chi_y, 'chipos', chi_pos_x, chi_pos_y),
+        ('chipos', chi_pos_x, chi_pos_y, 'sed-union', union_x, union_y),
+        ]:
+
+        I,J,d = match_xy(a_x, a_y, b_x, b_y, 2)
+
+        print(len(I), a_name, 'and', len(J), b_name, 'sources matched within 2 pix')
+        print(len(np.unique(I)), a_name, 'unique and',
+              len(np.unique(J)), b_name, 'unique')
+
+        U = np.ones(len(a_x), bool)
+        U[I] = False
+        K = np.flatnonzero(U)
+        print(len(K), 'unmatched', a_name, 'detections')
+
+        V = np.ones(len(b_x), bool)
+        V[J] = False
+        L = np.flatnonzero(V)
+        print(len(L), 'unmatched', b_name, 'detections')
+
+        Nmax = 200
+        x,y = a_x[K], a_y[K]
+        image_grid(x, y, rgb)
+        plt.suptitle('%s detections not in %s' % (a_name, b_name))
+        plt.savefig('unmatched-%s-%s.png' % (a_name, b_name))
+
+        x,y = b_x[L], b_y[L]
+        image_grid(x, y, rgb)
+        plt.suptitle('%s detections not in %s' % (b_name, a_name))
+        plt.savefig('unmatched-%s-%s.png' % (b_name, a_name))
+
+
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
-
-    print(len(I), 'chi and', len(J), 'chi-pos sources matched within 2 pix')
-    print(len(np.unique(I)), 'chi unique and', len(np.unique(J)), 'chi-pos unique')
-
     U = np.ones(len(chi_x), bool)
     U[I] = False
     K = np.flatnonzero(U)
-    print(len(K), 'unmatched chisq detections')
-
     V = np.ones(len(chi_pos_x), bool)
     V[J] = False
     L = np.flatnonzero(V)
-    print(len(L), 'unmatched chi+ detections')
-
-    Nmax = 200
-    x,y = chi_x[K], chi_y[K]
-    image_grid(x, y, rgb)
-    plt.suptitle('Chi-squared detections not in chi-pos')
-    plt.savefig('chisq-not-chipos-images.png')
-
-    x,y = chi_pos_x[L], chi_pos_y[L]
-    image_grid(x, y, rgb)
-    plt.suptitle('Chi-pos detections not in chi-squared')
-    plt.savefig('chipos-not-chisq-images.png')
-
     plt.clf()
     ha = dict(histtype='step', range=(0, chi2_pos_thresh*2), bins=40, log=True)
     plt.hist(chi_pos_map[chi_pos_y, chi_pos_x], label='Chi+ detections', **ha)
@@ -1403,6 +1529,12 @@ def new_main():
     plt.ylabel('Number of detections')
     plt.legend(loc='upper left')
     plt.savefig('chisq-vals.png')
+
+
+
+
+
+
 
 if __name__ == '__main__':
     new_main()
