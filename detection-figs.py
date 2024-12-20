@@ -1219,52 +1219,39 @@ def new_main():
 
     bands = ['g', 'r', 'i']
 
-    # g_det = fitsio.read(os.path.join(basedir, 'detmap-g.fits'))
-    # g_detiv = fitsio.read(os.path.join(basedir, 'detiv-g.fits'))
-    # r_det = fitsio.read(os.path.join(basedir, 'detmap-r.fits'))
-    # r_detiv = fitsio.read(os.path.join(basedir, 'detiv-r.fits'))
-    # i_det = fitsio.read(os.path.join(basedir, 'detmap-i.fits'))
-    # i_detiv = fitsio.read(os.path.join(basedir, 'detiv-i.fits'))
-    # detmaps_deep = [g_det, r_det, i_det]
-    # detivs_deep = [g_detiv, r_detiv, i_detiv]
+    # Slice the brick images
+    slc = slice(200,None), slice(None)
 
-    g_det = fitsio.read(os.path.join(basedir, 'detmap-one-g.fits'))
-    g_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-g.fits'))
-    r_det = fitsio.read(os.path.join(basedir, 'detmap-one-r.fits'))
-    r_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-r.fits'))
-    i_det = fitsio.read(os.path.join(basedir, 'detmap-one-i.fits'))
-    i_detiv = fitsio.read(os.path.join(basedir, 'detiv-one-i.fits'))
-
-    detmaps = [g_det, r_det, i_det]
-    detivs = [g_detiv, r_detiv, i_detiv]
-
-    #detmaps = [d[:500, :500] for d in detmaps]
-    #detivs  = [d[:500, :500] for d in detivs]
+    detmaps = [fitsio.read(os.path.join(basedir, 'detmap-one-%s.fits' % band))[slc]
+               for band in bands]
+    detivs  = [fitsio.read(os.path.join(basedir, 'detiv-one-%s.fits' % band))[slc]
+               for band in bands]
 
     nco = [fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
-                                    'legacysurvey-%s-nexp-%s.fits.fz' % (brick, band)))
+                                    'legacysurvey-%s-nexp-%s.fits.fz' % (brick, band)))[slc]
            for band in bands]
-    goodmap = reduce(np.logical_and, [n>10 for n in nco])
-    print('Number of good pixels:', np.sum(goodmap))
 
-    #fake_detmaps = [np.random.normal(size=d.shape) * 1/np.sqrt(iv) for d,iv in zip(detmaps, detivs)]
+    deep_co = [fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
+                        'legacysurvey-%s-image-%s.fits.fz' % (brick, band)))[slc]
+               for band in bands]
+    # stretch
+    s = 16
+    scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
+    rgb = sdss_rgb(deep_co, bands, scales=scale)
+    
+    goodmap = reduce(np.logical_and, [n>=10 for n in nco])
+    print('Number of good pixels with >= 10 exposures:', np.sum(goodmap))
+
+    for iv in detivs:
+        goodmap *= (iv > 0.9 * iv.max())
+    print('Number of good pixels with good detiv:', np.sum(goodmap))
+
     fake_detmaps = []
     for iv in detivs:
         with np.errstate(divide='ignore'):
             r = np.random.normal(size=iv.shape) / np.sqrt(iv)
         r[iv <= 0] = 0.
         fake_detmaps.append(r)
-
-    gco = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
-                        'legacysurvey-%s-image-g.fits.fz' % brick))
-    rco = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
-                       'legacysurvey-%s-image-r.fits.fz' % brick))
-    ico = fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
-                       'legacysurvey-%s-image-i.fits.fz' % brick))
-    # stretch
-    s = 16
-    scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
-    rgb = sdss_rgb([gco,rco,ico], 'gri', scales=scale)
 
     # Confirm that they're ~Gaussian distributed
     # plt.clf()
@@ -1407,6 +1394,13 @@ def new_main():
     s = 15
     ax = [s, subW-s, s, subH-s]
 
+    for band,iv in zip(bands, detivs):
+        plt.clf()
+        #plt.imshow(iv[subslice], interpolation='nearest', origin='lower')
+        plt.hist(iv[subslice].ravel())
+        plt.title('detection invvar: %s' % band)
+        plt.savefig('detiv-%s.png' % band)
+    
     x, y, usn = sed_union_detection(union_seds, goodmap, sed_union_thresh)
     print('Union SED method: found', len(x), 'sources')
     union_x,union_y = x.copy(),y.copy()
@@ -1487,12 +1481,14 @@ def new_main():
     plt.ylabel('Number of matches')
     plt.savefig('chi-match.png')
 
+    chi_meth = ('chisq', chi_x, chi_y, chi_map, chi2_thresh)
+    chipos_meth = ('chipos', chi_pos_x, chi_pos_y, chi_pos_map, chi2_pos_thresh)
+    union_meth = ('sed-union', union_x, union_y, union_map, sed_union_thresh)
 
-    for a_name,a_x,a_y,a_map, b_name,b_x,b_y,b_map in [
-        ('chisq', chi_x, chi_y, chi_map,
-         'chipos', chi_pos_x, chi_pos_y, chi_pos_map),
-        ('chipos', chi_pos_x, chi_pos_y, chi_pos_map,
-         'sed-union', union_x, union_y, union_map),
+    for ((a_name,a_x,a_y,a_map,a_thresh),
+         (b_name,b_x,b_y,b_map,b_thresh)) in [
+        (chi_meth, chipos_meth),
+        (chipos_meth, union_meth),
         ]:
 
         I,J,d = match_xy(a_x, a_y, b_x, b_y, 2)
@@ -1511,21 +1507,42 @@ def new_main():
         L = np.flatnonzero(V)
         print(len(L), 'unmatched', b_name, 'detections')
 
-        Nmax = 200
-        x,y = a_x[K], a_y[K]
-        I = np.argsort(-a_map[y, x])
-        x,y = x[I],y[I]
-        image_grid(x, y, rgb)
-        plt.suptitle('%s detections not in %s' % (a_name, b_name))
-        plt.savefig('unmatched-%s-%s.png' % (a_name, b_name))
+        for (one_U, one_x, one_y, one_name, one_map, two_name, two_map, two_thresh) in [
+            (K, a_x, a_y, a_name, a_map, b_name, b_map, b_thresh),
+            (L, b_x, b_y, b_name, b_map, a_name, a_map, a_thresh),
+            ]:
 
-        x,y = b_x[L], b_y[L]
-        I = np.argsort(-b_map[y, x])
-        x,y = x[I],y[I]
-        image_grid(x, y, rgb)
-        plt.suptitle('%s detections not in %s' % (b_name, a_name))
-        plt.savefig('unmatched-%s-%s.png' % (b_name, a_name))
+            Nmax = 200
+            x,y = one_x[one_U], one_y[one_U]
+            I = np.argsort(-one_map[y, x])
+            x,y = x[I],y[I]
+            # image_grid(x, y, rgb)
+            # plt.suptitle('%s detections not in %s' % (one_name, two_name))
+            # plt.savefig('unmatched-%s-%s.png' % (one_name, two_name))
 
+            # Also check that A's unmatched x,y are below-threshold in B
+            I = np.flatnonzero(two_map[y, x] < two_thresh)
+            print(len(I), 'unmatched', one_name, 'detections are below-threshold in', two_name)
+            x,y = x[I],y[I]
+            image_grid(x, y, rgb)
+            plt.suptitle('%s detections below-threshold in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-2.png' % (one_name, two_name))
+
+            # Compute the median image around unmatched sources!
+            H,W,three = rgb.shape
+            s = 15
+            I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
+            imstack = []
+            for xx,yy in zip(x[I], y[I]):
+                imstack.append(rgb[yy-s:yy+s+1, xx-s:xx+s+1, :])
+            imstack = np.stack(imstack, axis=-1)
+            print('image stack:', imstack.shape)
+            medimg = np.median(imstack, axis=-1)
+            plt.clf()
+            plt.imshow(medimg, interpolation='nearest', origin='lower')
+            plt.xticks([]); plt.yticks([])
+            plt.suptitle('Median %s detection below-threshold in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-3.png' % (one_name, two_name))
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
     U = np.ones(len(chi_x), bool)
