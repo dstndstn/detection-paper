@@ -1119,6 +1119,7 @@ def find_peaks(img, thresh, goodmap=None):
     #ix += 1
     #iy += 1
 
+    # Demand a pixel above threshold and the largest in a 5x5 block
     iy,ix = np.nonzero((img >= thresh) *
                        (img >= scipy.ndimage.maximum_filter(img, 5)))
     #H,W = img.shape
@@ -1170,6 +1171,47 @@ def sed_union_detection(seds, goodmap, thresh=5.):
     x,y = x[I],y[I]
     return x,y, maxsn
 
+def sed_mixture_detection(seds, weights, detmaps, detivs,
+                          goodmap, thresh, alpha=1.):
+    nseds = len(seds)
+    nbands = len(detmaps)
+    H,W = detmaps[0].shape
+    
+    D   = np.empty((nbands, H, W), np.float32)
+    Div = np.empty((nbands, H, W), np.float32)
+    for i in range(nbands):
+        D[i,:,:] = detmaps[i]
+        Div[i,:,:] = detivs[i]
+    SED = np.zeros((nseds, nbands), np.float32)
+    for j in range(nseds):
+        SED[j,:] = seds[j].sed
+
+    log_pratio = log_pratio_bayes(SED, weights, D, Div, alpha)
+    x,y = find_peaks(log_pratio, thresh, goodmap)
+    # return in sorted order (highest-logprob first)
+    sval = log_pratio[y,x]
+    I = np.argsort(-sval)
+    x,y = x[I],y[I]
+    return x,y, log_pratio
+
+# from bayes_figure import get_pratio
+# def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=1.):
+#     # fluxes: npix x nbands array
+#     # sig_fluxes: nbands
+#     # seds: [(name, scalar sed, weight -- ignored)]
+#     x = 0.
+#     for sed in seds:
+#         name,sed_vec,wt = sed
+#         pr = get_pratio(fluxes.T[:, :, np.newaxis], sig_fluxes, sed_vec,
+#                         alpha=alpha)
+#         pr = pr[:,0]
+#         x = x + wt * pr
+#     return x
+
+
+
+
+
 # def sed_union_threshold(seds, falsepos_rate):
 #     x = x.reshape(pbg.shape)
 #     # Find threshold
@@ -1181,7 +1223,7 @@ def sed_union_detection(seds, goodmap, thresh=5.):
 
 
 
-def image_grid(x, y, rgb, s=15, Nmax=100, first_and_last=True):
+def image_grid(x, y, rgb, s=8, Nmax=100, first_and_last=True):
 
     H,W,three = rgb.shape
     I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
@@ -1230,6 +1272,9 @@ def new_main():
     nco = [fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
                                     'legacysurvey-%s-nexp-%s.fits.fz' % (brick, band)))[slc]
            for band in bands]
+
+    deep_detmaps = [fitsio.read(os.path.join(basedir, 'detmap-%s.fits' % band))[slc]
+               for band in bands]
 
     deep_co = [fitsio.read(os.path.join(basedir, 'coadd', bri, brick,
                         'legacysurvey-%s-image-%s.fits.fz' % (brick, band)))[slc]
@@ -1309,9 +1354,21 @@ def new_main():
 
     # Blue, Yellow, Red, i-only
     union_seds = sedlist[:3] + [sedlist[-1]]
+    union_thresh = 5.22
+
+    # Bayesian Mixture SED method
+    mix_seds = union_seds
+    # mixture weights: blue, yellow, red, i-only
+    mix_weights = np.array([0.33, 0.33, 0.33, 0.01])
+    mix_thresh = 9.30
 
     if True:
-        sed_union_thresh = 5.1
+        # If the SEDs were independent, the false-pos rate would be len(union_seds)
+        # times larger, so
+        target_falsepos_rate = falsepos_rate / len(union_seds)
+        th = g.isf(target_falsepos_rate)
+        print('SED union threshold (safe):', th)
+
     else:
         n_fakes = 10
         big_fake_detmaps = []
@@ -1344,7 +1401,7 @@ def new_main():
         #     method='bisect', bracket=(g_sigma, g_sigma*2.))
         # print('SED(union) Thresh:', X)
         # assert(X.converged)
-        # sed_union_thresh = X.root
+        # union_thresh = X.root
     
         target_det = falsepos_rate * n_fakes * np.sum(goodmap)
         target_det = int(np.floor(target_det))
@@ -1360,18 +1417,40 @@ def new_main():
             all_snvals.append(snvals)
         all_snvals = np.hstack(all_snvals)
         all_snvals.sort()
-        print('Thresholds:', all_snvals[target_det-1:target_det+2])
+        print('Union thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
         # Could interpolate...
-        sed_union_thresh = all_snvals[target_det]
-        print('Threshold:', sed_union_thresh)
-    
+        union_thresh = all_snvals[-target_det]
+        print('Union Threshold:', union_thresh)
+
+        # Mixture
+        all_snvals = []
+        for fdm in big_fake_detmaps:
+            x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fdm, detivs,
+                                             goodmap, mix_thresh)
+            print('detected', len(x))
+            print('max value in map:', bp.max())
+            snvals = bp[y, x]
+            all_snvals.append(snvals)
+        all_snvals = np.hstack(all_snvals)
+        all_snvals.sort()
+        print('Mixture thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
+        # Could interpolate...
+        mix_thresh = all_snvals[-target_det]
+        print('Mixture threshold:', mix_thresh)
+
         del big_fake_detmaps
 
     # Compute SED S/Ns for fake data!
     for s in union_seds:
         s.snmap = sedsn(fake_detmaps, detivs, s.sed)
-    x, y, usn = sed_union_detection(union_seds, goodmap, sed_union_thresh)
+    x, y, usn = sed_union_detection(union_seds, goodmap, union_thresh)
     print('Union SED method: found', len(x), 'sources in fake data')
+
+    # Bayesian SED method
+    x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fake_detmaps, detivs,
+                                     goodmap, mix_thresh)
+    print('Mixture SED method: found', len(x), 'sources in fake data')
+
     # Compute SED S/Ns for real data!
     for s in union_seds:
         s.snmap = sedsn(detmaps, detivs, s.sed)
@@ -1383,7 +1462,6 @@ def new_main():
     x, y, chisq = chisq_detection_pos(fake_detmaps, detivs, goodmap,
                                       thresh=chi2_pos_thresh)
     print('Chi-squared-pos method: found', len(x), 'sources in fake data')
-
 
 
     H,W = detmaps[0].shape
@@ -1401,7 +1479,7 @@ def new_main():
         plt.title('detection invvar: %s' % band)
         plt.savefig('detiv-%s.png' % band)
     
-    x, y, usn = sed_union_detection(union_seds, goodmap, sed_union_thresh)
+    x, y, usn = sed_union_detection(union_seds, goodmap, union_thresh)
     print('Union SED method: found', len(x), 'sources')
     union_x,union_y = x.copy(),y.copy()
     union_map = usn.copy()
@@ -1412,7 +1490,7 @@ def new_main():
     plt.clf()
     plt.imshow(union_map[subslice] * goodmap[subslice],
                interpolation='nearest', origin='lower', cmap='gray',
-               vmin=0, vmax=sed_union_thresh*2)
+               vmin=0, vmax=union_thresh*2)
     plt.colorbar()
     plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
     plt.axis(ax)
@@ -1423,6 +1501,28 @@ def new_main():
     plt.suptitle('SED Union detections')
     plt.savefig('sed-union-images.png')
 
+    x, y, bp = sed_mixture_detection(mix_seds, mix_weights, detmaps, detivs,
+                                     goodmap, mix_thresh)
+    print('Mixture SED method: found', len(x), 'sources')
+    mix_x,mix_y = x.copy(),y.copy()
+    mix_map = bp.copy()
+
+    I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
+    x,y = x[I],y[I]
+    print('Showing', len(x), 'in subimage')
+    plt.clf()
+    plt.imshow(mix_map[subslice] * goodmap[subslice],
+               interpolation='nearest', origin='lower', cmap='gray',
+               vmin=0, vmax=mix_thresh*2)
+    plt.colorbar()
+    plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    plt.axis(ax)
+    plt.title('SED Mixture peaks')
+    plt.savefig('sed-mix-peaks.png')
+
+    image_grid(x, y, rgb)
+    plt.suptitle('SED Mixture detections')
+    plt.savefig('sed-mix-images.png')
 
     x, y, chisq = chisq_detection_raw(detmaps, detivs, goodmap,
                                       thresh=chi2_thresh)
@@ -1483,12 +1583,15 @@ def new_main():
 
     chi_meth = ('chisq', chi_x, chi_y, chi_map, chi2_thresh)
     chipos_meth = ('chipos', chi_pos_x, chi_pos_y, chi_pos_map, chi2_pos_thresh)
-    union_meth = ('sed-union', union_x, union_y, union_map, sed_union_thresh)
+    union_meth = ('sed-union', union_x, union_y, union_map, union_thresh)
+    mix_meth = ('sed-mix', mix_x, mix_y, mix_map, mix_thresh)
 
     for ((a_name,a_x,a_y,a_map,a_thresh),
          (b_name,b_x,b_y,b_map,b_thresh)) in [
         (chi_meth, chipos_meth),
         (chipos_meth, union_meth),
+        (chipos_meth, mix_meth),
+        (union_meth, mix_meth),
         ]:
 
         I,J,d = match_xy(a_x, a_y, b_x, b_y, 2)
@@ -1525,8 +1628,91 @@ def new_main():
             print(len(I), 'unmatched', one_name, 'detections are below-threshold in', two_name)
             x,y = x[I],y[I]
             image_grid(x, y, rgb)
-            plt.suptitle('%s detections below-threshold in %s' % (one_name, two_name))
+            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-2.png' % (one_name, two_name))
+
+            s = 10
+            I = np.flatnonzero((y >= s) * (y < H-s))
+            plt.clf()
+            # Randomly select at most 20?
+            nmax = 20
+            if len(I) > nmax:
+                I = I[np.random.permutation(len(I))[:nmax]]
+            for xi,yi in zip(x[I], y[I]):
+                #for band,co in zip(bands, deep_co):
+                for band,det in zip(bands, detmaps):
+                #for band,det,detiv in zip(bands, detmaps, detivs):
+                    #plt.plot(co[xi, yi-s:yi+s+1], '-', color={'i':'m'}.get(band,band))
+                    plt.plot(det[yi-s:yi+s+1, xi], '-', color={'i':'m'}.get(band,band), alpha=0.5)
+                    #print('detiv', band, ':', detiv[yi, xi])
+            plt.ylabel('Detection map value (flux)')
+            plt.ylim(-0.2, +0.4)
+            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-3.png' % (one_name, two_name))
+
+            s = 10
+            I = np.flatnonzero((y >= s) * (y < H-s))
+            plt.clf()
+            # Randomly select at most 20?
+            nmax = 20
+            if len(I) > nmax:
+                I = I[np.random.permutation(len(I))[:nmax]]
+            for xi,yi in zip(x[I], y[I]):
+                for band,det,detiv in zip(bands, detmaps, detivs):
+                    plt.plot(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]),
+                             '-', color={'i':'m'}.get(band,band), alpha=0.5)
+            #plt.ylim(-0.2, +0.4)
+            plt.ylabel('Detection map S/N')
+            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-4.png' % (one_name, two_name))
+
+            plt.clf()
+            for band,det in zip(bands, detmaps):
+                vals = []
+                for xi,yi in zip(x[I], y[I]):
+                    vals.append(det[yi-s:yi+s+1, xi])
+                vals = np.stack(vals, axis=-1)
+                med = np.median(vals, axis=-1)
+                plt.plot(med, '-', color={'i':'m'}.get(band,band))
+            plt.ylim(-0.075, +0.15)
+            plt.axhline(0, color='k', alpha=0.3)
+            plt.ylabel('Detection map value')
+            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-5.png' % (one_name, two_name))
+
+            plt.clf()
+            for band,det,detiv in zip(bands, detmaps, detivs):
+                vals = []
+                for xi,yi in zip(x[I], y[I]):
+                    vals.append(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]))
+                vals = np.stack(vals, axis=-1)
+                med = np.median(vals, axis=-1)
+                plt.plot(med, '-', color={'i':'m'}.get(band,band))
+            #plt.ylim(-0.075, +0.15)
+            plt.axhline(0, color='k', alpha=0.3)
+            plt.ylabel('Detection map S/N')
+            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-6.png' % (one_name, two_name))
+
+            plt.clf()
+            detfluxes  = [detmap[y, x] for detmap in detmaps]
+            deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
+            for i,fluxes in enumerate([detfluxes, deepfluxes]):
+                plt.subplot(1,2,i+1)
+                mags = [-2.5 * (np.log10(f) - 9) for f in fluxes]
+                g,r,i = mags
+                plt.plot(g - r, r - i, 'k.', alpha=0.25)
+                plt.xlabel('g - r (mag)')
+                plt.ylabel('r - i (mag)')
+            ax = [-2, +6, -5, +3]
+            plt.subplot(1,2,1)
+            plt.title('One exposure')
+            plt.axis(ax)
+            plt.subplot(1,2,2)
+            plt.title('Deep coadd')
+            plt.axis(ax)
+            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-7.png' % (one_name, two_name))
 
             # Compute the median image around unmatched sources!
             H,W,three = rgb.shape
@@ -1542,7 +1728,7 @@ def new_main():
             plt.imshow(medimg, interpolation='nearest', origin='lower')
             plt.xticks([]); plt.yticks([])
             plt.suptitle('Median %s detection below-threshold in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-3.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-8.png' % (one_name, two_name))
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
     U = np.ones(len(chi_x), bool)

@@ -85,6 +85,16 @@ def stage_detect(targetrd=None, pixscale=None, targetwcs=None,
     # One each in g,r,i with good seeing
     good_expnums = [563982, 569613, 567442]
     onetims = [tim for tim in tims if tim.imobj.expnum in good_expnums]
+
+    # Single-image "coadd" image
+    C = make_coadds(onetims, bands, targetwcs)
+    for im,band in zip(C.coimgs, bands):
+        fn = os.path.join(survey.output_dir, 'image-one-%s.fits' % band)
+        fitsio.write(fn, im.astype(np.float32), clobber=True)
+        print('Wrote', fn)
+    #rgb = survey.get_rgb(C.coimgs, bands)
+    #imsave_jpeg(out.fn, rgb, origin='lower', **kwa)
+
     detmaps, detivs, satmap = detection_maps(onetims, targetwcs, bands, mp,
                                              minmax=False)
     for i,band in enumerate(bands):
