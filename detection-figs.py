@@ -24,7 +24,9 @@ from collections import Counter
 from scipy.ndimage import label, find_objects
 from scipy.ndimage import binary_dilation, binary_fill_holes
 from scipy.special import erfc, logsumexp
+from scipy.interpolate import CubicSpline
 
+antigray = matplotlib.colormaps['gray_r']
 
 def jpl_query(ra, dec, mjd):
     import requests
@@ -322,7 +324,7 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         I = np.flatnonzero(sources.imax == i)
         J = np.argsort(-sources.get(s.tname)[I])
         plt.clf()
-        show_sources(sources[I[J]], img)
+        show_sources(sources[I[J]].x, sources[I[J]].y, img)
         plt.savefig('best-%s.pdf' % s.name.lower())
 
     #####  Run detection at different thresholds ####
@@ -429,7 +431,7 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
     plt.figure(figsize=(4,4))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
-    show_sources(sources[I], img, R=6, C=6, sz=30, divider=1)
+    show_sources(sources[I].x, sources[I].y, img, R=6, C=6, sz=30, divider=1)
     plt.savefig('singleband.pdf')
 
     MI,MJ,d = match_radec(sources.ra, sources.dec, DES.ra, DES.dec, 1./3600, nearest=True)
@@ -501,17 +503,20 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
     plt.gca().set_aspect(aspect)
     plt.savefig('strength.pdf')
     
-def show_sources(T, img, R=10, C=10, sz=10, divider=0):
+def show_sources(x, y, img, R=10, C=10, sz=10, divider=0,
+                 row_dividers=None, row_divider_size=1):
     imgrows = []
     k = 0
     for i in range(R):
         imgrow = []
         for j in range(C):
-            if k >= len(T):
+            if k >= len(x):
                 sub = np.zeros((sz*2+1,sz*2+1,3), np.uint8)
             else:
-                f = T[k]
-                sub = img[f.y-sz : f.y+sz+1, f.x-sz : f.x+sz+1, :]
+                #f = T[k]
+                #sub = img[f.y-sz : f.y+sz+1, f.x-sz : f.x+sz+1, :]
+                sub = img[y[k]-sz : y[k]+sz+1, x[k]-sz : x[k]+sz+1, :]
+            #print('subimage', sub.shape)
             imgrow.append(sub)
             if divider and j < C-1:
                 imgrow.append(np.zeros((sz*2+1, divider, 3), np.uint8) + 255)
@@ -522,8 +527,11 @@ def show_sources(T, img, R=10, C=10, sz=10, divider=0):
         if divider and i < R-1:
             rh,rw,three = imgrow.shape
             imgrows.append(np.zeros((divider, rw, 3), np.uint8) + 255)
-        
-    imgrows = np.vstack(reversed(imgrows))
+        if row_dividers is not None and i+1 in row_dividers:
+            rh,rw,three = imgrow.shape
+            imgrows.append(np.zeros((row_divider_size, rw, 3), np.uint8) + 255)
+            
+    imgrows = np.vstack(list(reversed(imgrows)))
     plt.imshow(imgrows, interpolation='nearest', origin='lower')
     plt.xticks([]); plt.yticks([])
 
@@ -569,6 +577,7 @@ def log_pratio_bayes(seds, weights, D, Div, alpha):
     return lse + np.log(alpha * np.sqrt(np.pi))
 
 def bayes_figs(DES, detmaps, detivs, good, wcs, img):
+    from astrometry.util.plotutils import plothist
 
     # First, build empirical SED prior "library" from DES sources
     DES.flux_g = np.maximum(0, DES.flux_auto_g)
@@ -691,7 +700,15 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
         # Bayes took 276.118402 CPU-seconds
 
     sz = 20
-    _,bx,by = detect_sources(lprb, 2000)
+    #_,bx,by = detect_sources(lprb, 2000)
+    for thresh in [#2000, 1500, 1000, 500]:
+                   #500, 400, 300,
+                   200]:
+
+        bayes_thresh = thresh
+        _,bx,by = detect_sources(lprb, thresh)
+        print('Bayes detection at', thresh, ':', len(bx), 'sources')
+
     bsources = fits_table()
     bsources.x = bx
     bsources.y = by
@@ -718,20 +735,31 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     bsources_orig = bsources.copy()
     
     # g + r + i detections
-    _,xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
-    _,xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
-    _,xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
-    print('Detected', len(xg),len(xr),len(xi), 'gri')
-    xm,ym = xg.copy(),yg.copy()
-    for xx,yy in [(xr,yr),(xi,yi)]:
-        I,J,d = match_xy(xm,ym, xx,yy, 5.)
-        print('Matched:', len(I))
-        U = np.ones(len(xx), bool)
-        U[J] = False
-        print('Unmatched:', np.sum(U))
-        xm = np.hstack((xm, xx[U]))
-        ym = np.hstack((ym, yy[U]))
-    print('Total of', len(xm), 'g+r+i')
+
+    for thresh in [#50, 40, 30, 25, 20
+                   #20, 18, 16,
+                   15,]:
+
+        gri_thresh = thresh
+        _,xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), thresh)
+        _,xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), thresh)
+        _,xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), thresh)
+        print('gri at thresh', thresh, 'detected', len(xg),len(xr),len(xi), 'gri')
+
+    # _,xg,yg = detect_sources(detmaps[0] * np.sqrt(detivs[0]), 50.)
+    # _,xr,yr = detect_sources(detmaps[1] * np.sqrt(detivs[1]), 50.)
+    # _,xi,yi = detect_sources(detmaps[2] * np.sqrt(detivs[2]), 50.)
+    # print('Detected', len(xg),len(xr),len(xi), 'gri')
+        xm,ym = xg.copy(),yg.copy()
+        for xx,yy in [(xr,yr),(xi,yi)]:
+            I,J,d = match_xy(xm,ym, xx,yy, 5.)
+            print('Matched:', len(I))
+            U = np.ones(len(xx), bool)
+            U[J] = False
+            print('Unmatched:', np.sum(U))
+            xm = np.hstack((xm, xx[U]))
+            ym = np.hstack((ym, yy[U]))
+        print('Total of', len(xm), 'g+r+i')
 
     sources = fits_table()
     sources.x = xm
@@ -764,10 +792,10 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     print('Cut both to', N)
     
     # Define unmatched sources as ones that are not in the other's hot region
-    hot = binary_fill_holes(np.logical_or(detmaps[0] * np.sqrt(detivs[0]) > 50.,
-                            np.logical_or(detmaps[1] * np.sqrt(detivs[1]) > 50.,
-                                          detmaps[2] * np.sqrt(detivs[2]) > 50.)))
-    Bhot = binary_fill_holes(lprb > 2000.)
+    hot = binary_fill_holes(np.logical_or(detmaps[0] * np.sqrt(detivs[0]) > gri_thresh,
+                            np.logical_or(detmaps[1] * np.sqrt(detivs[1]) > gri_thresh,
+                                          detmaps[2] * np.sqrt(detivs[2]) > gri_thresh)))
+    Bhot = binary_fill_holes(lprb > bayes_thresh)
     UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
     US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
     print(len(UB), 'unmatched Bayesian', len(US), 'g+r+i')
@@ -790,20 +818,24 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     plt.ylabel('r - i (mag)')
     plt.legend((p1[0],p2[0],p3[0]),
                ('Detected by both', 'Only detected by g+r+i', 'Only detected by Bayesian'),
-               loc='lower left')
-    plt.axis([-5, 5, -3, 3])
+               loc='lower right')
+    plt.axis([-1, 5, -1, 3])
     plt.savefig('bayes-vs-gri.pdf')
 
     
-    plt.figure(figsize=(4,4))
+    #plt.figure(figsize=(4,4))
+    plt.figure(figsize=(4,3))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
-    show_sources(bsources[UB], img, R=10, C=10, divider=1)
-    #plt.suptitle('Bayesian only');
+
+    #show_sources(bsources[UB], img, R=10, C=10, divider=1)
+    show_sources(bsources[UB].x, bsources[UB].y, img, R=4, C=6, divider=1)
+
     plt.savefig('bayes-only.pdf')
 
     plt.clf()
-    show_sources(sources[US], img, R=10, C=10, divider=1)
+    #show_sources(sources[US], img, R=10, C=10, divider=1)
+    show_sources(sources[US].x, sources[US].y, img, R=4, C=6, divider=1)
     #plt.suptitle('Bayesian only');
     plt.savefig('gri-only.pdf')
 
@@ -872,11 +904,11 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     plt.figure(figsize=(4,4))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
-    show_sources(bsources[UB], img, R=10, C=10, divider=1)
+    show_sources(bsources[UB].x, bsources[UB].y, img, R=10, C=10, divider=1)
     plt.savefig('bayes-2only.pdf')
 
     plt.clf()
-    show_sources(sources[US], img, R=10, C=10, divider=1)
+    show_sources(sources[US].x, sources[US].y, img, R=10, C=10, divider=1)
     plt.savefig('2gri-only.pdf')
     
 
@@ -939,7 +971,7 @@ def galaxy_figs(sedlist, good, wcs, img):
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
     I = np.argsort(-(gals.yellow_sn - gals.yellow_sn_psf))
-    show_sources(gals[I], img, sz=20)
+    show_sources(gals[I].x, gals[I].y, img, sz=20)
     plt.savefig('galaxies.pdf')
     
     plt.figure(figsize=(5,4))
@@ -1223,37 +1255,63 @@ def sed_mixture_detection(seds, weights, detmaps, detivs,
 
 
 
-def image_grid(x, y, rgb, s=8, Nmax=100, first_and_last=True):
+# def image_grid(x, y, rgb, s=8, Nmax=100, first_and_last=True):
+# 
+#     H,W,three = rgb.shape
+#     I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
+#     x,y = x[I],y[I]
+# 
+#     n = min(Nmax, len(x))
+#     C = int(np.ceil(1.0 * np.sqrt(n)))
+#     R = int(np.ceil(n / C))
+#     if R*C < len(x):
+#         print('Only showing', R*C, 'of', len(x), 'image cutouts')
+# 
+#         if first_and_last:
+#             R2 = R - R//2
+#             I = np.hstack((np.arange(C * R//2),
+#                            np.arange(len(x) - C*R2, len(x))))
+#             x = x[I]
+#             y = y[I]
+# 
+#     plt.clf()
+#     plt.subplots_adjust(hspace=0, wspace=0)
+#     for i in range(len(x)):
+#         if i >= R*C:
+#             break
+#         plt.subplot(R,C,1+i)
+#         plt.imshow(rgb[y[i]-s:y[i]+s+1, x[i]-s:x[i]+s+1,:],
+#                    interpolation='nearest', origin='lower')
+#         plt.xticks([]); plt.yticks([])
+
+def image_grid(x, y, rgb):  #, s=8, Nmax=100, first_and_last=True):
+    R = 8
+    C = 8
+    sz = 8
+
+    plt.figure(figsize=(4,4))
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.9)
 
     H,W,three = rgb.shape
-    I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
+    I = np.flatnonzero((x >= sz) * (y >= sz) * (x < W-sz) * (y < H-sz))
     x,y = x[I],y[I]
 
-    n = min(Nmax, len(x))
-    C = int(np.ceil(1.0 * np.sqrt(n)))
-    R = int(np.ceil(n / C))
-    if R*C < len(x):
-        print('Only showing', R*C, 'of', len(x), 'image cutouts')
-
-        if first_and_last:
-            R2 = R - R//2
-            I = np.hstack((np.arange(C * R//2),
-                           np.arange(len(x) - C*R2, len(x))))
-            x = x[I]
-            y = y[I]
-
+    kwa = {}
+    # First and last:
+    if len(x) > (R*C):
+        R2 = R - R//2
+        I = np.hstack((np.arange(C * R//2),
+                       np.arange(len(x) - C*R2, len(x))))
+        x = x[I]
+        y = y[I]
+        kwa.update(row_dividers=[R//2])
     plt.clf()
-    plt.subplots_adjust(hspace=0, wspace=0)
-    for i in range(len(x)):
-        if i >= R*C:
-            break
-        plt.subplot(R,C,1+i)
-        plt.imshow(rgb[y[i]-s:y[i]+s+1, x[i]-s:x[i]+s+1,:],
-                   interpolation='nearest', origin='lower')
-        plt.xticks([]); plt.yticks([])
-
+    show_sources(x, y, rgb, sz=sz, R=R, C=C, **kwa)
 
 def new_main():
+
+    np.random.seed(123456789)
+    
     basedir = 'detection-paper-data/'
     brickname = 'custom-036450m04600'
     brick = brickname
@@ -1262,7 +1320,14 @@ def new_main():
     bands = ['g', 'r', 'i']
 
     # Slice the brick images
-    slc = slice(200,None), slice(None)
+    y0 = 200
+    slc = slice(y0,None), slice(None)
+
+    wcs = Tan(os.path.join(basedir, 'coadd', bri, brick,
+                           'legacysurvey-%s-image-%s.fits.fz' % (brick, 'r')), 1)
+    h,w = wcs.shape
+    wcs = wcs.get_subimage(0, y0, w, h-y0)
+    print('sub-WCS:', wcs)
 
     detmaps = [fitsio.read(os.path.join(basedir, 'detmap-one-%s.fits' % band))[slc]
                for band in bands]
@@ -1372,15 +1437,47 @@ def new_main():
     #for s in sedlist:
     #    s.snmap = sedsn(detmaps, detivs, s.sed)
 
+
+    if False:
+        # Read DES catalog in region
+        '''
+        https://des.ncsa.illinois.edu/easyweb/db-access
+    
+        SELECT RA, DEC,
+        MAG_AUTO_G, MAG_AUTO_R, MAG_AUTO_I,
+        FLUX_AUTO_G, FLUX_AUTO_R, FLUX_AUTO_I,
+        FLAGS_G, FLAGS_R, FLAGS_I,
+        SPREAD_MODEL_R
+        from DR1_MAIN
+        where RA between 36.3 and 36.6
+        and DEC between -4.76 and -4.44
+        -> des-db-4.fits
+        '''
+        DES = fits_table('des-db-4.fits')
+        print(len(DES), 'DES')
+        DES.cut((DES.flags_g < 4) * (DES.flags_r < 4) * (DES.flags_i < 4))
+        print(len(DES), 'un-flagged')
+        ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
+        DES.x = (x-1).astype(int)
+        DES.y = (y-1).astype(int)
+        H,W = wcs.shape
+        # Cut of DES catalog for the SED-matched filter figure
+        sz = 20
+        Ides = np.flatnonzero((DES.x > sz) * (DES.y > sz) *
+                              (DES.x < (W-sz)) * (DES.y < (H-sz)) *
+                              goodmap[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
+        bayes_figs(DES, detmaps, detivs, goodmap, wcs, rgb)
+
     # Blue, Yellow, Red, i-only
     union_seds = sedlist[:3] + [sedlist[-1]]
-    union_thresh = 5.22
+    union_thresh = 5.296 #5.22
 
     # Bayesian Mixture SED method
     mix_seds = union_seds
     # mixture weights: blue, yellow, red, i-only
     mix_weights = np.array([0.33, 0.33, 0.33, 0.01])
-    mix_thresh = 9.30
+    mix_thresh = 9.465 #9.30
+
 
     if True:
         # If the SEDs were independent, the false-pos rate would be len(union_seds)
@@ -1424,9 +1521,9 @@ def new_main():
         # union_thresh = X.root
     
         target_det = falsepos_rate * n_fakes * np.sum(goodmap)
-        target_det = int(np.floor(target_det))
-        print('Aiming for', target_det, 'false positive detections -> rate', target_det / (n_fakes * np.sum(goodmap)))
-    
+        #target_det = int(np.floor(target_det))
+        print('Aiming for %.1f' % target_det, 'false positive detections -> rate', target_det / (n_fakes * np.sum(goodmap)))
+
         thresh = g_sigma
         all_snvals = []
         for fdm in big_fake_detmaps:
@@ -1437,52 +1534,107 @@ def new_main():
             all_snvals.append(snvals)
         all_snvals = np.hstack(all_snvals)
         all_snvals.sort()
-        print('Union thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
-        # Could interpolate...
-        union_thresh = all_snvals[-target_det]
-        print('Union Threshold:', union_thresh)
+        # Reverse to put largest values first
+        all_snvals = all_snvals[::-1]
+        # interpolate...
+        spl = CubicSpline(1 + np.arange(len(all_snvals)), all_snvals)
+        union_thresh = spl(target_det)
+        print('Union threshold:', union_thresh)
 
-        # Mixture
+        idet = int(target_det)
+        print('Values near threshold:', all_snvals[idet-2:idet+3])
+        
+        # print('Union thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
+        # # Could interpolate...
+        # union_thresh = all_snvals[-target_det]
+        # print('Union Threshold:', union_thresh)
+
+        # Bayesian mixture
         all_snvals = []
         for fdm in big_fake_detmaps:
             x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fdm, detivs,
                                              goodmap, mix_thresh)
-            print('detected', len(x))
-            print('max value in map:', bp.max())
             snvals = bp[y, x]
             all_snvals.append(snvals)
         all_snvals = np.hstack(all_snvals)
         all_snvals.sort()
-        print('Mixture thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
-        # Could interpolate...
-        mix_thresh = all_snvals[-target_det]
+
+        # Reverse to put largest values first
+        all_snvals = all_snvals[::-1]
+        # interpolate...
+        spl = CubicSpline(1 + np.arange(len(all_snvals)), all_snvals)
+        mix_thresh = spl(target_det)
+        # print('Mixture thresholds:', all_snvals[-(target_det+2):-(target_det-1)])
+        # # Could interpolate...
+        # mix_thresh = all_snvals[-target_det]
         print('Mixture threshold:', mix_thresh)
+        print('Values near threshold:', all_snvals[idet-2:idet+3])
+
+        ndet_union = []
+        ndet_mix = []
+        ndet_chisq = []
+        ndet_chipos = []
+        
+        for fdm in big_fake_detmaps:
+            for s in union_seds:
+                s.snmap = sedsn(fdm, detivs, s.sed)
+            x, y, usn = sed_union_detection(union_seds, goodmap, union_thresh)
+            ndet_union.append(len(x))
+            
+            x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fdm, detivs,
+                                        goodmap, mix_thresh)
+            ndet_mix.append(len(x))
+
+            x, y, chisq = chisq_detection_raw(fdm, detivs, goodmap,
+                                      thresh=chi2_thresh)
+            ndet_chisq.append(len(x))
+
+            x, y, chisq = chisq_detection_pos(fdm, detivs, goodmap,
+                                        thresh=chi2_pos_thresh)
+            ndet_chipos.append(len(x))
+
+        print('SED union: total of', np.sum(ndet_union), 'false detections')
+        print(ndet_union)
+        print('SED mixture: total of', np.sum(ndet_mix), 'false detections')
+        print(ndet_mix)
+        print('Chi-sq: total of', np.sum(ndet_chisq), 'false detections')
+        print(ndet_chisq)
+        print('Chi-pos: total of', np.sum(ndet_chipos), 'false detections')
+        print(ndet_chipos)
 
         del big_fake_detmaps
 
-    # Compute SED S/Ns for fake data!
-    for s in union_seds:
-        s.snmap = sedsn(fake_detmaps, detivs, s.sed)
-    x, y, usn = sed_union_detection(union_seds, goodmap, union_thresh)
-    print('Union SED method: found', len(x), 'sources in fake data')
-
-    # Bayesian SED method
-    x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fake_detmaps, detivs,
-                                     goodmap, mix_thresh)
-    print('Mixture SED method: found', len(x), 'sources in fake data')
+    if False:
+        # Compute SED S/Ns for fake data!
+        for s in union_seds:
+            s.snmap = sedsn(fake_detmaps, detivs, s.sed)
+        x, y, usn = sed_union_detection(union_seds, goodmap, union_thresh)
+        print('Union SED method: found', len(x), 'sources in fake data')
+    
+        # Bayesian SED method
+        x, y, bp = sed_mixture_detection(mix_seds, mix_weights, fake_detmaps, detivs,
+                                         goodmap, mix_thresh)
+        print('Mixture SED method: found', len(x), 'sources in fake data')
+    
+        x, y, chisq = chisq_detection_raw(fake_detmaps, detivs, goodmap,
+                                          thresh=chi2_thresh)
+        print('Chi-squared method: found', len(x), 'sources in fake data')
+    
+        x, y, chisq = chisq_detection_pos(fake_detmaps, detivs, goodmap,
+                                          thresh=chi2_pos_thresh)
+        print('Chi-squared-pos method: found', len(x), 'sources in fake data')
 
     # Compute SED S/Ns for real data!
     for s in union_seds:
         s.snmap = sedsn(detmaps, detivs, s.sed)
 
-    x, y, chisq = chisq_detection_raw(fake_detmaps, detivs, goodmap,
-                                      thresh=chi2_thresh)
-    print('Chi-squared method: found', len(x), 'sources in fake data')
+    def plot_cc():
+        plt.figure(figsize=(3.5,3.5))
+        plt.subplots_adjust(left=0.2, right=0.99, bottom=0.2, top=0.9)
 
-    x, y, chisq = chisq_detection_pos(fake_detmaps, detivs, goodmap,
-                                      thresh=chi2_pos_thresh)
-    print('Chi-squared-pos method: found', len(x), 'sources in fake data')
-
+    def plot_oneimage():
+        plt.figure(figsize=(3,3))
+        plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.9)
 
     H,W = detmaps[0].shape
     # Cut to sources in 500x500 subimage
@@ -1506,22 +1658,23 @@ def new_main():
     I = np.flatnonzero((x >= s) * (y >= s) * (x < subW-s) * (y < subH-s))
     x,y = x[I],y[I]
     print('Showing', len(x), 'in subimage')
-    plt.clf()
-    plt.imshow(union_map[subslice] * goodmap[subslice],
-               interpolation='nearest', origin='lower', cmap='gray',
-               vmin=0, vmax=union_thresh*2)
-    plt.colorbar()
-    plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
-    plt.axis(ax)
-    plt.title('SED Union peaks')
-    plt.savefig('sed-union-peaks.png')
+    # plt.clf()
+    # plt.imshow(union_map[subslice] * goodmap[subslice],
+    #            interpolation='nearest', origin='lower', cmap='gray',
+    #            vmin=0, vmax=union_thresh*2)
+    # plt.colorbar()
+    # plt.plot(x, y, 'o', mec='r', mfc='none', ms=10)
+    # plt.axis(ax)
+    # plt.title('SED Union peaks')
+    # plt.savefig('sed-union-peaks.png')
 
     image_grid(x, y, rgb)
-    plt.suptitle('SED Union detections (deep image)')
+    plt.title('SED (union) detections')
     plt.savefig('sed-union-images.png')
+    plt.savefig('sed-union-images.pdf')
 
     image_grid(x, y, rgb_one)
-    plt.suptitle('SED Union detections (the image)')
+    plt.title('SED (union) detections (one image)')
     plt.savefig('sed-union-images-one.png')
 
     x, y, bp = sed_mixture_detection(mix_seds, mix_weights, detmaps, detivs,
@@ -1544,11 +1697,12 @@ def new_main():
     plt.savefig('sed-mix-peaks.png')
 
     image_grid(x, y, rgb)
-    plt.suptitle('SED Mixture detections')
+    plt.title('SED (Bayes) detections')
     plt.savefig('sed-mix-images.png')
+    plt.savefig('sed-mix-images.pdf')
 
     image_grid(x, y, rgb_one)
-    plt.suptitle('SED Mixture detections (the image)')
+    plt.suptitle('SED (Bayesd) detections (one image)')
     plt.savefig('sed-mix-images-one.png')
 
     x, y, chisq = chisq_detection_raw(detmaps, detivs, goodmap,
@@ -1571,8 +1725,9 @@ def new_main():
     plt.savefig('chisq-peaks.png')
 
     image_grid(x, y, rgb)
-    plt.suptitle('Chi-squared detections')
+    plt.title(r'$\chi^2$ detections')
     plt.savefig('chisq-images.png')
+    plt.savefig('chisq-images.pdf')
 
     image_grid(x, y, rgb_one)
     plt.suptitle('Chi-squared detections (the image)')
@@ -1599,8 +1754,9 @@ def new_main():
     plt.savefig('chisq-pos-peaks.png')
 
     image_grid(x, y, rgb)
-    plt.suptitle('Chi-squared-pos detections')
+    plt.title(r'$\chi_+^2$ detections')
     plt.savefig('chisq-pos-images.png')
+    plt.savefig('chisq-pos-images.pdf')
 
     image_grid(x, y, rgb_one)
     plt.suptitle('Chi-squared-pos detections (the image)')
@@ -1616,16 +1772,16 @@ def new_main():
     plt.ylabel('Number of matches')
     plt.savefig('chi-match.png')
 
-    chi_meth = ('chisq', chi_x, chi_y, chi_map, chi2_thresh)
-    chipos_meth = ('chipos', chi_pos_x, chi_pos_y, chi_pos_map, chi2_pos_thresh)
-    union_meth = ('sed-union', union_x, union_y, union_map, union_thresh)
-    mix_meth = ('sed-mix', mix_x, mix_y, mix_map, mix_thresh)
+    chi_meth = (r'$\chi^2$', 'chisq', chi_x, chi_y, chi_map, chi2_thresh)
+    chipos_meth = (r'$\chi_+^2$', 'chipos', chi_pos_x, chi_pos_y, chi_pos_map, chi2_pos_thresh)
+    union_meth = ('SED (union)', 'sed-union', union_x, union_y, union_map, union_thresh)
+    mix_meth = ('SED (Bayes)', 'sed-mix', mix_x, mix_y, mix_map, mix_thresh)
 
     colorcolor_plot = set()
     medimg_plot = set()
 
-    for ((a_name,a_x,a_y,a_map,a_thresh),
-         (b_name,b_x,b_y,b_map,b_thresh)) in [
+    for ((a_name,a_tag,a_x,a_y,a_map,a_thresh),
+         (b_name,b_tag,b_x,b_y,b_map,b_thresh)) in [
         (chi_meth, chipos_meth),
         (chipos_meth, union_meth),
         (chipos_meth, mix_meth),
@@ -1651,9 +1807,9 @@ def new_main():
         L = np.flatnonzero(V)
         print(len(L), 'unmatched', b_name, 'detections')
 
-        for (one_U, one_x, one_y, one_name, one_map, two_name, two_map, two_thresh) in [
-            (K, a_x, a_y, a_name, a_map, b_name, b_map, b_thresh),
-            (L, b_x, b_y, b_name, b_map, a_name, a_map, a_thresh),
+        for (one_U, one_x, one_y, one_name, one_tag, one_map, two_name, two_tag, two_map, two_thresh) in [
+            (K, a_x, a_y, a_name, a_tag, a_map, b_name, b_tag, b_map, b_thresh),
+            (L, b_x, b_y, b_name, b_tag, b_map, a_name, a_tag, a_map, a_thresh),
             ]:
 
             Nmax = 200
@@ -1669,8 +1825,9 @@ def new_main():
             print(len(I), 'unmatched', one_name, 'detections are below-threshold in', two_name)
             x,y = x[I],y[I]
             image_grid(x, y, rgb)
-            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-2.png' % (one_name, two_name))
+            plt.title('Detected in %s, not in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-2.png' % (one_tag, two_tag))
+            plt.savefig('unmatched-%s-%s-2.pdf' % (one_tag, two_tag))
 
             s = 10
             I = np.flatnonzero((y >= s) * (y < H-s))
@@ -1690,7 +1847,7 @@ def new_main():
             plt.axhline(0, color='k', alpha=0.3)
             plt.ylim(-0.2, +0.4)
             plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-3.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-3.png' % (one_tag, two_tag))
 
             s = 10
             I = np.flatnonzero((y >= s) * (y < H-s))
@@ -1707,7 +1864,7 @@ def new_main():
             plt.axhline(0, color='k', alpha=0.3)
             plt.ylabel('Detection map S/N')
             plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-4.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-4.png' % (one_tag, two_tag))
 
             plt.clf()
             for band,det in zip(bands, detmaps):
@@ -1721,7 +1878,7 @@ def new_main():
             plt.axhline(0, color='k', alpha=0.3)
             plt.ylabel('Detection map value')
             plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-5.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-5.png' % (one_tag, two_tag))
 
             plt.clf()
             for band,det,detiv in zip(bands, detmaps, detivs):
@@ -1735,8 +1892,9 @@ def new_main():
             plt.axhline(0, color='k', alpha=0.3)
             plt.ylabel('Detection map S/N')
             plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-6.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-6.png' % (one_tag, two_tag))
 
+            plot_cc()
             plt.clf()
             detfluxes  = [detmap[y, x] for detmap in detmaps]
             deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
@@ -1745,7 +1903,7 @@ def new_main():
             for i,fluxes in enumerate([detfluxes, deepfluxes]):
                 mags = [-2.5 * (np.log10(f) - 9) for f in fluxes]
                 g,r,i = mags
-                plt.plot(g - r, r - i, 'k.', alpha=0.25)
+                plt.plot(g - r, r - i, '.', alpha=0.25)
                 plt.xlabel('g - r (mag)')
                 plt.ylabel('r - i (mag)')
                 break
@@ -1758,25 +1916,26 @@ def new_main():
             #plt.subplot(1,2,2)
             #plt.title('Deep coadd')
             #plt.axis(ax)
-            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-7.png' % (one_name, two_name))
+            plt.title('In %s, not in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-7.png' % (one_tag, two_tag))
 
             if not one_name in colorcolor_plot:
                 colorcolor_plot.add(one_name)
+                plot_cc()
                 # Color-color plot for just method A
                 plt.clf()
                 detfluxes  = [detmap[one_y, one_x] for detmap in detmaps]
                 mags = [-2.5 * (np.log10(f) - 9) for f in detfluxes]
                 g,r,i = mags
-                plt.plot(g - r, r - i, 'k.', alpha=0.01)
+                plt.plot(g - r, r - i, '.', alpha=0.01)
                 plt.xlabel('g - r (mag)')
                 plt.ylabel('r - i (mag)')
                 ax = [-2, +6, -5, +3]
                 plt.axis(ax)
                 plt.axhline(0, color='k', alpha=0.2)
                 plt.axvline(0, color='k', alpha=0.2)
-                plt.suptitle('Detected in %s' % (one_name))
-                plt.savefig('colorcolor-%s.png' % (one_name))
+                plt.title('Detected in %s' % (one_name))
+                plt.savefig('colorcolor-%s.png' % (one_tag))
 
             plt.clf()
             deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
@@ -1784,7 +1943,7 @@ def new_main():
                 plt.hist(flux, range=(-0.05, +0.25), bins=40, histtype='step', color={'i':'m'}.get(band,band))
             plt.xlabel('flux (nanomaggies)')
             plt.suptitle('Detected in %s, not in %s: deep fluxes' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-8.png' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-8.png' % (one_tag, two_tag))
 
             # Compute the median image around unmatched sources!
             H,W,three = rgb.shape
@@ -1794,13 +1953,14 @@ def new_main():
             for xx,yy in zip(x[I], y[I]):
                 imstack.append(rgb[yy-s:yy+s+1, xx-s:xx+s+1, :])
             imstack = np.stack(imstack, axis=-1)
-            print('image stack:', imstack.shape)
+            #print('image stack:', imstack.shape)
             medimg = np.median(imstack, axis=-1)
+            plot_oneimage()
             plt.clf()
             plt.imshow(medimg, interpolation='nearest', origin='lower')
             plt.xticks([]); plt.yticks([])
-            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-9.png' % (one_name, two_name))
+            plt.title('In %s, not in %s' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-9.png' % (one_tag, two_tag))
 
             if not one_name in medimg_plot:
                 medimg_plot.add(one_name)
@@ -1812,13 +1972,14 @@ def new_main():
                 for xx,yy in zip(one_x[I], one_y[I]):
                     imstack.append(rgb[yy-s:yy+s+1, xx-s:xx+s+1, :])
                 imstack = np.stack(imstack, axis=-1)
-                print('image stack:', imstack.shape)
+                #print('image stack:', imstack.shape)
                 medimg = np.median(imstack, axis=-1)
+                plot_oneimage()
                 plt.clf()
                 plt.imshow(medimg, interpolation='nearest', origin='lower')
                 plt.xticks([]); plt.yticks([])
-                plt.suptitle('Detected in %s: median' % (one_name))
-                plt.savefig('median-%s.png' % (one_name))
+                plt.title('Detected in %s' % (one_name))
+                plt.savefig('median-%s.png' % (one_tag))
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
     U = np.ones(len(chi_x), bool)

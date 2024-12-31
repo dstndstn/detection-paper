@@ -170,7 +170,7 @@ gravitational radiation \citep{ligo}.
 
 In what follows, we will argue for matched filtering for point-source
 detection.  This is not new (it has been reviewed recently by
-\cite{zackay1}); what is new is that we consider the common context of
+\cite{zackay1} and \cite{zackay2}); what is new is that we consider the common context of
 heterogeneous (in point-spread function and sensitivity) multi-epoch,
 multi-band imaging.
 %
@@ -984,6 +984,7 @@ scale the various bandpasses so that they are estimates of a common
 quantity: perhaps the flux in a canonical band, or some other linear
 quantity such as the integrated intensity.
 
+
 %% FIXME -- does that make sense?  Apparent brightness?  Apparent
 %% luminosity?  I just want to say, you could measure it in anything
 %% linear, like W/m^2/sr/s or, heck, the projected area of a star of a
@@ -1051,7 +1052,6 @@ expected to be brighter in $i$ band, we must \emph{scale down} the
 $i$-band estimate to produce an $r$-band estimate.  The $i$-band
 variance is also reduced in a corresponding way, so this does not
 dilute the weight of high-precision measurements.
-
 
 
 In practice, for those unwilling to use the Bayesian method presented
@@ -1446,6 +1446,7 @@ by substituting the survival function for the probability distribution
 function in the equation above.
 
 \subsection{Experiments}
+\label{sec:chisq_expt}
 
 \begin{figure}
   % python chi-squared-experiment.py
@@ -1613,169 +1614,6 @@ have not investigated it in detail.
 \section{Experiments}
 
 
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{ccccc}
-      & Chi-squared & Chi-positive & SED union & SED mixture \\
-      %Chi-squared &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
-      \includegraphics[height=0.24\textwidth]{chisq-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-2} \\
-      %
-      %Chi-positive &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-2} &
-      \includegraphics[height=0.24\textwidth]{chisq-pos-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-2} \\
-      %
-      %SED union &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-2} &
-      \includegraphics[height=0.24\textwidth]{sed-union-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-2} \\
-      %
-      %SED mixture &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-2} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-2} &
-      \includegraphics[height=0.24\textwidth]{sed-mix-images}
-    \end{tabular}
-  \end{center}
-  \caption{Sources detected by the different methods.  On the diagonal
-    are shown grids of sources detected by each method, including the
-    first (brighest) and last (faintest) 50 sources.  The off-diagonal images
-    show sources that are detected by one method and not another method.
-    }
-\end{figure}
-
-
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{ccccc}
-      & Chi-squared & Chi-positive & SED union & SED mixture \\
-      %Chi-squared &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
-      & %\includegraphics[height=0.24\textwidth]{chisq-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-4} \\
-      %
-      %Chi-positive &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-4} &
-      & %\includegraphics[height=0.24\textwidth]{chisq-pos-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-4} \\
-      %
-      %SED union &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-4} &
-      & %\includegraphics[height=0.24\textwidth]{sed-union-images} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-4} \\
-      %
-      %SED mixture &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-4} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-4} &
-      %\includegraphics[height=0.24\textwidth]{sed-mix-images} \\
-    \end{tabular}
-  \end{center}
-  \caption{Sources detected by one method and not another.
-    For each source, a vertical slice through the detection map in each band is
-    plotted in signal-to-noise units.
-    Up to 20 randomly selected sources are plotted.
-    }
-\end{figure}
-
-
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{ccccc}
-      & Chi-squared & Chi-positive & SED union & SED mixture \\
-      %Chi-squared &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
-      \includegraphics[height=0.24\textwidth]{colorcolor-chisq} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-7} \\
-      %
-      %Chi-positive &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-7} &
-      \includegraphics[height=0.24\textwidth]{colorcolor-chipos} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-7} \\
-      %
-      %SED union &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-7} &
-      \includegraphics[height=0.24\textwidth]{colorcolor-sed-union} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-7} \\
-      %
-      %SED mixture &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-7} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-7} &
-      \includegraphics[height=0.24\textwidth]{colorcolor-sed-mix}
-    \end{tabular}
-  \end{center}
-  \caption{Sources detected by one method and not another, in color-color space
-    (in the single image in which source detection was performed).
-    }
-\end{figure}
-
-
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{ccccc}
-      & Chi-squared & Chi-positive & SED union & SED mixture \\
-      %Chi-squared &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
-      \includegraphics[height=0.24\textwidth]{median-chisq} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-9} \\
-      %
-      %Chi-positive &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-9} &
-      \includegraphics[height=0.24\textwidth]{median-chipos} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-9} \\
-      %
-      %SED union &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-9} &
-      \includegraphics[height=0.24\textwidth]{median-sed-union} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-9} \\
-      %
-      %SED mixture &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-9} &
-      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-9} &
-      \includegraphics[height=0.24\textwidth]{median-sed-mix}
-    \end{tabular}
-  \end{center}
-  \caption{Sources detected by one method and not another: the median image
-    in a deep coadd.
-    }
-\end{figure}
-
-
-
-
-
 % The experiment here make extensive use of the Legacy Survey code
 % infrastructure -- running calibrations of the CP images, and
 % producing detection maps.  The processing is described in DECAM.txt,
@@ -1787,13 +1625,38 @@ We present experiments using data from the Dark Energy Camera
 the Dark Energy Survey \citep{des}.  We selected the deep field ``SN
 X3'' near RA,Dec $= (36.45, -4.6)$, which has a large number of
 exposures in bands $g$, $r$, $i$ and $z$.  For these experiments, we
-use data from bands $g$, $r$ and $i$ only.  We select a set of 25
-exposures in each band from the 2016B semester, keeping at most one
-exposure per night per band.  The exposure times for each image are
-200 seconds in $g$, 400 seconds in $r$, and 360 seconds in $i$.  The
-images have a range of seeing, sky background, and sky transparency
-values.  The list of exposures is available in Tables
-\ref{tab:exposures} and \ref{tab:exposuresi}.
+use data from bands $g$, $r$ and $i$ only.  These images have exposure
+times of 200 seconds in $g$, 400 seconds in $r$, and 360 seconds in
+$i$, and a variety of seeing conditions and sky background levels.
+
+% We perform detections using
+% each of the methods previously presented, with thresholds set to match the
+% ``$5 \sigma$'' false positive rate for independent Gaussian noise.
+% Detections are performed on a single exposure from each band,
+% listed in \ref{tab:exposures}.  These exposures are from the 2016B semester,
+% 
+% For purposes of illustration, we have also produced a deep coadd of
+% 100 exposures in each band.  This allows us to show which detections
+% correspond to real objects in deeper imaging.
+
+We use the standard NOIRLab DECam Community Pipeline \citep{cppipeline}
+for calibration of the images, and then compute astrometric and
+photometric zeropoints, sky background models and PSF models, using
+the DESI Legacy Surveys pipeline \citep{lsoverview},
+\textsl{legacypipe}\footnote{Publicly available at
+\niceurl{https://github.com/legacysurvey/legacypipe}.}.
+This also includes an outlier-masking step that detects and masks flux that
+appears in only one image in the stack; this efficiently rejects residual cosmic
+rays, asteroids, and other transients and artifacts.
+The astrometric
+calibration uses Gaia (DR2) as the reference catalog \citep{gaia,
+  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
+reference catalog \citep{panstarrs}.  The PSF models use PsfEx
+\citep{psfex}.
+
+
+
+
 
 \begin{figure}
   \begin{center}
@@ -1837,19 +1700,19 @@ values.  The list of exposures is available in Tables
   \end{center}
 \end{figure}
 
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.4\textwidth]{singleband}
-    \caption{Sources that are detected most strongly in one of the
-      single-band SED filters (top row: $g$-band-only; next three
-      rows: $r$-band-only; bottom two rows, $i$-band-only).  These
-      sources include asteroids (here, 12 observations of 6 known
-      asteroids, some visibly elongated during these minutes-long
-      exposures), cosmic rays that are not masked by the Community
-      Pipeline, and, for $i$-band-only, some extremely red sources.
-      \label{fig:oneband}}
-  \end{center}
-\end{figure}
+% \begin{figure}
+%   \begin{center}
+%     \includegraphics[width=0.4\textwidth]{singleband}
+%     \caption{Sources that are detected most strongly in one of the
+%       single-band SED filters (top row: $g$-band-only; next three
+%       rows: $r$-band-only; bottom two rows, $i$-band-only).  These
+%       sources include asteroids (here, 12 observations of 6 known
+%       asteroids, some visibly elongated during these minutes-long
+%       exposures), cosmic rays that are not masked by the Community
+%       Pipeline, and, for $i$-band-only, some extremely red sources.
+%       \label{fig:oneband}}
+%   \end{center}
+% \end{figure}
 
 \begin{figure}
   \begin{center}
@@ -1907,86 +1770,53 @@ values.  The list of exposures is available in Tables
       experiment, the detection thresholds were tuned so that both
       methods produced the same number of detections; this compares
       each method's best detections.  The Bayesian-only detections
-      have the colors of real objects, while the $gri$-union
-      detections tend to be single-band sources, including cosmic
-      rays, asteroids, and very red sources.  Cutouts of these sources
+      have typical colors of real objects, while the $gri$-union
+      detections tend to be further out in the extremes of the color space.
+      Cutouts of these sources
       are shown in \figref{fig:only}.
       \label{fig:bayes-vs-gri}}
   \end{center}
 \end{figure}
 
-\begin{figure}[p!]
+\begin{figure}
   \begin{center}
     \begin{tabular}{cc}
       Detected by Bayesian only &
       Detected by $gri$-union only \\
-      \includegraphics[width=0.4\textwidth]{bayes-only}
+      \includegraphics[width=0.3\textwidth]{bayes-only}
       %\hspace{0.03\textwidth}
       &
-      \includegraphics[width=0.4\textwidth]{gri-only}
+      \includegraphics[width=0.3\textwidth]{gri-only}
     \end{tabular}
     \caption{Bayesian SED-matched detection method compared to the
       union of $g$, $r$, and $i$ single-band detections, where each
       method is allowed to detect the same total number of sources.
       \emph{Left:} Examples of sources that are detected by only the
-      Bayesian SED-matched detection method.  These have the colors of
-      real objects and appear to be all faint galaxies.  \emph{Right:}
+      Bayesian SED-matched detection method.  These have very typical
+      galaxy colors.  \emph{Right:}
       Examples of sources that are detected by only the $gri$-union
-      method.  These include cosmic rays,
-      asteroids, and very red sources.
+      method.  These include a number of very red sources, and other sources with
+      unusual colors.
       %
       \label{fig:only}}
   \end{center}
 \end{figure}
 
-\begin{figure}[p!]
-  \begin{center}
-    \includegraphics[height=0.4\textwidth]{galaxies}
-    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
-    \caption{Galaxy detection.  \emph{Left:} Detections from an extended-source detector,
-      sorted by the difference in detection strength between the
-      ``yellow galaxy'' and ``yellow point source'' detectors.  The
-      bright stars are likely included because their saturated cores
-      cause difficulty in correctly measuring the signal-to-noise.
-      The remaining sources are all galaxies, except for one
-      fast-moving asteroid that is spatially extended.  \emph{Right:}
-      Relative strength of detection of sources in the extended versus
-      PSF detection filters.  The extended-source filter used here is
-      a 1-arcsecond FWHM round Gaussian.  There is a clear line of
-      sources with a detection ratio around 0.95, corresponding to
-      point sources.  Sources with ratios above unity are closer in
-      profile to the target profile than to a point source, with the
-      largest ratios probably corresponding to sources that are
-      approximately equal to the target profile.
-      \label{fig:gals}}
-  \end{center}
-\end{figure}
-
-We use the standard NOIRLab DECam Community Pipeline \citep{cppipeline}
-for calibration of the images, and then compute astrometric and
-photometric zeropoints, sky background models and PSF models, using
-the DESI Legacy Surveys pipeline \citep{lsoverview},
-\textsl{legacypipe}\footnote{Publicly available at
-  \niceurl{https://github.com/legacysurvey/legacypipe}.}.
-The astrometric
-calibration uses Gaia (DR2) as the reference catalog \citep{gaia,
-  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
-reference catalog \citep{panstarrs}.  The PSF models use PsfEx
-\citep{psfex}.
 
 \subsection{SED-matched detection}
 
-
+Here we illustrate the performance of the SED-matched detection method.
+We select a set of 25 exposures from the DECam set described above.
 We select a 4000-by-4400 pixel region, at the approximate DECam pixel
 scale of $0.262$ arcsec/pixel, covering DECam chips N4 and S4 in the
-center of the focal plane.  We produce detection maps for each band as
-described above, and run several SED-matched filters: a ``Blue''
+center of the focal plane.  We produce detection maps for each band,
+and run several SED-matched filters: a ``Blue''
 filter matched to a source with colors $g - r = r - i = 0$; a
 ``Yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``Red''
 filter matched to $g - r = 1.5$, $r - i = 1$.
 
 For the plots shows here, we select sources in the Yellow filter with
-signal-to-noise above $100$, taking as a source the peak pixel within
+signal-to-noise above $30$, taking as a source the peak pixel within
 each connected component of pixels above the threshold; we do not try
 to resolve or deblend nearby peaks.  We drop any source near the edge
 of the image or where there are fewer than 12 exposures in any of $g$,
@@ -2002,13 +1832,13 @@ are shown in \figref{fig:expt}.  \figref{fig:bestsed} shows a sample
 of sources that are most strongly detected by each of the SED-matched
 filters.
 
-We also observe that some sources are most strongly detected in one of
-the single-band-only SED-matched filters.  For the $g$-band-only and
-$r$-band-only filters, these are almost exclusively image artifacts,
-such as cosmic rays that are not masked by the Community Pipeline; and
-transient sources, including asteroids.  The $i$-band-only filter can
-also detect extremely red sources.  A few examples are shown in
-\figref{fig:oneband}.
+% We also observe that some sources are most strongly detected in one of
+% the single-band-only SED-matched filters.  For the $g$-band-only and
+% $r$-band-only filters, these are almost exclusively image artifacts,
+% such as cosmic rays that are not masked by the Community Pipeline; and
+% transient sources, including asteroids.  The $i$-band-only filter can
+% also detect extremely red sources.  A few examples are shown in
+% \figref{fig:oneband}.
 
 In \figref{fig:strength} we illustrate how the relative strength of
 the different SED-matched filters change with respect to measured
@@ -2029,45 +1859,299 @@ find 63 bins populated, as shown in \figref{fig:prior}.  The prior
 includes some SED components that have zero flux in $g$ band, which
 correspond to very red sources.
 
-
 We run the Bayesian detection procedure described in Equation
 \ref{eq:pfg}, computing in log space to avoid numerical overflow.
 This takes a few minutes on a single core with our unoptimized
 implementation.
 
-
 In order to show the performance of the Bayesian approach, we will
 detect sources at a high threshold and compare against a simple
 approach.  For the Bayesian map, we threshold at a log-probability
-ratio of $2000$, which yields approximately 3055 sources in good
-regions of the image.  For a comparison, we run the same detection
-procedure first on our $g$-band map, then on the $r$-band map, and
-finally on the $i$-band map, with a detection threshold of $50 \sigma$
-for each band, and keeping the union of all detections.  We merge
-detected sources if they are within 5 pixels of each other.  This
-yields a total of 3201 sources in good regions.  In order to find
-sources that are detected by one method and not the other, we first
-cut to the brightest 3055 $gri$-union detections (based on maximum
-signal-to-noise in the three bands) so that the two lists of sources
-are the same length.  We then find sources that are not within an
-above-threshold region in the other map.  That is, we ignore Bayesian
-detections where the maximum of $g$, $r$, or $i$ signal-to-noise is
-above $50$, and we drop $gri$-union detections where the Bayesian
-log-probability is above $2000$.  This yields 163 unique Bayesian
-detections and 112 unique $gri$-union detections.  As shown in Figures
-\ref{fig:bayes-vs-gri} and \ref{fig:only}, the sources detected by
-only the Bayesian method have the colors of real sources and appear to
-be all real galaxies, while the sources detected by only the $gri$-union
-method include a large number of cosmic rays and asteroids, as well as
-a number of real very red sources.
-If we clip outlier pixels while forming the detection maps, we
-can eliminate these cosmic rays before the detection step; the
-$gri$-union method then preferentially detects sources with extreme
-colors.  Since real images will often contain artifacts
-and moving objects, the fact that the $gri$-union method \emph{prefers} these
-objects to real sources is problematic; the Bayesian method, on
-the other hand, requires sources with such unexpected colors to have
-much higher signal than it does for real sources.
+ratio of $200$, which yields $2380$ sources in good regions of the
+image.  For a comparison, we run the same detection procedure first on
+our $g$-band map, then on the $r$-band map, and finally on the
+$i$-band map, with a detection threshold of $15 \sigma$ for each band,
+and keeping the union of all detections.  We merge detected sources if
+they are within 5 pixels of each other.  This yields a total of $2489$
+sources in good regions.  In order to find sources that are detected
+by one method and not the other, we first cut to the brightest $2380$
+$gri$-union detections (based on maximum signal-to-noise in the three
+bands) so that the two lists of sources are the same length.  We then
+find sources that are not within an above-threshold region in the
+other map.  That is, we ignore Bayesian detections where the maximum
+of $g$, $r$, or $i$ signal-to-noise is above $15$, and we drop
+$gri$-union detections where the Bayesian log-probability is above
+$200$.  This yields 52 unique Bayesian detections and 28 unique
+$gri$-union detections.  As shown in Figures \ref{fig:bayes-vs-gri}
+and \ref{fig:only}, the sources detected by only the Bayesian method
+have the typical colors of real sources, while the sources detected by
+only the $gri$-union method include a number of objects with extreme colors.
+
+% a large number of cosmic rays and
+% asteroids, as well as a number of real very red sources.  If we clip
+% outlier pixels while forming the detection maps, we can eliminate
+% these cosmic rays before the detection step; the $gri$-union method
+% then preferentially detects sources with extreme colors.  Since real
+% images will often contain artifacts and moving objects, the fact that
+% the $gri$-union method \emph{prefers} these objects to real sources is
+% problematic; the Bayesian method, on the other hand, requires sources
+% with such unexpected colors to have much higher signal than it does
+% for real sources.
+
+
+\begin{figure}[p!]
+  \begin{center}
+    \begin{tabular}{c@{}c@{}c@{}c@{}c}
+      & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
+      \includegraphics[height=0.24\textwidth]{chisq-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-2} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{chisq-pos-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-2} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{sed-union-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-2} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{sed-mix-images}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by the different methods.  On the diagonal
+    are shown grids of sources detected by each method, including the
+    first (brighest) and last (faintest) 32 sources.  Notice that the brightest
+    sources detected by the different methods are almost identical.  The
+    off-diagonal images show the brightest and faintest sources that are detected
+    by one method and not another.  Two methods can be compared qualitatively
+    by examining the two plots that appear across the diagonal from each other.
+    For the images above the diagonal, a significant number of the additional
+    detections are not true isolated sources but perhaps arise from small
+    deviations in the outer light profiles of galaxies.
+    Note: although the detection was performed on single images, the color images
+    here are from 100-image deep coadds, in order to show the ``truth''.
+    \label{fig:comp-images}
+    }
+\end{figure}
+
+
+% \begin{figure}
+%   \begin{center}
+%     \begin{tabular}{ccccc}
+%       & Chi-squared & Chi-positive & SED union & SED mixture \\
+%       %Chi-squared &
+%       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+%       & %\includegraphics[height=0.24\textwidth]{chisq-images} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-4} \\
+%       %
+%       %Chi-positive &
+%       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-4} &
+%       & %\includegraphics[height=0.24\textwidth]{chisq-pos-images} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-4} \\
+%       %
+%       %SED union &
+%       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-4} &
+%       & %\includegraphics[height=0.24\textwidth]{sed-union-images} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-4} \\
+%       %
+%       %SED mixture &
+%       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-4} &
+%       \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-4} &
+%       %\includegraphics[height=0.24\textwidth]{sed-mix-images} \\
+%     \end{tabular}
+%   \end{center}
+%   \caption{Sources detected by one method and not another.
+%     For each source, a vertical slice through the detection map in each band is
+%     plotted in signal-to-noise units.
+%     Up to 20 randomly selected sources are plotted.
+%     }
+% \end{figure}
+
+
+\begin{figure}[p!]
+  \begin{center}
+    \begin{tabular}{c@{}c@{}c@{}c@{}c}
+      & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-chisq} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-7} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-chipos} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-7} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-sed-union} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-7} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-sed-mix}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by the various methods.  On the diagonal are plotted
+    all the sources detected by each method; these are very similar, since the
+    majority of sources detected are in common.  On the off-diagonal are shown
+    sources that are detected by one method and not another method.
+    The color-color values plotted are as measured in the single-image detection
+    maps that were used for source detection.
+    In general, the sources detected by only the $\chi^2$ and $\chipos^2$ methods
+    have unusual colors, far from the core of the distribution, while the
+    SED-matched methods produce detections that are largely consistent with the
+    bulk of the color-color distribution, since this matches the priors.
+    \label{fig:comp-cc}}
+\end{figure}
+
+\begin{figure}[p!]
+  \begin{center}
+    \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
+      & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      %& Chi-squared & Chi-positive & SED union & SED mixture \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
+      %\raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+      \includegraphics[height=0.2\textwidth]{median-chisq} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chisq-chipos-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chisq-sed-union-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chisq-sed-mix-9} \\
+      %
+      %Chi-positive &
+      %\raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chipos-chisq-9} &
+      \includegraphics[height=0.2\textwidth]{median-chipos} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chipos-sed-union-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-chipos-sed-mix-9} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-chisq-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-chipos-9} &
+      \includegraphics[height=0.2\textwidth]{median-sed-union} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-sed-mix-9} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-chisq-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-chipos-9} &
+      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-sed-union-9} &
+      \includegraphics[height=0.2\textwidth]{median-sed-mix}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by each method.  On the diagonal, we show
+    the median image (in a deep coadd) of all the detections produced
+    by each method.  As seen in previous figures, these are largely
+    similar between the methods since the majority of detections are
+    in common.
+    On the off-diagonal, we show detections from one method and not another
+    method, again the median in a deep coadd.  In general, the images below
+    the diagonal look more like real sources in a deep coadd, meaning that the
+    SED-matched methods are generally producing detections at real source
+    locations.
+    \label{fig:comp-median-image}
+    }
+\end{figure}
+
+
+
+
+\subsection{Comparing $\chi^2$ and SED-matched methods}
+
+Here, we compare the original $\chi^2$ method, the positive-flux-only
+$\chipos^2$ method, and two SED-matched methods: first, taking the
+union of detections in each filter, and second, a Bayesian method that
+gives prior weights to the different SEDs.  For illustrative purposes,
+we use the small set of SEDs previously describe: ``Blue'',
+``Yellow'', and ``Red'' filters, as well as an $i$-band-only filter
+for very red objects.  For the Bayesian method, the $i$-band-only
+filter is given $1\%$ weight, and the remaining weight is split
+between the three color-matched SEDs.
+
+For this experiment, for detection we use a single exposure in each of
+the $g$, $r$, and $i$ bands.
+
+Thresholds for the $\chi^2$ and $\chipos^2$ methods were set
+analytically, and the SED-matched ones were set empirically by drawing
+10 instances of random Gaussian noise for the detection maps, with the same
+variance as the detection maps computed from the data.  When we run
+the $\chi^2$ and $\chipos^2$ methods on these same random inputs, they
+generate somewhat more than the target number of false positive
+detections, but we keep the analytic thresholds regardless.
+
+% SED union: total of 38 false detections
+% [4, 3, 2, 1, 5, 6, 2, 6, 3, 6]
+% SED mixture: total of 39 false detections
+% [5, 2, 2, 4, 4, 3, 4, 7, 0, 8]
+% Chi-sq: total of 59 false detections
+% [4, 3, 1, 9, 6, 7, 7, 8, 8, 6]
+% Chi-pos: total of 53 false detections
+% [1, 6, 2, 5, 9, 5, 6, 6, 5, 8]
+
+For each method, we define a detected peak as a pixel value (in
+whatever statistic the method uses) above the threshold and
+\emph{also} above the surrounding $5 \times 5$ grid of pixels.  This
+helps to reduce duplicate detections due to irrelevant noise
+fluctuations.  When comparing methods, we examine the map at the pixel
+location in question and ask whether it is above or below threshold,
+regardless of whether it is a local peak.
+
+With the thresholds described, the $\chi^2$ method produces $9,446$
+detections, the $\chipos^2$ method produces $10,014$ detections, while
+the SED-union method produces $10,093$ detections and the SED-mixture
+produces $10,312$ detections.  This broadly confirms our results from
+our experiments on synthetic data in section \ref{sec:chisq_expt}: the
+$\chipos^2$ method produces more true detections than the $\chi^2$
+method at the same false-positive rate, since its detection boundaries
+are better spent in terms of where real astronomical sources exist.
+By a similar note, the SED-matched methods generate marginally more
+detections by virtue of sculpting their decision boundaries to the
+distribution of astronomical sources in color space.
+
+
+Figure \ref{fig:comp-images} shows images of the sources that are detected
+by one method and not by each other method.
+
+Figure \ref{fig:comp-cc} also compares pairs of methods, showing the
+color-color space distributions of the detections.
+
+Figure \ref{fig:comp-median-image} further compares pairs of methods, showing
+the median in a deep coadded image of the detections produced by each method,
+and detections produced by one method and not another.
+
 
 
 %\clearpage
@@ -2091,6 +2175,31 @@ are largely real galaxies.  Perhaps surprisingly, we find that using a
 detection filter tuned to a round Gaussian profile yields only a
 few-percent improvement in detection efficiency versus a PSF-tuned
 filter, for typical galaxies in DECam images.
+
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[height=0.4\textwidth]{galaxies}
+    \includegraphics[height=0.4\textwidth]{galaxies-relsn}
+    \caption{Galaxy detection.  \emph{Left:} Detections from an extended-source detector,
+      sorted by the difference in detection strength between the
+      ``yellow galaxy'' and ``yellow point source'' detectors.  The
+      bright stars are likely included because their saturated cores
+      cause difficulty in correctly measuring the signal-to-noise.
+      The remaining sources are all galaxies, except for one
+      fast-moving asteroid that is spatially extended.  \emph{Right:}
+      Relative strength of detection of sources in the extended versus
+      PSF detection filters.  The extended-source filter used here is
+      a 1-arcsecond FWHM round Gaussian.  There is a clear line of
+      sources with a detection ratio around 0.95, corresponding to
+      point sources.  Sources with ratios above unity are closer in
+      profile to the target profile than to a point source, with the
+      largest ratios probably corresponding to sources that are
+      approximately equal to the target profile.
+      \label{fig:gals}}
+  \end{center}
+\end{figure}
+
 
 
 \section{Conclusions}
@@ -2119,6 +2228,13 @@ ignored entirely.  This property will becomes increasingly useful as
 multi-wavelength, many-exposure, multi-instrument studies become more
 prominent.
 
+% Our experiments with $g$, $r$, $i$ images that each
+% contribute a similar amount of information showed relatively minor
+% differences between the $\chipos^2$ method and our SED-matched
+% methods, but for larger and more diverse data sets, the SED-matched
+% methods automatically scale correctly, while the $\chipos^2$ method
+% does not.
+
 
 
 \acknowledgments
@@ -2131,6 +2247,9 @@ Micha Gorelick (Fast Forward Labs),
 Kendrick Smith (Perimeter Institute),
 Robert Lupton, Steve Bickerton, Paul Price, and Craig Loomis (Princeton)
 for helpful comments and discussion.
+
+We thank the anonymous referee for a thorough and thoughtful review
+that improved the paper considerably.
 
 Research at Perimeter Institute is supported in part by the Government
 of Canada through the Department of Innovation, Science and Economic
@@ -2550,115 +2669,135 @@ $\sigma_{F^{\star}}^2$ as given in Equation \ref{eq:onebandstd}.
 Therefore, the estimator saturates the Cram\'er--Rao bound.
 
 
-\subsection{Experiments}
+% \subsection{Experiments}
+% 
+% \begin{table}
+%   \begin{center}
+%     \begin{scriptsize}
+%     \begin{tabular}{cccccc}
+%       \hline
+%       Filter & Exposure number & Date & Exposure time (s) &
+%       Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
+%       \hline
+%       g & 563982 & 2016-08-14 & 200 & 1.28 & 24.65 \\
+%       r & 569613 & 2016-08-31 & 400 & 1.18 & 24.82 \\
+%       i & 567442 & 2016-08-25 & 360 & 1.05 & 24.20 \\
+%       \hline
+%     \end{tabular}
+%     \end{scriptsize}
+%     \caption{Exposures from the Dark Energy Camera used for detection in
+%       the experiments.\label{tab:exposures}}
+%   \end{center}
+% \end{table}
+      
 
-\begin{table}
-  \begin{center}
-    \begin{scriptsize}
-    \begin{tabular}{cccccc}
-      \hline
-      Filter & Exposure number & Date & Exposure time (s) &
-      Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
-      \hline
-      g & 563982 & 2016-08-14 & 200 & 1.28 & 24.65 \\
-      g & 566968 & 2016-08-24 & 200 & 1.79 & 23.02 \\
-      g & 567422 & 2016-08-25 & 200 & 1.72 & 23.55 \\
-      g & 569591 & 2016-08-31 & 200 & 1.55 & 24.39 \\
-      g & 571049 & 2016-09-05 & 200 & 1.67 & 24.29 \\
-      g & 573546 & 2016-09-11 & 200 & 1.42 & 24.49 \\
-      g & 574702 & 2016-09-14 & 200 & 2.17 & 22.75 \\
-      g & 575794 & 2016-09-22 & 200 & 1.20 & 24.17 \\
-      g & 577432 & 2016-09-26 & 200 & 1.55 & 24.47 \\
-      g & 579874 & 2016-10-02 & 200 & 1.37 & 24.51 \\
-      g & 582140 & 2016-10-09 & 200 & 1.61 & 23.56 \\
-      g & 584106 & 2016-10-20 & 200 & 1.64 & 24.05 \\
-      g & 585888 & 2016-10-25 & 200 & 2.00 & 24.11 \\
-      g & 588620 & 2016-11-02 & 200 & 1.39 & 24.43 \\
-      g & 591449 & 2016-11-09 & 200 & 1.47 & 23.53 \\
-      g & 593383 & 2016-11-17 & 200 & 1.53 & 24.39 \\
-      g & 595093 & 2016-11-22 & 200 & 1.45 & 24.48 \\
-      g & 596474 & 2016-11-26 & 200 & 1.07 & 24.80 \\
-      g & 598232 & 2016-12-01 & 200 & 1.96 & 23.91 \\
-      g & 600846 & 2016-12-08 & 200 & 1.20 & 23.69 \\
-      g & 601468 & 2016-12-17 & 200 & 1.32 & 23.41 \\
-      g & 603288 & 2016-12-22 & 200 & 1.55 & 24.35 \\
-      g & 604684 & 2016-12-28 & 200 & 1.82 & 24.26 \\
-      g & 605946 & 2017-01-03 & 200 & 1.75 & 24.11 \\
-      g & 609567 & 2017-01-17 & 200 & 1.17 & 24.14 \\
-      \hline
-      r & 563978 & 2016-08-14 & 400 & 1.37 & 24.51 \\
-      r & 566976 & 2016-08-24 & 400 & 1.58 & 23.57 \\
-      r & 567426 & 2016-08-25 & 400 & 1.53 & 23.99 \\
-      r & 569613 & 2016-08-31 & 400 & 1.18 & 24.82 \\
-      r & 571060 & 2016-09-05 & 400 & 1.64 & 24.51 \\
-      r & 573562 & 2016-09-11 & 400 & 1.34 & 24.19 \\
-      r & 574711 & 2016-09-14 & 400 & 1.47 & 23.82 \\
-      r & 575798 & 2016-09-22 & 400 & 1.07 & 24.33 \\
-      r & 576542 & 2016-09-24 & 400 & 1.67 & 24.44 \\
-      r & 578740 & 2016-09-29 & 400 & 1.54 & 24.46 \\
-      r & 580295 & 2016-10-03 & 400 & 1.62 & 24.34 \\
-      r & 582423 & 2016-10-10 & 400 & 1.07 & 24.12 \\
-      r & 584144 & 2016-10-20 & 400 & 1.55 & 23.91 \\
-      r & 585892 & 2016-10-25 & 400 & 1.90 & 24.15 \\
-      r & 588624 & 2016-11-02 & 400 & 1.25 & 24.61 \\
-      r & 591453 & 2016-11-09 & 400 & 1.16 & 24.30 \\
-      r & 593076 & 2016-11-16 & 400 & 1.15 & 23.52 \\
-      r & 593387 & 2016-11-17 & 400 & 1.35 & 24.64 \\
-      r & 595359 & 2016-11-23 & 400 & 1.85 & 24.20 \\
-      r & 597239 & 2016-11-28 & 400 & 1.84 & 24.33 \\
-      r & 598940 & 2016-12-03 & 400 & 1.43 & 24.46 \\
-      r & 600880 & 2016-12-08 & 400 & 2.67 & 23.26 \\
-      r & 601776 & 2016-12-18 & 400 & 1.20 & 24.98 \\
-      r & 604334 & 2016-12-25 & 400 & 1.01 & 25.05 \\
-      r & 605255 & 2016-12-30 & 400 & 1.50 & 24.64 \\
-      \hline
-    \end{tabular}
-    \caption{Exposures in $g$ and $r$ bands from the Dark Energy
-      Camera used in the experiments.\label{tab:exposures}}
-    \end{scriptsize}
-  \end{center}
-\end{table}
-
-\begin{table}
-  \begin{center}
-    \begin{scriptsize}
-    \begin{tabular}{cccccc}
-      \hline
-      Filter & Exposure number & Date & Exposure time (s) &
-      Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
-      \hline
-      i & 563972 & 2016-08-14 & 360 & 1.77 & 23.49 \\
-      i & 566980 & 2016-08-24 & 360 & 1.35 & 23.61 \\
-      i & 567442 & 2016-08-25 & 360 & 1.05 & 24.20 \\
-      i & 567867 & 2016-08-26 & 360 & 1.04 & 24.24 \\
-      i & 570175 & 2016-09-02 & 360 & 1.81 & 23.10 \\
-      i & 571447 & 2016-09-06 & 360 & 1.54 & 23.23 \\
-      i & 573865 & 2016-09-12 & 360 & 1.66 & 23.01 \\
-      i & 574727 & 2016-09-14 & 360 & 1.80 & 22.73 \\
-      i & 575802 & 2016-09-22 & 360 & 1.09 & 23.13 \\
-      i & 576546 & 2016-09-24 & 360 & 1.41 & 23.33 \\
-      i & 579449 & 2016-10-01 & 360 & 1.15 & 23.41 \\
-      i & 581861 & 2016-10-08 & 360 & 1.47 & 23.03 \\
-      i & 584166 & 2016-10-20 & 360 & 1.27 & 23.01 \\
-      i & 585960 & 2016-10-25 & 360 & 1.73 & 22.89 \\
-      i & 588628 & 2016-11-02 & 360 & 1.20 & 23.93 \\
-      i & 591457 & 2016-11-09 & 360 & 1.06 & 24.00 \\
-      i & 593080 & 2016-11-16 & 360 & 1.03 & 23.51 \\
-      i & 595056 & 2016-11-22 & 360 & 1.81 & 23.75 \\
-      i & 596517 & 2016-11-26 & 360 & 1.61 & 24.00 \\
-      i & 598236 & 2016-12-01 & 360 & 1.38 & 23.88 \\
-      i & 600850 & 2016-12-08 & 360 & 1.04 & 24.12 \\
-      i & 601780 & 2016-12-18 & 360 & 1.12 & 24.44 \\
-      i & 604338 & 2016-12-25 & 360 & 1.14 & 24.23 \\
-      i & 605266 & 2016-12-30 & 360 & 1.67 & 23.90 \\
-      i & 607844 & 2017-01-09 & 360 & 1.34 & 22.65 \\
-      \hline
-    \end{tabular}
-    \caption{Exposures in $i$ band from the Dark Energy Camera used in
-      the experiments.\label{tab:exposuresi}}
-    \end{scriptsize}
-  \end{center}
-\end{table}
+% \begin{table}
+%   \begin{center}
+%     \begin{scriptsize}
+%     \begin{tabular}{cccccc}
+%       \hline
+%       Filter & Exposure number & Date & Exposure time (s) &
+%       Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
+%       \hline
+%       g & 563982 & 2016-08-14 & 200 & 1.28 & 24.65 \\
+%       g & 566968 & 2016-08-24 & 200 & 1.79 & 23.02 \\
+%       g & 567422 & 2016-08-25 & 200 & 1.72 & 23.55 \\
+%       g & 569591 & 2016-08-31 & 200 & 1.55 & 24.39 \\
+%       g & 571049 & 2016-09-05 & 200 & 1.67 & 24.29 \\
+%       g & 573546 & 2016-09-11 & 200 & 1.42 & 24.49 \\
+%       g & 574702 & 2016-09-14 & 200 & 2.17 & 22.75 \\
+%       g & 575794 & 2016-09-22 & 200 & 1.20 & 24.17 \\
+%       g & 577432 & 2016-09-26 & 200 & 1.55 & 24.47 \\
+%       g & 579874 & 2016-10-02 & 200 & 1.37 & 24.51 \\
+%       g & 582140 & 2016-10-09 & 200 & 1.61 & 23.56 \\
+%       g & 584106 & 2016-10-20 & 200 & 1.64 & 24.05 \\
+%       g & 585888 & 2016-10-25 & 200 & 2.00 & 24.11 \\
+%       g & 588620 & 2016-11-02 & 200 & 1.39 & 24.43 \\
+%       g & 591449 & 2016-11-09 & 200 & 1.47 & 23.53 \\
+%       g & 593383 & 2016-11-17 & 200 & 1.53 & 24.39 \\
+%       g & 595093 & 2016-11-22 & 200 & 1.45 & 24.48 \\
+%       g & 596474 & 2016-11-26 & 200 & 1.07 & 24.80 \\
+%       g & 598232 & 2016-12-01 & 200 & 1.96 & 23.91 \\
+%       g & 600846 & 2016-12-08 & 200 & 1.20 & 23.69 \\
+%       g & 601468 & 2016-12-17 & 200 & 1.32 & 23.41 \\
+%       g & 603288 & 2016-12-22 & 200 & 1.55 & 24.35 \\
+%       g & 604684 & 2016-12-28 & 200 & 1.82 & 24.26 \\
+%       g & 605946 & 2017-01-03 & 200 & 1.75 & 24.11 \\
+%       g & 609567 & 2017-01-17 & 200 & 1.17 & 24.14 \\
+%       \hline
+%       r & 563978 & 2016-08-14 & 400 & 1.37 & 24.51 \\
+%       r & 566976 & 2016-08-24 & 400 & 1.58 & 23.57 \\
+%       r & 567426 & 2016-08-25 & 400 & 1.53 & 23.99 \\
+%       r & 569613 & 2016-08-31 & 400 & 1.18 & 24.82 \\
+%       r & 571060 & 2016-09-05 & 400 & 1.64 & 24.51 \\
+%       r & 573562 & 2016-09-11 & 400 & 1.34 & 24.19 \\
+%       r & 574711 & 2016-09-14 & 400 & 1.47 & 23.82 \\
+%       r & 575798 & 2016-09-22 & 400 & 1.07 & 24.33 \\
+%       r & 576542 & 2016-09-24 & 400 & 1.67 & 24.44 \\
+%       r & 578740 & 2016-09-29 & 400 & 1.54 & 24.46 \\
+%       r & 580295 & 2016-10-03 & 400 & 1.62 & 24.34 \\
+%       r & 582423 & 2016-10-10 & 400 & 1.07 & 24.12 \\
+%       r & 584144 & 2016-10-20 & 400 & 1.55 & 23.91 \\
+%       r & 585892 & 2016-10-25 & 400 & 1.90 & 24.15 \\
+%       r & 588624 & 2016-11-02 & 400 & 1.25 & 24.61 \\
+%       r & 591453 & 2016-11-09 & 400 & 1.16 & 24.30 \\
+%       r & 593076 & 2016-11-16 & 400 & 1.15 & 23.52 \\
+%       r & 593387 & 2016-11-17 & 400 & 1.35 & 24.64 \\
+%       r & 595359 & 2016-11-23 & 400 & 1.85 & 24.20 \\
+%       r & 597239 & 2016-11-28 & 400 & 1.84 & 24.33 \\
+%       r & 598940 & 2016-12-03 & 400 & 1.43 & 24.46 \\
+%       r & 600880 & 2016-12-08 & 400 & 2.67 & 23.26 \\
+%       r & 601776 & 2016-12-18 & 400 & 1.20 & 24.98 \\
+%       r & 604334 & 2016-12-25 & 400 & 1.01 & 25.05 \\
+%       r & 605255 & 2016-12-30 & 400 & 1.50 & 24.64 \\
+%       \hline
+%     \end{tabular}
+%     \caption{Exposures in $g$ and $r$ bands from the Dark Energy
+%       Camera used in the experiments.\label{tab:exposures}}
+%     \end{scriptsize}
+%   \end{center}
+% \end{table}
+% 
+% \begin{table}
+%   \begin{center}
+%     \begin{scriptsize}
+%     \begin{tabular}{cccccc}
+%       \hline
+%       Filter & Exposure number & Date & Exposure time (s) &
+%       Seeing (arcsec) & Depth ($5 \sigma$ point source) \\
+%       \hline
+%       i & 563972 & 2016-08-14 & 360 & 1.77 & 23.49 \\
+%       i & 566980 & 2016-08-24 & 360 & 1.35 & 23.61 \\
+%       i & 567442 & 2016-08-25 & 360 & 1.05 & 24.20 \\
+%       i & 567867 & 2016-08-26 & 360 & 1.04 & 24.24 \\
+%       i & 570175 & 2016-09-02 & 360 & 1.81 & 23.10 \\
+%       i & 571447 & 2016-09-06 & 360 & 1.54 & 23.23 \\
+%       i & 573865 & 2016-09-12 & 360 & 1.66 & 23.01 \\
+%       i & 574727 & 2016-09-14 & 360 & 1.80 & 22.73 \\
+%       i & 575802 & 2016-09-22 & 360 & 1.09 & 23.13 \\
+%       i & 576546 & 2016-09-24 & 360 & 1.41 & 23.33 \\
+%       i & 579449 & 2016-10-01 & 360 & 1.15 & 23.41 \\
+%       i & 581861 & 2016-10-08 & 360 & 1.47 & 23.03 \\
+%       i & 584166 & 2016-10-20 & 360 & 1.27 & 23.01 \\
+%       i & 585960 & 2016-10-25 & 360 & 1.73 & 22.89 \\
+%       i & 588628 & 2016-11-02 & 360 & 1.20 & 23.93 \\
+%       i & 591457 & 2016-11-09 & 360 & 1.06 & 24.00 \\
+%       i & 593080 & 2016-11-16 & 360 & 1.03 & 23.51 \\
+%       i & 595056 & 2016-11-22 & 360 & 1.81 & 23.75 \\
+%       i & 596517 & 2016-11-26 & 360 & 1.61 & 24.00 \\
+%       i & 598236 & 2016-12-01 & 360 & 1.38 & 23.88 \\
+%       i & 600850 & 2016-12-08 & 360 & 1.04 & 24.12 \\
+%       i & 601780 & 2016-12-18 & 360 & 1.12 & 24.44 \\
+%       i & 604338 & 2016-12-25 & 360 & 1.14 & 24.23 \\
+%       i & 605266 & 2016-12-30 & 360 & 1.67 & 23.90 \\
+%       i & 607844 & 2017-01-09 & 360 & 1.34 & 22.65 \\
+%       \hline
+%     \end{tabular}
+%     \caption{Exposures in $i$ band from the Dark Energy Camera used in
+%       the experiments.\label{tab:exposuresi}}
+%     \end{scriptsize}
+%   \end{center}
+% \end{table}
 
 
 \end{document}
