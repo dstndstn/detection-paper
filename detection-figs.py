@@ -1918,6 +1918,7 @@ def new_main():
             #plt.axis(ax)
             plt.title('In %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-7.png' % (one_tag, two_tag))
+            plt.savefig('unmatched-%s-%s-7.pdf' % (one_tag, two_tag))
 
             if not one_name in colorcolor_plot:
                 colorcolor_plot.add(one_name)
@@ -1936,6 +1937,7 @@ def new_main():
                 plt.axvline(0, color='k', alpha=0.2)
                 plt.title('Detected in %s' % (one_name))
                 plt.savefig('colorcolor-%s.png' % (one_tag))
+                plt.savefig('colorcolor-%s.pdf' % (one_tag))
 
             plt.clf()
             deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
@@ -1961,6 +1963,7 @@ def new_main():
             plt.xticks([]); plt.yticks([])
             plt.title('In %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-9.png' % (one_tag, two_tag))
+            plt.savefig('unmatched-%s-%s-9.pdf' % (one_tag, two_tag))
 
             if not one_name in medimg_plot:
                 medimg_plot.add(one_name)
@@ -1980,6 +1983,7 @@ def new_main():
                 plt.xticks([]); plt.yticks([])
                 plt.title('Detected in %s' % (one_name))
                 plt.savefig('median-%s.png' % (one_tag))
+                plt.savefig('median-%s.pdf' % (one_tag))
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
     U = np.ones(len(chi_x), bool)
