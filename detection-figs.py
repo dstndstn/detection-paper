@@ -1283,9 +1283,29 @@ def new_main():
     s = 16
     scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
     rgb = sdss_rgb(deep_co, bands, scales=scale)
-    
+
+    # single-image "coadd"
+    one_co = [fitsio.read(os.path.join(basedir, 'image-one-%s.fits' % band))[slc]
+              for band in bands]
+    # stretch
+    s = 1
+    scale = dict(g=(2, 6.0*s), r=(1, 3.4*s), i=(0, 3.0*s))
+    rgb_one = sdss_rgb(one_co, bands, scales=scale)
+
+    # plt.clf()
+    # plt.imshow(rgb, interpolation='nearest', origin='lower')
+    # plt.savefig('rgb-co.png')
+    # 
+    # plt.clf()
+    # plt.imshow(rgb_one, interpolation='nearest', origin='lower')
+    # plt.savefig('rgb-one.png')
+
+    print('90 percentile number of exposures:', [np.percentile(n, 90) for n in nco])
+
     goodmap = reduce(np.logical_and, [n>=10 for n in nco])
     print('Number of good pixels with >= 10 exposures:', np.sum(goodmap))
+    goodmap = reduce(np.logical_and, [n>=90 for n in nco])
+    print('Number of good pixels with >= 90 exposures:', np.sum(goodmap))
 
     for iv in detivs:
         goodmap *= (iv > 0.9 * iv.max())
@@ -1468,7 +1488,6 @@ def new_main():
     # Cut to sources in 500x500 subimage
     subH,subW = 500,500
     subslice = slice(0, subH), slice(0, subW)
-    #subrgb = rgb[0:subH, 0:subW, :]
     s = 15
     ax = [s, subW-s, s, subH-s]
 
@@ -1498,8 +1517,12 @@ def new_main():
     plt.savefig('sed-union-peaks.png')
 
     image_grid(x, y, rgb)
-    plt.suptitle('SED Union detections')
+    plt.suptitle('SED Union detections (deep image)')
     plt.savefig('sed-union-images.png')
+
+    image_grid(x, y, rgb_one)
+    plt.suptitle('SED Union detections (the image)')
+    plt.savefig('sed-union-images-one.png')
 
     x, y, bp = sed_mixture_detection(mix_seds, mix_weights, detmaps, detivs,
                                      goodmap, mix_thresh)
@@ -1524,6 +1547,10 @@ def new_main():
     plt.suptitle('SED Mixture detections')
     plt.savefig('sed-mix-images.png')
 
+    image_grid(x, y, rgb_one)
+    plt.suptitle('SED Mixture detections (the image)')
+    plt.savefig('sed-mix-images-one.png')
+
     x, y, chisq = chisq_detection_raw(detmaps, detivs, goodmap,
                                       thresh=chi2_thresh)
     print('Chi-squared method: found', len(x), 'sources')
@@ -1546,6 +1573,10 @@ def new_main():
     image_grid(x, y, rgb)
     plt.suptitle('Chi-squared detections')
     plt.savefig('chisq-images.png')
+
+    image_grid(x, y, rgb_one)
+    plt.suptitle('Chi-squared detections (the image)')
+    plt.savefig('chisq-images-one.png')
 
     x, y, chisq = chisq_detection_pos(detmaps, detivs, goodmap,
                                       thresh=chi2_pos_thresh)
@@ -1571,6 +1602,10 @@ def new_main():
     plt.suptitle('Chi-squared-pos detections')
     plt.savefig('chisq-pos-images.png')
 
+    image_grid(x, y, rgb_one)
+    plt.suptitle('Chi-squared-pos detections (the image)')
+    plt.savefig('chisq-pos-images-one.png')
+
     from astrometry.libkd.spherematch import match_xy
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 10)
@@ -1586,12 +1621,18 @@ def new_main():
     union_meth = ('sed-union', union_x, union_y, union_map, union_thresh)
     mix_meth = ('sed-mix', mix_x, mix_y, mix_map, mix_thresh)
 
+    colorcolor_plot = set()
+    medimg_plot = set()
+
     for ((a_name,a_x,a_y,a_map,a_thresh),
          (b_name,b_x,b_y,b_map,b_thresh)) in [
         (chi_meth, chipos_meth),
         (chipos_meth, union_meth),
         (chipos_meth, mix_meth),
         (union_meth, mix_meth),
+        # all combos...
+        (chi_meth, union_meth),
+        (chi_meth, mix_meth),
         ]:
 
         I,J,d = match_xy(a_x, a_y, b_x, b_y, 2)
@@ -1643,9 +1684,10 @@ def new_main():
                 for band,det in zip(bands, detmaps):
                 #for band,det,detiv in zip(bands, detmaps, detivs):
                     #plt.plot(co[xi, yi-s:yi+s+1], '-', color={'i':'m'}.get(band,band))
-                    plt.plot(det[yi-s:yi+s+1, xi], '-', color={'i':'m'}.get(band,band), alpha=0.5)
+                    plt.plot(det[yi-s:yi+s+1, xi], '-', color={'i':'m'}.get(band,band), alpha=0.25)
                     #print('detiv', band, ':', detiv[yi, xi])
             plt.ylabel('Detection map value (flux)')
+            plt.axhline(0, color='k', alpha=0.3)
             plt.ylim(-0.2, +0.4)
             plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-3.png' % (one_name, two_name))
@@ -1660,8 +1702,9 @@ def new_main():
             for xi,yi in zip(x[I], y[I]):
                 for band,det,detiv in zip(bands, detmaps, detivs):
                     plt.plot(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]),
-                             '-', color={'i':'m'}.get(band,band), alpha=0.5)
-            #plt.ylim(-0.2, +0.4)
+                             '-', color={'i':'m'}.get(band,band), alpha=0.25)
+            plt.ylim(-5, +8)
+            plt.axhline(0, color='k', alpha=0.3)
             plt.ylabel('Detection map S/N')
             plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-4.png' % (one_name, two_name))
@@ -1688,7 +1731,7 @@ def new_main():
                 vals = np.stack(vals, axis=-1)
                 med = np.median(vals, axis=-1)
                 plt.plot(med, '-', color={'i':'m'}.get(band,band))
-            #plt.ylim(-0.075, +0.15)
+            plt.ylim(-5, +6)
             plt.axhline(0, color='k', alpha=0.3)
             plt.ylabel('Detection map S/N')
             plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
@@ -1697,26 +1740,55 @@ def new_main():
             plt.clf()
             detfluxes  = [detmap[y, x] for detmap in detmaps]
             deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
+            #for i,fluxes in enumerate([detfluxes, deepfluxes]):
+            #    plt.subplot(1,2,i+1)
             for i,fluxes in enumerate([detfluxes, deepfluxes]):
-                plt.subplot(1,2,i+1)
                 mags = [-2.5 * (np.log10(f) - 9) for f in fluxes]
                 g,r,i = mags
                 plt.plot(g - r, r - i, 'k.', alpha=0.25)
                 plt.xlabel('g - r (mag)')
                 plt.ylabel('r - i (mag)')
+                break
             ax = [-2, +6, -5, +3]
-            plt.subplot(1,2,1)
-            plt.title('One exposure')
+            #plt.subplot(1,2,1)
+            #plt.title('One exposure')
             plt.axis(ax)
-            plt.subplot(1,2,2)
-            plt.title('Deep coadd')
-            plt.axis(ax)
-            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+            plt.axhline(0, color='k', alpha=0.2)
+            plt.axvline(0, color='k', alpha=0.2)
+            #plt.subplot(1,2,2)
+            #plt.title('Deep coadd')
+            #plt.axis(ax)
+            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-7.png' % (one_name, two_name))
+
+            if not one_name in colorcolor_plot:
+                colorcolor_plot.add(one_name)
+                # Color-color plot for just method A
+                plt.clf()
+                detfluxes  = [detmap[one_y, one_x] for detmap in detmaps]
+                mags = [-2.5 * (np.log10(f) - 9) for f in detfluxes]
+                g,r,i = mags
+                plt.plot(g - r, r - i, 'k.', alpha=0.01)
+                plt.xlabel('g - r (mag)')
+                plt.ylabel('r - i (mag)')
+                ax = [-2, +6, -5, +3]
+                plt.axis(ax)
+                plt.axhline(0, color='k', alpha=0.2)
+                plt.axvline(0, color='k', alpha=0.2)
+                plt.suptitle('Detected in %s' % (one_name))
+                plt.savefig('colorcolor-%s.png' % (one_name))
+
+            plt.clf()
+            deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
+            for flux,band in zip(deepfluxes, bands):
+                plt.hist(flux, range=(-0.05, +0.25), bins=40, histtype='step', color={'i':'m'}.get(band,band))
+            plt.xlabel('flux (nanomaggies)')
+            plt.suptitle('Detected in %s, not in %s: deep fluxes' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-8.png' % (one_name, two_name))
 
             # Compute the median image around unmatched sources!
             H,W,three = rgb.shape
-            s = 15
+            s = 8
             I = np.flatnonzero((x >= s) * (y >= s) * (x < W-s) * (y < H-s))
             imstack = []
             for xx,yy in zip(x[I], y[I]):
@@ -1727,8 +1799,26 @@ def new_main():
             plt.clf()
             plt.imshow(medimg, interpolation='nearest', origin='lower')
             plt.xticks([]); plt.yticks([])
-            plt.suptitle('Median %s detection below-threshold in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-8.png' % (one_name, two_name))
+            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+            plt.savefig('unmatched-%s-%s-9.png' % (one_name, two_name))
+
+            if not one_name in medimg_plot:
+                medimg_plot.add(one_name)
+                # Median source for method A
+                s = 8
+                I = np.flatnonzero((one_x >= s) * (one_y >= s) *
+                                   (one_x < W-s) * (one_y < H-s))
+                imstack = []
+                for xx,yy in zip(one_x[I], one_y[I]):
+                    imstack.append(rgb[yy-s:yy+s+1, xx-s:xx+s+1, :])
+                imstack = np.stack(imstack, axis=-1)
+                print('image stack:', imstack.shape)
+                medimg = np.median(imstack, axis=-1)
+                plt.clf()
+                plt.imshow(medimg, interpolation='nearest', origin='lower')
+                plt.xticks([]); plt.yticks([])
+                plt.suptitle('Detected in %s: median' % (one_name))
+                plt.savefig('median-%s.png' % (one_name))
 
     I,J,d = match_xy(chi_x, chi_y, chi_pos_x, chi_pos_y, 2)
     U = np.ones(len(chi_x), bool)

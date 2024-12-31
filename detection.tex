@@ -1612,6 +1612,170 @@ have not investigated it in detail.
 
 \section{Experiments}
 
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{ccccc}
+      & Chi-squared & Chi-positive & SED union & SED mixture \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+      \includegraphics[height=0.24\textwidth]{chisq-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-2} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{chisq-pos-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-2} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{sed-union-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-2} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-2} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-2} &
+      \includegraphics[height=0.24\textwidth]{sed-mix-images}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by the different methods.  On the diagonal
+    are shown grids of sources detected by each method, including the
+    first (brighest) and last (faintest) 50 sources.  The off-diagonal images
+    show sources that are detected by one method and not another method.
+    }
+\end{figure}
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{ccccc}
+      & Chi-squared & Chi-positive & SED union & SED mixture \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+      & %\includegraphics[height=0.24\textwidth]{chisq-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-4} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-4} &
+      & %\includegraphics[height=0.24\textwidth]{chisq-pos-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-4} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-4} &
+      & %\includegraphics[height=0.24\textwidth]{sed-union-images} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-4} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-4} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-4} &
+      %\includegraphics[height=0.24\textwidth]{sed-mix-images} \\
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by one method and not another.
+    For each source, a vertical slice through the detection map in each band is
+    plotted in signal-to-noise units.
+    Up to 20 randomly selected sources are plotted.
+    }
+\end{figure}
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{ccccc}
+      & Chi-squared & Chi-positive & SED union & SED mixture \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-chisq} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-7} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-chipos} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-7} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-sed-union} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-7} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-7} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-7} &
+      \includegraphics[height=0.24\textwidth]{colorcolor-sed-mix}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by one method and not another, in color-color space
+    (in the single image in which source detection was performed).
+    }
+\end{figure}
+
+
+\begin{figure}
+  \begin{center}
+    \begin{tabular}{ccccc}
+      & Chi-squared & Chi-positive & SED union & SED mixture \\
+      %Chi-squared &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
+      \includegraphics[height=0.24\textwidth]{median-chisq} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-chipos-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-union-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chisq-sed-mix-9} \\
+      %
+      %Chi-positive &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-chisq-9} &
+      \includegraphics[height=0.24\textwidth]{median-chipos} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-union-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-chipos-sed-mix-9} \\
+      %
+      %SED union &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED union}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chisq-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-chipos-9} &
+      \includegraphics[height=0.24\textwidth]{median-sed-union} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-union-sed-mix-9} \\
+      %
+      %SED mixture &
+      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED mixture}} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chisq-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-chipos-9} &
+      \includegraphics[height=0.24\textwidth]{unmatched-sed-mix-sed-union-9} &
+      \includegraphics[height=0.24\textwidth]{median-sed-mix}
+    \end{tabular}
+  \end{center}
+  \caption{Sources detected by one method and not another: the median image
+    in a deep coadd.
+    }
+\end{figure}
+
+
+
+
+
 % The experiment here make extensive use of the Legacy Survey code
 % infrastructure -- running calibrations of the CP images, and
 % producing detection maps.  The processing is described in DECAM.txt,
