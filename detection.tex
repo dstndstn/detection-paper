@@ -508,17 +508,18 @@ in worse seeing.
 \paragraph{Sub-pixel peaks}  The detection map defined above
 is computed by correlating the image with its PSF, on the image pixel
 grid.  As the PSF becomes narrow, the detection efficiency varies
-depending on the position of a source within the pixel.  The detection
-map is maximized when the image is a scaled version of the PSF
-(matched filter), but if the image is shifted within a pixel relative
-to the PSF model, then the peak value attained by the detection map is
+depending on the position of a source within the pixel.  Essentially, the
+correlation operation allows us to check many source hypotheses, \emph{with
+the source centered in pixels}.  The detection
+map is maximized when the source is centered in a pixel, but as the source is
+shifted within a pixel, the peak value attained by the detection map is
 lower (because the filter is slightly mismatched).  For example, with
 a Gaussian PSF with standard deviation of 1 pixel, the detection map
 drops as low as 88\% efficiency for a source midway between pixels in
 both dimensions.
 
 To reduce this effect, one could compute multiple detection maps,
-using for each a different subpixel-shifted versions of the PSF model.
+using for each a different subpixel-shifted version of the PSF model.
 Alternatively, one could lower the detection threshold to compensate,
 then fit for the best source position and drop sources with best-fit
 values below threshold.
