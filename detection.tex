@@ -1119,8 +1119,8 @@ and the SEDs are represented as scalings of the
 canonical flux $F$: for SED $i$, band $j$ is predicted to have flux $F
 \cdot s_{i,j}$.
 
-We must now specify a prior over the flux to make progress.  One
-option that leads to a closed-form result is an exponential prior,
+We must now specify a prior over the flux to make progress.  The only
+option we have found that leads to a closed-form result is an exponential prior,
 $p(F) = \alpha \exp(-\alpha F)$ and $F > 0$, with $\alpha$ a free
 variable (to be chosen).  We caution that this prior does have some
 undesirable properties, discussed below.  With this exponential flux
@@ -1159,7 +1159,16 @@ $\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
 background distribution (\ie, the null hypothesis that there is no
 source)!
 
-Defining variables
+Using an identity from \cite{gr1980},
+% (specifically, it's 3.322-2 on page 307)
+\begin{eqnarray}
+  \int_0^{-\infty} \exp(-a x) \exp(-b x^2) =
+  \frac{1}{2}
+  \sqrt{\frac{\pi}{b}}
+  \exp\left(\frac{a^2}{4 b}\right)
+  \left(1 - \erf\left(\frac{a}{2 \sqrt{b}}\right)\right)
+\end{eqnarray}
+and defining variables
 \begin{eqnarray}
   a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_{D_j}^2} \\
   b_i &=& \frac{1}{2} \sum_j \frac{s_{i,j}^2}{\sigma_{D_j}^2}
