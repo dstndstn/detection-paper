@@ -148,8 +148,16 @@ def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate, 
     x = sed_mixture_detection(flux_th, noise_level, model_seds, alpha=alpha)
     x = x.reshape(pbg.shape)
     # Find threshold
-    X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
-                                   method='bisect', bracket=(-10, 1e10))
+    def fprate(th):
+        return np.sum(pbg * (x > th))
+
+    print('values in x:', x.min(), x.max())
+    #print('false pos rate with threshold 0:', fprate(0))
+    #print('false pos rate with threshold 1e3:', fprate(1e3))
+    #print('false pos rate with threshold 1e10:', fprate(1e10))
+    
+    X = scipy.optimize.root_scalar(lambda th: fprate(th) - falsepos_rate,
+                                   method='bisect', bracket=(0, 1e10))
     print('SED(mixture) Thresh:', X)
     assert(X.converged)
     return X.root
@@ -260,8 +268,20 @@ def main():
     # (hah, I already did this experiment!, see the "alpha%i.pdf" plot below
     if True:
         noise_level = noise_levels[0]
+
+        #sn_g_thaa = np.linspace(-10, +10, 501)
+        sn_g_thaa = np.linspace(-15, +15, 501)
+        sn_r_thaa = sn_g_thaa
+        dg_aa = sn_g_thaa[1] - sn_g_thaa[0]
+        dr_aa = sn_r_thaa[1] - sn_r_thaa[0]
+        sn_thaa_shape = (len(sn_r_thaa), len(sn_g_thaa))
+        snmesh_aa = np.meshgrid(sn_g_thaa, sn_r_thaa)
+        sn_g_thaa,sn_r_thaa = snmesh_aa
+        sn_thaa = np.vstack([x.ravel() for x in snmesh_aa]).T
+        pbg_aa = dg_aa * dr_aa * 1./(2.*np.pi) * np.exp(-0.5 * (sn_g_thaa**2 + sn_r_thaa**2))
+        print('sum pbg_aa:', np.sum(pbg_aa))
         # recompute SED thresholds
-        flux_th = sn_th * noise_level[np.newaxis, :]
+        flux_thaa = sn_thaa * noise_level[np.newaxis, :]
 
         sn_g = np.linspace(-5, +7, 600)
         sn_r = np.linspace(-5, +7, 600)
@@ -272,7 +292,8 @@ def main():
         flux = sn * noise_level[np.newaxis, :]
         sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
 
-        acolors = [xcolors[0]]*3
+        #acolors = [xcolors[0]]*3
+        acolors = ['b']*3
         alinestyles=['-','--',':']
         alinewidths=[1, 2, 3]
         aalphas=[1, 0.5, 0.3]
@@ -282,7 +303,7 @@ def main():
         lines = []
         labels = []
 
-        alpha_vals = [0.01, 1., 3.]
+        alpha_vals = [0.01, 1., 10.]
         print('Alpha decision boundaries')
         #for j,fp_rate in enumerate([1e-1, 1e-2, 1e-3, 1e-4]):
         for j,fp_rate in enumerate([1e-1, 1e-3, 1e-5]):
@@ -291,13 +312,34 @@ def main():
                 print('Alpha', a)
                 if j == 0:
                     labels.append('alpha=%g' % a)
-                thresh = sed_mixture_threshold(flux_th, noise_level, model_seds, pbg,
+                thresh = sed_mixture_threshold(flux_thaa, noise_level, model_seds, pbg_aa,
                                                fp_rate, alpha=a)
                 print('Threshold:', thresh)
 
                 x = sed_mixture_detection(flux, noise_level, model_seds, alpha=a)
                 x = x.reshape(sn_shape)
                 sed_det = (x > thresh)
+
+                # plt.clf()
+                # xsum = 0.
+                # for k in range(3):
+                #     plt.subplot(2,2,k+1)
+                #     x1 = sed_mixture_detection(flux, noise_level, [model_seds[k]], alpha=a)
+                #     x1 = x1.reshape(sn_shape)
+                #     plt.imshow(x1/thresh, interpolation='nearest', origin='lower',
+                #                vmin=0, vmax=2)
+                #     plt.title(model_seds[k][0])
+                #     xsum = xsum + x1
+                # plt.subplot(2,2,4)
+                # plt.imshow(xsum/thresh, interpolation='nearest', origin='lower',
+                #            vmin=0, vmax=2)
+                # plt.savefig('det-alpha%g-fp%i.png' % (a, int(np.round(np.log10(fp_rate)))))
+
+                # plt.clf()
+                # plt.imshow(x/thresh, interpolation='nearest', origin='lower',
+                #            vmin=0, vmax=2)
+                # plt.colorbar()
+                # plt.savefig('det-alpha%g-fp%g.png' % (a, fp_rate))
 
                 plt.contour(sed_det, extent=sn_extent, levels=[0.5],
                             colors=[acolors[i]], linestyles=[alinestyles[i]],

@@ -786,7 +786,7 @@ false negatives (missing a true source) are moderately bad
 
 Similarly, the priors push us to be somewhat conservative: in
 wide-field optical imaging such as the DESI Legacy Imaging Surveys
-\citep{lsoverview} data release 9, there are roughly 2 billion source
+\citep{lsoverview} Data Release 9, there are roughly 2 billion source
 detections in roughly $20,000$ square degrees of imaging, which
 corresponds to roughly 1 source per 2000 pixels.  A higher-density
 survey such as the Dark Energy Camera Plane Survey 2 (DECaPS2)
@@ -1313,7 +1313,7 @@ orthogonal to these three SED directions.
 
 \begin{figure}
     \begin{center}
-    % These figures come from bayes-figure.py.
+    % These figures come from bayes_figure.py.
     \includegraphics[width=0.45\textwidth]{prob-contours-c}
     \includegraphics[width=0.45\textwidth]{prob-1d}
     \caption{The effect of the flux prior in Bayesian
@@ -1321,9 +1321,9 @@ orthogonal to these three SED directions.
       integrals, we use an exponential prior on the flux; here
       we show the effect of the exponential scale factor ($\alpha$) on
       the results.  \emph{Left:} Probability contours for the ``Red''
-      foreground model, as before, and with a flux prior that
+      foreground model, as before, with $\alpha=1$, compared with a flux prior that
       prefers brighter sources---larger observed fluxes are considered
-      more probable.  \emph{Right:} A one-dimensional example showing
+      more probable---with $\alpha=0.5$.  \emph{Right:} A one-dimensional example showing
       the effect of changing the flux prior by a factor of
       two.  The dashed model places more prior belief in larger
       fluxes, and therefore must produce smaller probabilites at low
@@ -1334,6 +1334,21 @@ orthogonal to these three SED directions.
     \end{center}
 \end{figure}
 
+
+%%% FIXME -- need to mention this plot in the text!!
+
+\begin{figure}
+    \begin{center}
+    % This figure comes from chi_squared_experiment.py
+    \includegraphics[width=0.45\textwidth]{alpha-det}
+    \end{center}
+    \caption{The effect of the flux prior in Bayesian SED-matched source
+      detection.  The exponential scale factor $\alpha$ affects the
+      shape of the decision contours.  Decision contours for three different
+      false-positive rates are shown ($10^{-1}$, $10^{-3}$ and $10^{-5}$) for
+      three different ``alpha'' values, with the three-SED model.
+    }
+\end{figure}
 
 As mentioned previously, there is an issue with the flux prior we are
 using: it is not scale-free, or rather, it is degenerate with the

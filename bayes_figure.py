@@ -5,7 +5,7 @@ matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
 import pylab as plt
 import numpy as np
-from scipy.special import erf
+from scipy.special import erfc
 from scipy.stats import norm
 
 '''
@@ -162,28 +162,44 @@ def bayes_figures():
 
         plt.clf()
         rel_contour_plot(pratio_b2, plotseds2, extent=dextent)
+        rel_contour_plot(pratio_b, plotseds, extent=dextent, contour_linestyle='--')
         plt.axis(axa)
         plt.savefig('prob-rel-b2.pdf')
 
     if figC:
-        sed_red2 = sed_red * 2
-
-        pratio_red2   = get_pratio(d_j, sig_j, sed_red2)
-        pratio_c = pratio_red2
+        #sed_red2 = sed_red * 2
+        #pratio_red2   = get_pratio(d_j, sig_j, sed_red2)
+        #pratio_c = pratio_red2
+        pratio_c   = get_pratio(d_j, sig_j, sed_red, alpha=0.5)
         p_fg_c = p_bg * pratio_c
 
+        #pratio_red3   = get_pratio(d_j, sig_j, sed_red, alpha=0.5)
+        #p_fg_d = p_bg * pratio_red3
+        # plt.clf()
+        # contour_plot(p_fg_c, p_fg_d, [(sed_red2, 'r')],
+        #              style1=dict(colors='b', linestyles='-'),
+        #              style2=dict(colors='r', linestyles='--'),
+        #              label1='Foreground model, faint luminosity function',
+        #              label2='Foreground model, bright luminosity function',
+        #              extent=dextent)
+        # axa = [-5.5,11, -5.5,11]
+        # plt.axis(axa)
+        # plt.savefig('prob-contours-c2.pdf')
+        
         # plt.clf()
         # contour_plot(p_bg, p_fg_c, [(sed_red2, 'r')])
         # axa = [-5.5,11, -5.5,11]
         # plt.axis(axa)
         # plt.savefig('prob-contours-c.pdf')
 
+
+        
         plt.clf()
         contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
-                     label1='Foreground model, faint luminosity function',
-                     label2='Foreground model, bright luminosity function',
+                     label1='Foreground model, faint luminosity function ($\\alpha=1$)',
+                     label2='Foreground model, bright luminosity function ($\\alpha=0.5$)',
                      extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
@@ -215,15 +231,20 @@ def bayes_figures():
 
     if figE:
         d_one = np.linspace(-10, +30, 500)
+        # Kind of cheating to get 1a : alpha = 1
+        #                         1b : alpha = 0.5
         sed_1a = np.array([1.])
         sed_1b = np.array([2.])
 
         flux_1a = d_one / sed_1a
         flux_1b = d_one / sed_1b
 
-        prior1a = np.exp(-flux_1a) * (flux_1a > 0)
-        prior1b = np.exp(-flux_1b) * (flux_1b > 0)
+        prior1a = 1.  * np.exp(-flux_1a) * (flux_1a > 0)
+        prior1b = 0.5 * np.exp(-flux_1b) * (flux_1b > 0)
 
+        print('sum of prior 1a:', np.sum(prior1a))
+        print('sum of prior 1b:', np.sum(prior1b))
+        
         sig_one = np.array([1.])
         p_bg_one = 1./np.prod(np.sqrt(2.*np.pi)*sig_one) * np.exp(-0.5 * (d_one / sig_one)**2)
 
@@ -231,6 +252,9 @@ def bayes_figures():
         p_fg_1a = p_bg_one * pratio_1a
         pratio_1b = get_pratio(d_one, sig_one, sed_1b)
         p_fg_1b = p_bg_one * pratio_1b
+
+        pratio_1c = get_pratio(d_one, sig_one, sed_1a, alpha=2.)
+        p_fg_1c = p_bg_one * pratio_1c
 
         plt.clf()
         plt.subplots_adjust(hspace=0.2)
@@ -249,8 +273,7 @@ def bayes_figures():
         
         ax2 = plt.subplot2grid((2,1), (0, 0))
         plt.plot(d_one, prior1a, 'b-', label='Faint luminosity function')
-        # /2 to normalize (~ d_d / d_flux)
-        plt.plot(d_one, prior1b/2., 'r--', label='Bright luminosity function')
+        plt.plot(d_one, prior1b, 'r--', label='Bright luminosity function')
         plt.axhline(0., color='k', alpha=0.1)
         plt.axvline(0., color='k', alpha=0.1)
         plt.xlim(-4,8)
@@ -261,6 +284,20 @@ def bayes_figures():
         plt.legend()
         plt.savefig('prob-1d.pdf')
 
+        # plt.clf()
+        # plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
+        # plt.plot(d_one, 1e6*p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model x 1e6')
+        # plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Faint luminosity function')
+        # plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Bright luminosity function')
+        # plt.plot(d_one, prior1a, 'b:', label='Faint luminosity prior')
+        # plt.plot(d_one, prior1b, 'r:', label='Bright luminosity prior')
+        # plt.plot(d_one, p_fg_1a[0,:] / prior1a, 'g:', label='Faint luminosity likelihood')
+        # plt.plot(d_one, p_fg_1b[0,:] / prior1b, 'm:', label='Bright luminosity likelihood')
+        # plt.yscale('log')
+        # plt.xlim(-10, +10)
+        # plt.ylim(1e-10, 10)
+        # plt.savefig('prob-1d-2.pdf')
+        
 
 def get_pratio(d_j, sig_j, sed_i, alpha = 1.):
     '''
@@ -276,7 +313,7 @@ def get_pratio(d_j, sig_j, sed_i, alpha = 1.):
     b_i = 0.5 * np.sum(sed_i**2 / sig_j**2)
     beta_i = 2 * np.sqrt(b_i)
     c_i = a_i / beta_i
-    pratio_i = alpha * np.sqrt(np.pi) / beta_i * np.exp(c_i**2) * (1. - erf(c_i))
+    pratio_i = alpha * np.sqrt(np.pi) / beta_i * np.exp(c_i**2) * erfc(c_i)
     return pratio_i
 
 
