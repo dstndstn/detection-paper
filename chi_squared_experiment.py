@@ -119,10 +119,12 @@ def sed_union_detection(fluxes, sig_fluxes, seds):
         x = np.maximum(x, pr)
     return x
 
-def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=1.):
+def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=None):
     # fluxes: npix x nbands array
     # sig_fluxes: nbands
     # seds: [(name, scalar sed, weight -- ignored)]
+    if alpha is None:
+        alpha = 1.
     x = 0.
     for sed in seds:
         name,sed_vec,wt = sed
@@ -142,12 +144,12 @@ def sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate):
     assert(X.converged)
     return X.root
 
-def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate):
-    x = sed_mixture_detection(flux_th, noise_level, model_seds)
+def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate, alpha=None):
+    x = sed_mixture_detection(flux_th, noise_level, model_seds, alpha=alpha)
     x = x.reshape(pbg.shape)
     # Find threshold
     X = scipy.optimize.root_scalar(lambda th: np.sum(pbg * (x > th)) - falsepos_rate,
-                                   method='bisect', bracket=(0, 1e10))
+                                   method='bisect', bracket=(-10, 1e10))
     print('SED(mixture) Thresh:', X)
     assert(X.converged)
     return X.root
@@ -253,6 +255,70 @@ def main():
     xcolors = [colors[0], colors[0], colors[1], colors[1]]
     #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
     labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+
+    # Changing the "alpha" setting really does result in different detection contours.
+    # (hah, I already did this experiment!, see the "alpha%i.pdf" plot below
+    if True:
+        noise_level = noise_levels[0]
+        # recompute SED thresholds
+        flux_th = sn_th * noise_level[np.newaxis, :]
+
+        sn_g = np.linspace(-5, +7, 600)
+        sn_r = np.linspace(-5, +7, 600)
+        sn_shape = (len(sn_r), len(sn_g))
+        sn = np.meshgrid(sn_g, sn_r)
+        sn = np.vstack([x.ravel() for x in sn]).T
+        # Union of SED-matched detections
+        flux = sn * noise_level[np.newaxis, :]
+        sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
+
+        acolors = [xcolors[0]]*3
+        alinestyles=['-','--',':']
+        alinewidths=[1, 2, 3]
+        aalphas=[1, 0.5, 0.3]
+        
+        plt.clf()
+        plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+        lines = []
+        labels = []
+
+        alpha_vals = [0.01, 1., 3.]
+        print('Alpha decision boundaries')
+        #for j,fp_rate in enumerate([1e-1, 1e-2, 1e-3, 1e-4]):
+        for j,fp_rate in enumerate([1e-1, 1e-3, 1e-5]):
+            print('FP rate', fp_rate)
+            for i,a in enumerate(alpha_vals):
+                print('Alpha', a)
+                if j == 0:
+                    labels.append('alpha=%g' % a)
+                thresh = sed_mixture_threshold(flux_th, noise_level, model_seds, pbg,
+                                               fp_rate, alpha=a)
+                print('Threshold:', thresh)
+
+                x = sed_mixture_detection(flux, noise_level, model_seds, alpha=a)
+                x = x.reshape(sn_shape)
+                sed_det = (x > thresh)
+
+                plt.contour(sed_det, extent=sn_extent, levels=[0.5],
+                            colors=[acolors[i]], linestyles=[alinestyles[i]],
+                            linewidths=[alinewidths[i]], alpha=aalphas[i])
+                ll = mlines.Line2D(
+                    [], [], label=labels[i],
+                    color=acolors[i], linestyle=alinestyles[i],
+                    linewidth=alinewidths[i], alpha=aalphas[i])
+                if j == 0:
+                    lines.append(ll)
+            plt.legend(handles=lines)
+            plt.axhline(0., color='k', alpha=0.25)
+            plt.axvline(0., color='k', alpha=0.25)
+            #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
+            plt.xlabel('g-band S/N')
+            plt.ylabel('r-band S/N')
+            plt.savefig('alpha-det.png')
+            plt.savefig('alpha-det.pdf')
+
+            
+        sys.exit(0)
 
     # Colors of false-positive detections for the different detectors.
     if True:
