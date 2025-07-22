@@ -156,8 +156,10 @@ def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate, 
     #print('false pos rate with threshold 1e3:', fprate(1e3))
     #print('false pos rate with threshold 1e10:', fprate(1e10))
     
+    #X = scipy.optimize.root_scalar(lambda th: fprate(th) - falsepos_rate,
+    #                               method='bisect', bracket=(0, 1e10))
     X = scipy.optimize.root_scalar(lambda th: fprate(th) - falsepos_rate,
-                                   method='bisect', bracket=(0, 1e10))
+                                   method='bisect', bracket=(0, 1e20), maxiter=200)
     print('SED(mixture) Thresh:', X)
     assert(X.converged)
     return X.root
@@ -283,8 +285,10 @@ def main():
         # recompute SED thresholds
         flux_thaa = sn_thaa * noise_level[np.newaxis, :]
 
-        sn_g = np.linspace(-5, +7, 600)
-        sn_r = np.linspace(-5, +7, 600)
+        #sn_g = np.linspace(-5, +7, 600)
+        #sn_r = np.linspace(-5, +7, 600)
+        sn_g = np.linspace(-5, +11, 600)
+        sn_r = np.linspace(-5, +11, 600)
         sn_shape = (len(sn_r), len(sn_g))
         sn = np.meshgrid(sn_g, sn_r)
         sn = np.vstack([x.ravel() for x in sn]).T
@@ -303,13 +307,20 @@ def main():
         lines = []
         labels = []
 
-        alpha_vals = [0.01, 1., 10.]
+        alpha_vals = [0.01, 1., 5.] #3., 5., 8., 10.]
         print('Alpha decision boundaries')
         #for j,fp_rate in enumerate([1e-1, 1e-2, 1e-3, 1e-4]):
-        for j,fp_rate in enumerate([1e-1, 1e-3, 1e-5]):
-            print('FP rate', fp_rate)
-            for i,a in enumerate(alpha_vals):
-                print('Alpha', a)
+        for i,a in enumerate(alpha_vals):
+            print('Alpha', a)
+
+            #plt.clf()
+
+            for j,fp_rate in enumerate([#1e-1, 1e-3, 1e-5, 1e-7, 1e-9,
+                                        1e-1, 1e-4, 1e-7,
+                                        1e-13, 1e-19]):
+                if a < 5 and fp_rate < 1e-9:
+                    continue
+                print('FP rate', fp_rate)
                 if j == 0:
                     labels.append('alpha=%g' % a)
                 thresh = sed_mixture_threshold(flux_thaa, noise_level, model_seds, pbg_aa,
@@ -340,25 +351,25 @@ def main():
                 #            vmin=0, vmax=2)
                 # plt.colorbar()
                 # plt.savefig('det-alpha%g-fp%g.png' % (a, fp_rate))
-
+                ai = i % len(acolors)
                 plt.contour(sed_det, extent=sn_extent, levels=[0.5],
-                            colors=[acolors[i]], linestyles=[alinestyles[i]],
-                            linewidths=[alinewidths[i]], alpha=aalphas[i])
+                            colors=[acolors[ai]], linestyles=[alinestyles[ai]],
+                            linewidths=[alinewidths[ai]], alpha=aalphas[ai])
                 ll = mlines.Line2D(
                     [], [], label=labels[i],
-                    color=acolors[i], linestyle=alinestyles[i],
-                    linewidth=alinewidths[i], alpha=aalphas[i])
+                    color=acolors[ai], linestyle=alinestyles[ai],
+                    linewidth=alinewidths[ai], alpha=aalphas[ai])
                 if j == 0:
                     lines.append(ll)
-            plt.legend(handles=lines)
-            plt.axhline(0., color='k', alpha=0.25)
-            plt.axvline(0., color='k', alpha=0.25)
-            #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
-            plt.xlabel('g-band S/N')
-            plt.ylabel('r-band S/N')
-            plt.savefig('alpha-det.png')
-            plt.savefig('alpha-det.pdf')
-
+        plt.legend(handles=lines)
+        plt.axhline(0., color='k', alpha=0.25)
+        plt.axvline(0., color='k', alpha=0.25)
+        #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
+        plt.xlabel('g-band S/N')
+        plt.ylabel('r-band S/N')
+        #plt.savefig('alpha-det-%g.png' % a)
+        plt.savefig('alpha-det.png')
+        plt.savefig('alpha-det.pdf')
             
         sys.exit(0)
 
