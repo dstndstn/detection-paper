@@ -84,13 +84,14 @@ def bayes_figures():
         p_fg_u = p_bg_u * pratio_u
         
         plt.clf()
-        contour_plot(p_bg_u, p_fg_u, [(s, '0.5') for s in seds_uniform],
+        plotseds = [(s, dict(color='0.5')) for s in seds_uniform]
+        contour_plot(p_bg_u, p_fg_u, plotseds,
                      extent=uextent, sedlw=0.5)
         plt.axis(uextent)
         plt.savefig('prob-contours-u.pdf')
 
         plt.clf()
-        rel_contour_plot(pratio_u, [(s, '0.5') for s in seds_uniform],
+        rel_contour_plot(pratio_u, plotseds,
                          extent=uextent, sedlw=0.5)
         plt.axis(uextent)
         plt.savefig('prob-rel-u.pdf')
@@ -117,13 +118,29 @@ def bayes_figures():
         # print(falsepos * 4e3*4e3, 'false positives per 4k x 4k image')
 
         plt.clf()
-        contour_plot(p_bg, p_fg_a, [(sed_red, 'r')], extent=dextent)
+        plotsed = [(sed_red, dict(color='r', label='SED direction'))]
+        contour_plot(p_bg, p_fg_a, plotsed,
+                     extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
         plt.savefig('prob-contours-a.pdf')
 
         plt.clf()
-        rel_contour_plot(pratio_a, [(sed_red, 'r')], extent=dextent)
+        #plotsed = [(sed_red, dict(color='r'))]
+        cs = rel_contour_plot(pratio_a, plotsed, extent=dextent)
+        #cs.set(label='Probability ratio contours')
+        # Fake legend entry:
+        # red_patch = mpatches.Patch(color='red', label='The red data')
+        #blue_line = mlines.Line2D([], [], color='blue', marker='*',
+        #                  markersize=15, label='Blue stars')
+        # ax.legend(handles=[red_patch])
+        import matplotlib.lines as mlines
+        lh = mlines.Line2D([], [], color='k')#, label='Probability ratio contours')
+        # Get/set legend entries
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles+[lh], labels+['Probability ratio contours'])
+        #plt.legend()
+
         plt.axis(axa)
         plt.savefig('prob-rel-a.pdf')
 
@@ -132,7 +149,9 @@ def bayes_figures():
         p_fg_b = p_bg * pratio_b
 
         plt.clf()
-        plotseds = [(sed_red, 'r'), (sed_flat, 'b'), (sed_ronly, 'm')]
+        plotseds = [(sed_red, dict(color='r')),
+                    (sed_flat, dict(color='b')),
+                    (sed_ronly, dict(color='m'))]
         contour_plot(p_bg, p_fg_b, plotseds, extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-contours-b.pdf')
@@ -155,7 +174,10 @@ def bayes_figures():
         p_fg_b2 = p_bg * pratio_b2
 
         plt.clf()
-        plotseds2 = [(sed_red2, 'r'), (sed_flat2, 'b'), (sed_ronly2, 'm')]
+        plotseds2 = [(sed_red2, dict(color='r')),
+                     (sed_flat2, dict(color='b')),
+                     (sed_ronly2, dict(color='m')),
+                     ]
         contour_plot(p_bg, p_fg_b2, plotseds2, extent=dextent)
         plt.axis(axa)
         plt.savefig('prob-contours-b2.pdf')
@@ -195,7 +217,7 @@ def bayes_figures():
 
         
         plt.clf()
-        contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
+        contour_plot(p_fg_a, p_fg_c, [(sed_red2, dict(color='r'))],
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
                      label1='Foreground model, faint luminosity function ($\\alpha=1$)',
@@ -205,7 +227,7 @@ def bayes_figures():
         plt.axis(axa)
         plt.savefig('prob-contours-c.pdf')
 
-        plotseds = [(sed_red, 'r')]
+        plotseds = [(sed_red, dict(color='r'))]
         plt.clf()
         levs = np.arange(0, 5)
         rel_contour_plot(pratio_c, plotseds, extent=dextent, levs=levs)
@@ -219,7 +241,7 @@ def bayes_figures():
         pratio_d = pratio_red3
         p_fg_d = p_bg * pratio_d
         plt.clf()
-        contour_plot(p_fg_a, p_fg_c, [(sed_red2, 'r')],
+        contour_plot(p_fg_a, p_fg_c, [(sed_red2, dict(color='r'))],
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
                      label1='Foreground model',
@@ -337,13 +359,13 @@ def contour_plot(p_bg, p_fg, seds,
     plt.axhline(0, color='k', alpha=0.2)
     plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
-    for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=sedlw)
+    for sed,kwa in seds:
+        plt.plot(xx * sed[0], xx * sed[1], '-', alpha=0.5, lw=sedlw, **kwa)
     plt.axis('square')
     ax = plt.axis()
 
-    pp = []
-    for s in [style2,style1]:
+    #pp = []
+    for s,lab in zip([style2,style1], [label2,label1]):
         s = s.copy()
         ls = s['linestyles']
         del s['linestyles']
@@ -355,13 +377,13 @@ def contour_plot(p_bg, p_fg, seds,
             ls = s['linewidths']
             del s['linewidths']
             s['linewidth'] = ls
-        p = plt.plot([0,0],[0,0], **s)
-        pp.append(p[0])
+        p = plt.plot([0,0],[0,0], label=lab, **s)
+        #pp.append(p[0])
 
     plt.axis(ax)
     #plt.legend([c2,c1], [label2,label1])
-    plt.legend(pp, [label2,label1])
-    #plt.legend()
+    #plt.legend(pp, [label2,label1])
+    plt.legend()
     #plt.legend([c2.collections[0], c1.collections[0]],
     #           [label2, label1],
     #           loc='lower right')
@@ -370,17 +392,17 @@ def rel_contour_plot(pratio, seds, extent=None,
                      sedlw=3, contour_linestyle='-', levs=None):
     if levs is None:
         levs = np.arange(0, 11)
-    plt.contour(np.log10(pratio), levels=levs, linestyles=contour_linestyle,
-                extent=extent, colors='k')
+    cs = plt.contour(np.log10(pratio), levels=levs, linestyles=contour_linestyle,
+                    extent=extent, colors='k')
     plt.xlabel('g-band detection map S/N')
     plt.ylabel('r-band detection map S/N')
     plt.axhline(0, color='k', alpha=0.2)
     plt.axvline(0, color='k', alpha=0.2)
     xx = np.array([0,100])
-    for sed,c in seds:
-        plt.plot(xx * sed[0], xx * sed[1], '-', color=c, alpha=0.5, lw=sedlw)
+    for sed,kw in seds:
+        plt.plot(xx * sed[0], xx * sed[1], '-', alpha=0.5, lw=sedlw, **kw)
     plt.axis('square');
-
+    return cs
 
 
 if __name__ == '__main__':

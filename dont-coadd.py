@@ -29,6 +29,9 @@ detmap1 = gaussian_filter(image1, psfsig1) / (psfnorm1**2)
 detmap2 = gaussian_filter(image2, psfsig2) / (psfnorm2**2)
 detsig1 = sig1 / psfnorm1
 detsig2 = sig2 / psfnorm2
+
+print('Detmap weights:', 1./detsig1**2, 1./detsig2**2)
+
 detmap = (detmap1 * (1./detsig1**2) + detmap2 * (1./detsig2**2)) / (1./detsig1**2 + 1./detsig2**2)
 detsig = np.sqrt(1./(1./detsig1**2 + 1./detsig2**2))
 
@@ -53,15 +56,15 @@ for ii,alpha in enumerate(alphas):
     codetsn[ii] = codet.max() / codetsig
 
 plt.clf()
-plt.axhline(detmap.max()/detsig, color='k', linestyle='--',
-            label='2-image detection map')
-plt.plot(alphas, codetsn, 'b-',
-         label='Coadd 2 images then detect')
-plt.axhline(detmap1.max()/detsig1, color='r', linestyle=':',
+plt.axhline(detmap.max()/detsig, color='b', linestyle='--',
+            label='Detection map')
+plt.plot(alphas, codetsn, 'r-',
+         label='Coadd images, then detect')
+plt.axhline(detmap1.max()/detsig1, color='m', linestyle=':',
             label='Single-image detection maps')
-plt.axhline(detmap2.max()/detsig2, color='r', linestyle=':')
+plt.axhline(detmap2.max()/detsig2, color='m', linestyle=':')
 plt.legend(loc=(0.02, 0.75))
 plt.xlim(0,1)
-plt.xlabel('Coadd weight')
+plt.xlabel('Coadd weight $w$')
 plt.ylabel('Detection S/N');
 plt.savefig('dont-coadd.pdf')

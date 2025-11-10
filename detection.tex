@@ -4,7 +4,9 @@
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage{multirow}
-
+\usepackage{bigstrut}
+\usepackage{tikz}
+\usetikzlibrary{snakes,arrows,shapes}
 
 % X = sum_{i=0}^d max(0, x_i)^2
 % P(X) = 1/2^d sum_{k=0}^d (d choose k) P_chi2(k, X)
@@ -148,8 +150,8 @@ Even in this limited context, the subject is rich and valuable; more
 general---and more difficult---cases will be illuminated if we can
 understand the simplest case first.
 
-Fundamentally, when much is understood about a signal latent in noisy
-data, the best detection methods are (or look like) \emph{matched
+Fundamentally, when much is understood about a signal latent in
+data with approximately Gaussian noise, the best detection methods are (or look like) \emph{matched
 filters}.
 A matched filter is a model of the expected signal with which the data
 are \emph{cross-correlated}. % (often wrongly called ``convolved'').
@@ -926,8 +928,22 @@ in loss of signal-to-noise or detection efficiency.
 
 \begin{figure}[h]
   \begin{center}
-    % This figure comes from the dont-coadd.py script.
-  \includegraphics[width=0.5\textwidth]{dont-coadd}
+    \begin{minipage}[c]{0.45\textwidth}
+      \includegraphics[width=\textwidth]{dont-coadd}%
+    \end{minipage}
+    \begin{minipage}[c]{0.45\textwidth}
+      \begin{center}
+        Coadd then detect \\
+        \vspace{5pt}
+      \includegraphics[width=\textwidth]{flow1}%
+      \\
+      \vspace{12pt}
+      Combine detection maps \\
+        \vspace{5pt}
+      \includegraphics[width=\textwidth]{flow2}%
+      \end{center}
+    \end{minipage}
+  \end{center}
   \caption{The benefit of constructing a \emph{detection map} versus
     \emph{coadding} the images and then detecting sources on the
     coadd.  Here, we have two images with PSF widths different by a
@@ -945,8 +961,63 @@ in loss of signal-to-noise or detection efficiency.
     then detecting on it always loses signal-to-noise when the PSFs
     are not identical.
     \label{fig:dontcoadd}}
-  \end{center}
 \end{figure}
+
+% \begin{figure}[h]
+%   \newcommand{\minitab}[2][l]{\begin{tabular}{#1}#2\end{tabular}}
+%   \begin{center}
+%     %\begin{tabular}{@{}c@{}c@{}c@{}}
+%     \begin{tabular}{@{}c@{}c@{}}
+%       %\multirow[c]{1}{*}{
+%       % This figure comes from the dont-coadd.py script.
+%       \multirow[t]{1}{0.45\textwidth}{
+%       \framebox{\includegraphics[width=0.5\textwidth,height=0.4\textwidth]{dont-coadd}}%
+%       }
+%       &
+%       \multirow[t]{1}{0.45\textwidth}{
+%         text1 \\ text 2}
+%       %\minitab[c]{text 1 \\ text 2 \\ text 3}
+%       %}
+%       %&
+%       %\rule{1pt}{0.4\textheight}
+%       \\
+%     \end{tabular}
+%   \end{center}
+%   \caption{cap}
+% \end{figure}
+
+% \begin{figure}[h]
+%   \begin{center}
+%     \begin{tabular}{@{}c@{}c@{}c@{}}
+%       %\multirow[c]{4}{*}[vmove-length]{%
+%       \multirow[c]{4}{*}{%
+%         % This figure comes from the dont-coadd.py script.
+%         \rule{1pt}{0.4\textwidth}%
+%         \includegraphics[width=0.5\textwidth]{dont-coadd}\bigstrut} &
+%       Bad \\
+%       & \parbox{0.45\textwidth}{\includegraphics[width=0.45\textwidth]{flow1} \\ testing \\ 1,2,3}\\
+%       & Good \\
+%       & \includegraphics[width=0.45\textwidth]{flow2} \\
+%     \end{tabular}
+%   \end{center}
+%   \caption{The benefit of constructing a \emph{detection map} versus
+%     \emph{coadding} the images and then detecting sources on the
+%     coadd.  Here, we have two images with PSF widths different by a
+%     factor of two, and exposure times such that the depths are
+%     similar.  The signal-to-noise at which a source is detected in the
+%     individual images is shown by the dotted lines at the bottom.  By
+%     constructing a detection map, we extract all the available signal
+%     in the combination of the two images; the detection map
+%     signal-to-noise (dashed line at top) equals the sum-in-quadrature
+%     of the two images.  However, if we instead coadd the images and
+%     then detect the source in the coadd (solid curve), we lose a
+%     significant fraction of the signal-to-noise, regardless of the
+%     weighting factor applied to the two images.  This is, the solid
+%     line \emph{never} reaches the dashed line; creating a coadd and
+%     then detecting on it always loses signal-to-noise when the PSFs
+%     are not identical.
+%     \label{fig:dontcoadd}}
+% \end{figure}
 
 %
 As an illustration, we simulated two images with similar detection

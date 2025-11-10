@@ -1,0 +1,23 @@
+digraph {
+rankdir="LR";
+node [fixedsize=true, width=1.3, height=0.5];
+
+subgraph {
+sortv=2;
+
+imA2 [label="Image A", shape=box];
+imB2 [label="Image B", shape=box];
+
+detA [label="Detection map A", shape=box, color="magenta", style="dashed, line width=3pt"];
+detB [label="Detection map B", shape=box, color="magenta", style="dashed, line width=3pt"];
+
+codet [label="Detection map", shape=box, color="blue", style="dashed, line width=3pt"];
+
+imA2 -> detA [label="xxxxx", texlbl="Convolve"];
+imB2 -> detB [label="xxxxx", texlbl="Convolve"];
+
+detA -> codet [label="xxxxx", texlbl=" "];
+detB -> codet [label="xxxxx", texlbl=" "];
+}
+
+}
