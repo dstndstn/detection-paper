@@ -4,7 +4,7 @@ matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
 import pylab as plt
 import numpy as np
-from scipy.ndimage.filters import gaussian_filter, correlate, correlate1d
+from scipy.ndimage import gaussian_filter, correlate, correlate1d
 
 plt.figure(figsize=(5,4))
 plt.subplots_adjust(right=0.95, top=0.98)
@@ -55,14 +55,26 @@ for ii,alpha in enumerate(alphas):
     codetsig = cosig / conorm
     codetsn[ii] = codet.max() / codetsig
 
+detsn = detmap.max()/detsig
 plt.clf()
-plt.axhline(detmap.max()/detsig, color='b', linestyle='--',
+plt.axhline(detsn, color='b', linestyle='--',
             label='Detection map')
 plt.plot(alphas, codetsn, 'r-',
          label='Coadd images, then detect')
 plt.axhline(detmap1.max()/detsig1, color='m', linestyle=':',
             label='Single-image detection maps')
 plt.axhline(detmap2.max()/detsig2, color='m', linestyle=':')
+
+maxi = np.argmax(codetsn)
+maxalpha = alphas[maxi]
+maxcosn = codetsn[maxi]
+plt.annotate('', xy=(maxalpha, maxcosn), xytext=(maxalpha, detsn),
+             arrowprops=dict(facecolor='black', width=1, headwidth=8))
+#, shrink=0.05),
+plt.annotate('loss of information', xy=(maxalpha, (maxcosn + detsn)/2.),
+             textcoords='offset points', xytext=(6,0))
+
+
 plt.legend(loc=(0.02, 0.75))
 plt.xlim(0,1)
 plt.xlabel('Coadd weight $w$')

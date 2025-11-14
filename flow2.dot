@@ -13,8 +13,8 @@ detB [label="Detection map B", shape=box, color="magenta", style="dashed, line w
 
 codet [label="Detection map", shape=box, color="blue", style="dashed, line width=3pt"];
 
-imA2 -> detA [label="xxxxx", texlbl="Convolve"];
-imB2 -> detB [label="xxxxx", texlbl="Convolve"];
+imA2 -> detA [label="xxxxx", texlbl="Correlate"];
+imB2 -> detB [label="xxxxx", texlbl="Correlate"];
 
 detA -> codet [label="xxxxx", texlbl=" "];
 detB -> codet [label="xxxxx", texlbl=" "];

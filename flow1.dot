@@ -15,7 +15,7 @@ imB -> coadd [label="xxxxx", texlbl="$1 - w$"];
 
 det [label="Detection map", shape=box, color="red", style="line width=3pt"];
 
-coadd -> det [label="xxxxx", texlbl="Convolve"];
+coadd -> det [label="xxxxx", texlbl="Correlate"];
 }
 
 }
