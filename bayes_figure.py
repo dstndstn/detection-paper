@@ -1,12 +1,14 @@
 import matplotlib
-matplotlib.rcParams['figure.figsize'] = (5,5)
+matplotlib.rcParams['figure.figsize'] = (3.5,3.5)
 matplotlib.use('Agg')
 matplotlib.rc('text', usetex=True)
 matplotlib.rc('font', family='serif')
+matplotlib.rc('axes', titlesize='medium')
 import pylab as plt
 import numpy as np
 from scipy.special import erfc
 from scipy.stats import norm
+import matplotlib.lines as mlines
 
 '''
 
@@ -22,9 +24,13 @@ Then we look at a three-SED model ("flat", "red", and "r-only").
 Finally, we look at an empirical (DECaLS) SED.
 
 '''
-def bayes_figures():
-    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.1, top=0.98)
 
+def subplots():
+    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.94)
+
+def bayes_figures():
+    subplots()
+    
     # Assuming unit variance on the detection maps; signal = S/N.
     sig_g = 1.
     sig_r = 1.
@@ -123,6 +129,7 @@ def bayes_figures():
                      extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
+        plt.title('Probability contours')
         plt.savefig('prob-contours-a.pdf')
 
         plt.clf()
@@ -134,14 +141,15 @@ def bayes_figures():
         #blue_line = mlines.Line2D([], [], color='blue', marker='*',
         #                  markersize=15, label='Blue stars')
         # ax.legend(handles=[red_patch])
-        import matplotlib.lines as mlines
         lh = mlines.Line2D([], [], color='k')#, label='Probability ratio contours')
         # Get/set legend entries
         handles, labels = plt.gca().get_legend_handles_labels()
-        plt.legend(handles+[lh], labels+['Probability ratio contours'])
+        plt.legend(handles+[lh], labels+['Probability ratio contours'],
+                   loc='lower right', framealpha=1.0)
         #plt.legend()
 
         plt.axis(axa)
+        plt.title('Decision boundaries')
         plt.savefig('prob-rel-a.pdf')
 
     if figB:
@@ -149,16 +157,26 @@ def bayes_figures():
         p_fg_b = p_bg * pratio_b
 
         plt.clf()
-        plotseds = [(sed_red, dict(color='r')),
+        plotseds = [(sed_red, dict(color='r', label='SED directions')),
                     (sed_flat, dict(color='b')),
                     (sed_ronly, dict(color='m'))]
         contour_plot(p_bg, p_fg_b, plotseds, extent=dextent)
         plt.axis(axa)
+        plt.title('Probability contours')
         plt.savefig('prob-contours-b.pdf')
 
         plt.clf()
         rel_contour_plot(pratio_b, plotseds, extent=dextent)
         plt.axis(axa)
+
+        # legend
+        lh = mlines.Line2D([], [], color='k')
+        # Get/set legend entries
+        handles, labels = plt.gca().get_legend_handles_labels()
+        plt.legend(handles+[lh], labels+['Probability ratio contours'],
+                   loc='lower right', framealpha=1.0)
+
+        plt.title('Decision boundaries')
         plt.savefig('prob-rel-b.pdf')
 
     if figB2:
@@ -214,19 +232,24 @@ def bayes_figures():
         # plt.axis(axa)
         # plt.savefig('prob-contours-c.pdf')
 
-
+        plt.subplots_adjust(top=0.98)
         
         plt.clf()
         contour_plot(p_fg_a, p_fg_c, [(sed_red2, dict(color='r'))],
                      style1=dict(colors='b', linestyles='-'),
                      style2=dict(colors='r', linestyles='--'),
-                     label1='Foreground model, faint luminosity function ($\\alpha=1$)',
-                     label2='Foreground model, bright luminosity function ($\\alpha=0.5$)',
+                     #label1='Foreground model, faint luminosity function ($\\alpha=1$)',
+                     #label2='Foreground model, bright luminosity function ($\\alpha=0.5$)',
+                     label1='Faint luminosity prior ($\\alpha=1$)',
+                     label2='Bright luminosity prior ($\\alpha=0.5$)',
                      extent=dextent)
         axa = [-5.5,11, -5.5,11]
         plt.axis(axa)
         plt.savefig('prob-contours-c.pdf')
 
+        # revert
+        subplots()
+        
         plotseds = [(sed_red, dict(color='r'))]
         plt.clf()
         levs = np.arange(0, 5)
@@ -252,6 +275,7 @@ def bayes_figures():
         plt.savefig('prob-contours-d.pdf')
 
     if figE:
+
         d_one = np.linspace(-10, +30, 500)
         # Kind of cheating to get 1a : alpha = 1
         #                         1b : alpha = 0.5
@@ -264,9 +288,9 @@ def bayes_figures():
         prior1a = 1.  * np.exp(-flux_1a) * (flux_1a > 0)
         prior1b = 0.5 * np.exp(-flux_1b) * (flux_1b > 0)
 
-        print('sum of prior 1a:', np.sum(prior1a))
-        print('sum of prior 1b:', np.sum(prior1b))
-        
+        #print('sum of prior 1a:', np.sum(prior1a))
+        #print('sum of prior 1b:', np.sum(prior1b))
+
         sig_one = np.array([1.])
         p_bg_one = 1./np.prod(np.sqrt(2.*np.pi)*sig_one) * np.exp(-0.5 * (d_one / sig_one)**2)
 
@@ -278,13 +302,17 @@ def bayes_figures():
         pratio_1c = get_pratio(d_one, sig_one, sed_1a, alpha=2.)
         p_fg_1c = p_bg_one * pratio_1c
 
+        plt.figure(figsize=(4.5,3.5))
+        subplots()
         plt.clf()
-        plt.subplots_adjust(hspace=0.2)
+        plt.subplots_adjust(hspace=0.25, top=0.98)
 
         ax1 = plt.subplot2grid((2,1), (1, 0))
         plt.plot(d_one, p_bg_one, 'k-', lw=3, alpha=0.3, label='Background model')
-        plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Faint luminosity function')
-        plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Bright luminosity function')
+        #plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Faint luminosity prior')
+        #plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Bright luminosity prior')
+        plt.plot(d_one, p_fg_1a[0,:], 'b-', label='Faint prior')
+        plt.plot(d_one, p_fg_1b[0,:], 'r--', label='Bright prior')
         plt.axvline(0., color='k', alpha=0.1)
         plt.axhline(0., color='k', alpha=0.1)
         plt.xlim(-4,8)
@@ -292,17 +320,18 @@ def bayes_figures():
         plt.xlabel(r'Observed flux ($\sigma$)')
         plt.legend()
         plt.ylabel('Posterior Probability')
+        xt,xl = plt.xticks()
         
         ax2 = plt.subplot2grid((2,1), (0, 0))
-        plt.plot(d_one, prior1a, 'b-', label='Faint luminosity function')
-        plt.plot(d_one, prior1b, 'r--', label='Bright luminosity function')
+        plt.plot(d_one, prior1a, 'b-', label='Faint luminosity prior')
+        plt.plot(d_one, prior1b, 'r--', label='Bright luminosity prior')
         plt.axhline(0., color='k', alpha=0.1)
         plt.axvline(0., color='k', alpha=0.1)
         plt.xlim(-4,8)
         plt.yticks([0, 0.5, 1.0])
         plt.ylabel('Prior probability')
         plt.xlabel('Prior flux (arb. units)')
-        plt.xticks([])
+        plt.xticks(xt, ['']*len(xt))
         plt.legend()
         plt.savefig('prob-1d.pdf')
 
@@ -383,7 +412,7 @@ def contour_plot(p_bg, p_fg, seds,
     plt.axis(ax)
     #plt.legend([c2,c1], [label2,label1])
     #plt.legend(pp, [label2,label1])
-    plt.legend()
+    plt.legend(loc='lower right', framealpha=1.0)
     #plt.legend([c2.collections[0], c1.collections[0]],
     #           [label2, label1],
     #           loc='lower right')

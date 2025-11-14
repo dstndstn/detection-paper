@@ -1307,11 +1307,15 @@ simulations to yield an acceptable false positive rate.
 
 %% FIXME -- can we do it analytically?
 
+
+%Textwidth is \the\textwidth
+% -> ~513 pts = 7.125 in
+
 \begin{figure}
   \begin{center}
-    % These figures come from bayes-figure.py.
-    \includegraphics[width=0.4\textwidth]{prob-contours-a}
-    \includegraphics[width=0.4\textwidth]{prob-rel-a}
+    % These figures come from bayes_figure.py.
+    \includegraphics[width=0.45\textwidth]{prob-contours-a}
+    \includegraphics[width=0.45\textwidth]{prob-rel-a}
     \caption{Bayesian SED-matched source detection with a single-SED prior, for illustration.
       The foreground model is that sources have fluxes that lie along a ``Red''
       SED with color $g-r \simeq 1$.
@@ -1335,8 +1339,8 @@ simulations to yield an acceptable false positive rate.
 \begin{figure}
     \begin{center}
     % These figures come from bayes-figure.py.
-    \includegraphics[width=0.4\textwidth]{prob-contours-b}
-    \includegraphics[width=0.4\textwidth]{prob-rel-b}
+    \includegraphics[width=0.45\textwidth]{prob-contours-b}
+    \includegraphics[width=0.45\textwidth]{prob-rel-b}
     \caption{Bayesian SED-matched source detection with a three-SED prior.
       The prior is that astronomical sources are a
       mixture of $49\%$ ``Red'' (color $g-r \simeq 1$ mag),
@@ -1384,9 +1388,13 @@ orthogonal to these three SED directions.
 
 \begin{figure}
     \begin{center}
-    % These figures come from bayes_figure.py.
-    \includegraphics[width=0.45\textwidth]{prob-contours-c}
-    \includegraphics[width=0.45\textwidth]{prob-1d}
+      % These figures come from bayes_figure.py.
+      % matplotlib plot widths are 3.5 and 4.5 inches
+      % -> ratio of 0.4375 to 0.5625
+    %\includegraphics[width=0.45\textwidth]{prob-contours-c}
+    %\includegraphics[width=0.45\textwidth]{prob-1d}
+      \includegraphics[height=0.4\textwidth]{prob-contours-c}
+      \includegraphics[height=0.4\textwidth]{prob-1d}
     \caption{The effect of the flux prior in Bayesian
       SED-matched source detection.  In order to produce closed-form
       integrals, we use an exponential prior on the flux; here
@@ -1413,17 +1421,23 @@ orthogonal to these three SED directions.
     % This figure comes from chi_squared_experiment.py
     \includegraphics[width=0.45\textwidth]{alpha-det}
     \end{center}
-    \caption{The effect of the flux prior in Bayesian SED-matched
+    \caption{The effect of the flux prior on the decision boundaries
+      of Bayesian SED-matched
       source detection.  The exponential scale factor $\alpha$ affects
-      the shape of the decision contours.  Decision contours for three
+      the shape of the decision contours.
+      Decision contours for three
       different false-positive rates are shown ($10^{-1}$, $10^{-4}$
-      and $10^{-7}$) for three different ``alpha'' values, with the
-      three-SED model.  Notice that the largest ``alpha'' value has
-      smoother decision contours.  For this largest ``alpha'', we also
-      plot larger false-positive rates of $10^{-11}$ and $10^{-17}$,
-      where the decision boundaries start to more closely follow the
-      shapes of the other curves, tracking the slopes of the
-      individual SED-matched filters.}
+      and $10^{-7}$) for two different ``alpha'' values
+      (``bright'': $\alpha = 1$ and ``faint'': $\alpha=4$).
+      The foreground model is the three-SED model used in previous figures.
+      %Notice that the largest ``alpha'' value (has
+      %smoother decision contours.  For this largest ``alpha'', we also
+      %plot larger false-positive rates of $10^{-11}$ and $10^{-17}$,
+      %where the decision boundaries start to more closely follow the
+      %shapes of the other curves, tracking the slopes of the
+      %individual SED-matched filters.
+      The detailed shape of the decision boundary is affected by the flux prior.
+    }
 \end{figure}
 
 As mentioned previously, there is an issue with the flux prior we are

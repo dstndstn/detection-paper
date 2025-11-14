@@ -24,6 +24,12 @@ chi-sq methods hacks for negative fluxes
 measure survey speed
 
 '''
+import matplotlib
+matplotlib.rcParams['figure.figsize'] = (3.5,3.5)
+matplotlib.use('Agg')
+matplotlib.rc('text', usetex=True)
+matplotlib.rc('font', family='serif')
+matplotlib.rc('axes', titlesize='medium')
 import numpy as np
 import scipy
 import pylab as plt
@@ -31,6 +37,7 @@ import math
 import sys
 import matplotlib.lines as mlines
 
+import bayes_figure
 from bayes_figure import get_pratio
 
 def sed_vec(th):
@@ -285,10 +292,12 @@ def main():
         # recompute SED thresholds
         flux_thaa = sn_thaa * noise_level[np.newaxis, :]
 
-        #sn_g = np.linspace(-5, +7, 600)
-        #sn_r = np.linspace(-5, +7, 600)
-        sn_g = np.linspace(-5, +11, 600)
-        sn_r = np.linspace(-5, +11, 600)
+        #sn_g = np.linspace(-5, +10, 600)
+        #sn_r = np.linspace(-5, +10, 600)
+        sn_g = np.linspace(-5, +9, 600)
+        sn_r = np.linspace(-5, +9, 600)
+        #sn_g = np.linspace(-5, +11, 600)
+        #sn_r = np.linspace(-5, +11, 600)
         sn_shape = (len(sn_r), len(sn_g))
         sn = np.meshgrid(sn_g, sn_r)
         sn = np.vstack([x.ravel() for x in sn]).T
@@ -297,32 +306,50 @@ def main():
         sn_extent = (sn_g.min(), sn_g.max(), sn_r.min(), sn_r.max())
 
         #acolors = [xcolors[0]]*3
-        acolors = ['b']*3
-        alinestyles=['-','--',':']
-        alinewidths=[1, 2, 3]
-        aalphas=[1, 0.5, 0.3]
+        #alinestyles=['-','--',':']
+        #alinewidths=[1, 2, 3]
+        #aalphas=[1, 0.5, 0.3]
+
+        # acolors = ['b']*3
+        # alinestyles=['-','--','-']
+        # alinewidths=[1, 2, 3]
+        # aalphas=[1, 0.5, 0.3]
+
+        acolors = ['b','r']
+        alinestyles=['-','--']
+        alinewidths=[1.5, 1.5]
+        aalphas=[1, 1]
         
         plt.clf()
-        plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
+        bayes_figure.subplots()
+        #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
         lines = []
         labels = []
 
-        alpha_vals = [0.01, 1., 5.] #3., 5., 8., 10.]
+        #alpha_vals = [0.01, 1., 5.] #3., 5., 8., 10.]
+        #alpha_labels = ['Bright prior', 'Faint prior', 'Fainter prior']
+        #alpha_vals = [5., 1., 0.01] #3., 5., 8., 10.]
+        #alpha_vals = [5., 0.1, 0.01] #3., 5., 8., 10.]
+        # alpha_vals = [5., 2., 0.01] #3., 5., 8., 10.]
+        # alpha_labels = ['Faint prior', 'Medium prior', 'Bright prior']
+        alpha_vals = [4., 1]
+        alpha_labels = ['Faint prior', 'Bright prior']
         print('Alpha decision boundaries')
         #for j,fp_rate in enumerate([1e-1, 1e-2, 1e-3, 1e-4]):
-        for i,a in enumerate(alpha_vals):
+        for i,(a, alpha_label) in enumerate(zip(alpha_vals, alpha_labels)):
             print('Alpha', a)
 
             #plt.clf()
 
             for j,fp_rate in enumerate([#1e-1, 1e-3, 1e-5, 1e-7, 1e-9,
                                         1e-1, 1e-4, 1e-7,
-                                        1e-13, 1e-19]):
+                                        #1e-13, 1e-19]):
+                                        ]):
                 if a < 5 and fp_rate < 1e-9:
                     continue
                 print('FP rate', fp_rate)
                 if j == 0:
-                    labels.append('alpha=%g' % a)
+                    labels.append(alpha_label)
                 thresh = sed_mixture_threshold(flux_thaa, noise_level, model_seds, pbg_aa,
                                                fp_rate, alpha=a)
                 print('Threshold:', thresh)
@@ -361,13 +388,15 @@ def main():
                     linewidth=alinewidths[ai], alpha=aalphas[ai])
                 if j == 0:
                     lines.append(ll)
-        plt.legend(handles=lines)
+        plt.legend(handles=lines, framealpha=1.0)
         plt.axhline(0., color='k', alpha=0.25)
         plt.axvline(0., color='k', alpha=0.25)
         #plt.title('Decision boundaries for chi-squared versus SED-match detectors')
         plt.xlabel('g-band S/N')
         plt.ylabel('r-band S/N')
+        plt.xticks(np.arange(-4, 10, 2))
         #plt.savefig('alpha-det-%g.png' % a)
+        plt.title('Decision boundaries with different flux priors')
         plt.savefig('alpha-det.png')
         plt.savefig('alpha-det.pdf')
             
