@@ -1564,15 +1564,12 @@ function in the equation above.
 \label{sec:chisq_expt}
 
 \begin{figure}
-  % python chi-squared-experiment.py
-  % cp 1.pdf chisq-pos-decision-boundary.pdf
-  % cp 2.pdf chisq-pos-decision-boundary-sens.pdf
+  % python chi_squared_experiment.py
   % cp 9.pdf chisq-pos-color.pdf
-  % cp 10.pdf chisq-false-det.pdf
   \begin{center}
-    \includegraphics[width=0.49\textwidth]{chisq-pos-decision-boundary}%
+    \includegraphics[width=0.49\textwidth]{chisq-decision-boundary}%
     \hspace{0.01\textwidth}%
-    \includegraphics[width=0.49\textwidth]{chisq-pos-decision-boundary-sens}%
+    \includegraphics[width=0.49\textwidth]{chisq-decision-boundary-sens}%
   \end{center}
   \caption{Decision boundaries in signal-to-noise space for the case
     of two bands ($g$ and $r$), and for two variants of the $\chi^2$
@@ -1588,7 +1585,8 @@ function in the equation above.
     outside the $\chi^2$ circle) will be detected.  The thresholds
     have been set so that each method produces the same false-positive
     rate given pure Gaussian noise inputs (equivalent to a $4 \sigma$
-    Gaussian).  This illustrates how the $\chipos^2$ method detects
+    Gaussian).  This illustrates how the $\chipos^2$ method improves upon
+    the $\chi^2$ method by detecting
     more true sources, thanks to treating negative fluxes differently
     than positive fluxes: the blue-dashed decision boundary detects
     more sources with positive fluxes, and does not detect sources
@@ -1603,7 +1601,7 @@ function in the equation above.
     methods do not take sensitivities into account, so their decision
     boundaries are unchanged.  The SED-matched methods, in contrast,
     take advantage of the fact that one unit of flux will produce more
-    signal in the $r$ band, sculpt the decision boundaries
+    signal in the $r$ band, and sculpt the decision boundaries
     accordingly.
   \label{fig:chipos_boundary}}
 \end{figure}
@@ -1627,7 +1625,7 @@ on their relative mixture weights.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=0.49\textwidth]{chisq-pos-color}%
+    \includegraphics[width=0.49\textwidth]{chisq-color}%
   \end{center}
   \caption{Detection rates for the $\chi^2$-based and SED-matched
     detection methods, as a function of the color of the star.  For
@@ -1672,7 +1670,7 @@ their efficiency is highest for stars that match the priors.
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=0.49\textwidth]{chisq-false-det}%
+    \includegraphics[width=0.55\textwidth]{chisq-det-colors}%
   \end{center}
   \caption{The colors of false positive detections for each method.
     We generated 100 million samples of Gaussian noise with equal
