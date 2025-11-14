@@ -1565,7 +1565,6 @@ function in the equation above.
 
 \begin{figure}
   % python chi_squared_experiment.py
-  % cp 9.pdf chisq-pos-color.pdf
   \begin{center}
     \includegraphics[width=0.49\textwidth]{chisq-decision-boundary}%
     \hspace{0.01\textwidth}%
@@ -1774,6 +1773,7 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \begin{figure}
   \begin{center}
     \begin{tabular}{cc}
+      % detection-figs.py
       Tiny zoom-in & Whole sample \\
       \includegraphics[height=0.4\textwidth]{image-sources-30}
       &
@@ -1874,47 +1874,39 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 
 \begin{figure}
   \begin{center}
-    \includegraphics[height=0.4\textwidth]{bayes-vs-gri}
+    %\framebox{%
+    \begin{minipage}[c]{0.4\textwidth}
+      \includegraphics[width=\textwidth]{bayes-vs-gri}%
+    \end{minipage}%
+    %}%
+    %\framebox{%
+    \begin{minipage}[c]{0.4\textwidth}
+      \begin{center}
+        Only detected by $gri$-union \\
+        \includegraphics[width=\textwidth]{gri-only}\\
+        Only detected by Bayesian \\
+        \includegraphics[width=\textwidth]{bayes-only}\\
+        % fix the vertical spacing
+        \rule{0pt}{3em}
+      \end{center}%
+    \end{minipage}%
+    %}%
+  \end{center}
     \caption{Bayesian SED-matched detection method compared to the
-      union of $g$, $r$, and $i$ single-band detection.  The
+      union of $g$, $r$, and $i$ single-band detection.  \emph{Left:} The
       color-space locations of sources that are detected by both
       methods are shown as faint points, and sources that are detected
       by only one method or the other are highlighted.  In this
-      experiment, the detection thresholds were tuned so that both
+      experiment, the detection thresholds were set very high and tuned so that both
       methods produced the same number of detections; this compares
       each method's best detections.  The Bayesian-only detections
       have typical colors of real objects, while the $gri$-union
       detections tend to be further out in the extremes of the color space.
-      Cutouts of these sources
-      are shown in \figref{fig:only}.
+      \emph{Right:} Examples of sources detected by only the $gri$-union or
+      Bayesian methods.  The Bayesian-only sources have typical galaxy colors, while the
+      $gri$-union-only sources tend to have very red or otherwise unusual colors.
       \label{fig:bayes-vs-gri}}
-  \end{center}
 \end{figure}
-
-\begin{figure}
-  \begin{center}
-    \begin{tabular}{cc}
-      Detected by Bayesian only &
-      Detected by $gri$-union only \\
-      \includegraphics[width=0.3\textwidth]{bayes-only}
-      %\hspace{0.03\textwidth}
-      &
-      \includegraphics[width=0.3\textwidth]{gri-only}
-    \end{tabular}
-    \caption{Bayesian SED-matched detection method compared to the
-      union of $g$, $r$, and $i$ single-band detections, where each
-      method is allowed to detect the same total number of sources.
-      \emph{Left:} Examples of sources that are detected by only the
-      Bayesian SED-matched detection method.  These have very typical
-      galaxy colors.  \emph{Right:}
-      Examples of sources that are detected by only the $gri$-union
-      method.  These include a number of very red sources, and other sources with
-      unusual colors.
-      %
-      \label{fig:only}}
-  \end{center}
-\end{figure}
-
 
 \subsection{SED-matched detection}
 

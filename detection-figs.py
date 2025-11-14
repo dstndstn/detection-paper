@@ -25,6 +25,7 @@ from scipy.ndimage import label, find_objects
 from scipy.ndimage import binary_dilation, binary_fill_holes
 from scipy.special import erfc, logsumexp
 from scipy.interpolate import CubicSpline
+import bayes_figure
 
 antigray = matplotlib.colormaps['gray_r']
 
@@ -328,6 +329,8 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         plt.savefig('best-%s.pdf' % s.name.lower())
 
     #####  Run detection at different thresholds ####
+    plt.figure(figsize=(3.5,3.5))
+
     tsedlist = []
     for i,s in enumerate(sedlist):
         if not np.all(s.sed > 0):
@@ -364,6 +367,9 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         tsources.i_mag = -2.5*(np.log10(tsources.i_flux) - 9)
         tsources.imax = np.argmax(np.vstack([tsources.get(s.tname)
                                              for s in tsedlist]), axis=0)
+        #plt.figure(figsize=(3.5,3.5))
+        #bayes_figure.subplots()
+        plt.subplots_adjust(left=0.01, right=0.99, bottom=0.12, top=0.98)
         plt.clf()
         xlo,xhi = 500,1100
         ylo,yhi = 500,1100
@@ -377,7 +383,8 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
             print(len(I), s.name)
             plt.plot(tsources.x[I], tsources.y[I],
                      s.plotsym, label=s.name, color=s.plotcolor, alpha=0.5,
-                     mfc='none', ms=15, mew=2)
+                     mfc='none', ms=10, mew=2)
+            #mfc='none', ms=15, mew=2)
         plt.axis(ax)
         plt.xticks([])
         plt.yticks([])
@@ -395,9 +402,12 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
         # plt.yticks([])
         # plt.savefig('image-blobs-%i.pdf' % thresh)
         
-        plt.figure(figsize=(5,4))
-        plt.subplots_adjust(left=0.15, right=0.97, bottom=0.12, top=0.98)
+        #plt.figure(figsize=(5,4))
+        #plt.figure(figsize=(3.5,3.5))
+        #bayes_figure.subplots()
+        #plt.subplots_adjust(left=0.15, right=0.97, bottom=0.12, top=0.98)
         plt.clf()
+        plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
         lp,lt = [],[]
         for i,s in enumerate(tsedlist):
             I = np.flatnonzero(tsources.imax == i)
@@ -412,11 +422,13 @@ def sed_matched_figs(detect_sn, good, img, sedlist, DES, g_det, r_det, i_det,
             
             gr = -2.5 * np.log10(s.sed[0] / s.sed[1])
             ri = -2.5 * np.log10(s.sed[1] / s.sed[2])
-            plt.plot(gr, ri, 'o', color='k', mfc='none', ms=8, mew=3)
+            plt.plot(gr, ri, s.plotsym, color='k', mfc='none', ms=8, mew=3)
         plt.axis([-0.5, 2.5, -0.5, 2])
         plt.xlabel('g - r (mag)')
         plt.ylabel('r - i (mag)')
         plt.legend(lp, lt, loc='upper left')
+        plt.xticks([0,1,2])
+        plt.ylim(-0.4, 1.9)
         plt.savefig('best-color-%i.pdf' % thresh)
 
     ##############################
@@ -715,10 +727,10 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     bsources.lprb = lprb[bsources.y, bsources.x]
     bsources.cut((bsources.x > sz) * (bsources.x < (W-sz)) * (bsources.y > sz) * (bsources.y < (H-sz)))
     bsources.cut(good[bsources.y, bsources.x])
-    print('Kept', len(bsources))
+    print('Kept', len(bsources), 'Bayesian sources')
 
     g_det, r_det, i_det = detmaps
-    
+
     bsources.g_flux = g_det[bsources.y, bsources.x]
     bsources.r_flux = r_det[bsources.y, bsources.x]
     bsources.i_flux = i_det[bsources.y, bsources.x]
@@ -798,12 +810,12 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     Bhot = binary_fill_holes(lprb > bayes_thresh)
     UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
     US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
-    print(len(UB), 'unmatched Bayesian', len(US), 'g+r+i')
+    print('Unmatched:', len(UB), 'Bayesian and', len(US), 'g+r+i')
 
     MS = np.flatnonzero(Bhot[sources.y, sources.x])
-    
-    plt.figure(figsize=(6,4))
-    plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
+
+    plt.figure(figsize=(3.5,3.5))
+    plt.subplots_adjust(left=0.15, right=0.98, bottom=0.12, top=0.98)
 
     plt.clf()
     # for the legend only
@@ -817,99 +829,94 @@ def bayes_figs(DES, detmaps, detivs, good, wcs, img):
     plt.xlabel('g - r (mag)')
     plt.ylabel('r - i (mag)')
     plt.legend((p1[0],p2[0],p3[0]),
-               ('Detected by both', 'Only detected by g+r+i', 'Only detected by Bayesian'),
-               loc='lower right')
-    plt.axis([-1, 5, -1, 3])
+               ('Detected by both',
+                'Only detected by g+r+i', 'Only detected by Bayesian'),
+               loc='upper left', framealpha=1.0)
+    plt.axis([-0.5, 3.5, -0.4, 2.35])
     plt.savefig('bayes-vs-gri.pdf')
 
     
-    #plt.figure(figsize=(4,4))
-    plt.figure(figsize=(4,3))
+    R,C = 3,8
+    plt.figure(figsize=(C*1, R*1))
     plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
     plt.clf()
-
-    #show_sources(bsources[UB], img, R=10, C=10, divider=1)
-    show_sources(bsources[UB].x, bsources[UB].y, img, R=4, C=6, divider=1)
-
+    show_sources(bsources[UB].x, bsources[UB].y, img, R=R, C=C, divider=1)
     plt.savefig('bayes-only.pdf')
 
     plt.clf()
-    #show_sources(sources[US], img, R=10, C=10, divider=1)
-    show_sources(sources[US].x, sources[US].y, img, R=4, C=6, divider=1)
-    #plt.suptitle('Bayesian only');
+    show_sources(sources[US].x, sources[US].y, img, R=R, C=C, divider=1)
     plt.savefig('gri-only.pdf')
 
-
-    #####
-    sources = sources_orig.copy()
-    
-    # What if we demand 2-band detection?
-    #bsources = bsources_orig
-    # Detect at a higher threshold to get ~2400 sources
-    Bhot = binary_fill_holes(lprb > 4000.)
-    _,bx,by = detect_sources(lprb, 4000.)
-    bsources = fits_table()
-    bsources.x = bx
-    bsources.y = by
-    bsources.lprb = lprb[bsources.y, bsources.x]
-    bsources.cut((bsources.x > sz) * (bsources.x < (W-sz)) * (bsources.y > sz) * (bsources.y < (H-sz)))
-    bsources.cut(good[bsources.y, bsources.x])
-    print('Kept', len(bsources))
-    bsources.g_flux = g_det[bsources.y, bsources.x]
-    bsources.r_flux = r_det[bsources.y, bsources.x]
-    bsources.i_flux = i_det[bsources.y, bsources.x]
-    bsources.ra,bsources.dec = wcs.pixelxy2radec(bsources.x+1, bsources.y+1)
-    bsources.g_mag = -2.5*(np.log10(bsources.g_flux) - 9)
-    bsources.r_mag = -2.5*(np.log10(bsources.r_flux) - 9)
-    bsources.i_mag = -2.5*(np.log10(bsources.i_flux) - 9)
-    bsources.gr = bsources.g_mag - bsources.r_mag
-    bsources.ri = bsources.r_mag - bsources.i_mag
-    I = np.argsort(-bsources.lprb)
-    bsources.cut(I)
-
-    sthresh = 50.
-    hotg = binary_fill_holes(detmaps[0] * np.sqrt(detivs[0]) > sthresh)
-    hotr = binary_fill_holes(detmaps[1] * np.sqrt(detivs[1]) > sthresh)
-    hoti = binary_fill_holes(detmaps[2] * np.sqrt(detivs[2]) > sthresh)
-    hotsum = hotg*1 + hotr*1 + hoti*1
-    hot = (hotsum >= 2)
-    K = np.flatnonzero(hot[sources.y,sources.x])
-    # 2386 detected in 2 or more bands
-    print(len(K), 'detected in 2 or more bands')
-    sources.cut(K)
-
-    N = min(len(sources), len(bsources))
-    sources  =  sources[:N]
-    bsources = bsources[:N]
-    print('Cut both to', N)
-
-    UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
-    US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
-    print(len(UB), 'unmatched Bayesian', len(US), '2 of (g+r+i)')
-
-    plt.figure(figsize=(6,4))
-    plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
-
-    plt.clf()
-    plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
-             label='g+r+i only')
-    plt.plot(bsources.gr[UB], bsources.ri[UB], 'kx',
-             label='Bayesian only')
-    plt.xlabel('g - r (mag)')
-    plt.ylabel('r - i (mag)')
-    plt.legend()
-    plt.axis([-5, 5, -3, 3])
-    plt.savefig('bayes-vs-2gri.pdf')
-
-    plt.figure(figsize=(4,4))
-    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
-    plt.clf()
-    show_sources(bsources[UB].x, bsources[UB].y, img, R=10, C=10, divider=1)
-    plt.savefig('bayes-2only.pdf')
-
-    plt.clf()
-    show_sources(sources[US].x, sources[US].y, img, R=10, C=10, divider=1)
-    plt.savefig('2gri-only.pdf')
+    # #####
+    # sources = sources_orig.copy()
+    # 
+    # # What if we demand 2-band detection?
+    # #bsources = bsources_orig
+    # # Detect at a higher threshold to get ~2400 sources
+    # Bhot = binary_fill_holes(lprb > 4000.)
+    # _,bx,by = detect_sources(lprb, 4000.)
+    # bsources = fits_table()
+    # bsources.x = bx
+    # bsources.y = by
+    # bsources.lprb = lprb[bsources.y, bsources.x]
+    # bsources.cut((bsources.x > sz) * (bsources.x < (W-sz)) * (bsources.y > sz) * (bsources.y < (H-sz)))
+    # bsources.cut(good[bsources.y, bsources.x])
+    # print('Kept', len(bsources))
+    # bsources.g_flux = g_det[bsources.y, bsources.x]
+    # bsources.r_flux = r_det[bsources.y, bsources.x]
+    # bsources.i_flux = i_det[bsources.y, bsources.x]
+    # bsources.ra,bsources.dec = wcs.pixelxy2radec(bsources.x+1, bsources.y+1)
+    # bsources.g_mag = -2.5*(np.log10(bsources.g_flux) - 9)
+    # bsources.r_mag = -2.5*(np.log10(bsources.r_flux) - 9)
+    # bsources.i_mag = -2.5*(np.log10(bsources.i_flux) - 9)
+    # bsources.gr = bsources.g_mag - bsources.r_mag
+    # bsources.ri = bsources.r_mag - bsources.i_mag
+    # I = np.argsort(-bsources.lprb)
+    # bsources.cut(I)
+    # 
+    # sthresh = 50.
+    # hotg = binary_fill_holes(detmaps[0] * np.sqrt(detivs[0]) > sthresh)
+    # hotr = binary_fill_holes(detmaps[1] * np.sqrt(detivs[1]) > sthresh)
+    # hoti = binary_fill_holes(detmaps[2] * np.sqrt(detivs[2]) > sthresh)
+    # hotsum = hotg*1 + hotr*1 + hoti*1
+    # hot = (hotsum >= 2)
+    # K = np.flatnonzero(hot[sources.y,sources.x])
+    # # 2386 detected in 2 or more bands
+    # print(len(K), 'detected in 2 or more bands')
+    # sources.cut(K)
+    # 
+    # N = min(len(sources), len(bsources))
+    # sources  =  sources[:N]
+    # bsources = bsources[:N]
+    # print('Cut both to', N)
+    # 
+    # UB = np.flatnonzero((hot[bsources.y, bsources.x] == False))
+    # US = np.flatnonzero((Bhot[sources.y, sources.x] == False))
+    # print(len(UB), 'unmatched Bayesian', len(US), '2 of (g+r+i)')
+    # 
+    # plt.figure(figsize=(6,4))
+    # plt.subplots_adjust(left=0.1, right=0.98, bottom=0.12, top=0.98)
+    # 
+    # plt.clf()
+    # plt.plot(sources.gr[US],  sources.ri[US], 'o', mec='r', mfc='none',
+    #          label='g+r+i only')
+    # plt.plot(bsources.gr[UB], bsources.ri[UB], 'kx',
+    #          label='Bayesian only')
+    # plt.xlabel('g - r (mag)')
+    # plt.ylabel('r - i (mag)')
+    # plt.legend()
+    # plt.axis([-5, 5, -3, 3])
+    # plt.savefig('bayes-vs-2gri.pdf')
+    # 
+    # plt.figure(figsize=(4,4))
+    # plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.99)
+    # plt.clf()
+    # show_sources(bsources[UB].x, bsources[UB].y, img, R=10, C=10, divider=1)
+    # plt.savefig('bayes-2only.pdf')
+    # 
+    # plt.clf()
+    # show_sources(sources[US].x, sources[US].y, img, R=10, C=10, divider=1)
+    # plt.savefig('2gri-only.pdf')
     
 
     
@@ -1117,8 +1124,8 @@ def main():
     DES.cut((DES.flags_g < 4) * (DES.flags_r < 4) * (DES.flags_i < 4))
     print(len(DES), 'un-flagged')
     ok,x,y = wcs.radec2pixelxy(DES.ra, DES.dec)
-    DES.x = (x-1).astype(np.int)
-    DES.y = (y-1).astype(np.int)
+    DES.x = (x-1).astype(np.int32)
+    DES.y = (y-1).astype(np.int32)
 
     # Cut of DES catalog for the SED-matched filter figure
     sz = 20
@@ -1126,14 +1133,15 @@ def main():
                           (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                           good[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
 
-    chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs)
+    #chisq_fig(good, img, g_det, g_detiv, r_det, r_detiv, wcs)
     
-    #sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
-    #                 g_det, r_det, i_det, wcs)
+    sed_matched_figs(detect_sn, good, img, sedlist, DES[Ides],
+                     g_det, r_det, i_det, wcs)
+
+    # called from new_main instead!
+    #bayes_figs(DES, detmaps, detivs, good, wcs, img)
 
     #galaxy_figs(sedlist, good, wcs, img)
-
-    #bayes_figs(DES, detmaps, detivs, good, wcs, img)
 
 def find_peaks(img, thresh, goodmap=None):
     # peaks
@@ -1438,7 +1446,7 @@ def new_main():
     #    s.snmap = sedsn(detmaps, detivs, s.sed)
 
 
-    if False:
+    if True:
         # Read DES catalog in region
         '''
         https://des.ncsa.illinois.edu/easyweb/db-access
@@ -1467,6 +1475,7 @@ def new_main():
                               (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                               goodmap[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
         bayes_figs(DES, detmaps, detivs, goodmap, wcs, rgb)
+        sys.exit(0)
 
     # Blue, Yellow, Red, i-only
     union_seds = sedlist[:3] + [sedlist[-1]]
@@ -2022,5 +2031,5 @@ def new_main():
 
 
 if __name__ == '__main__':
-    new_main()
     #main()
+    new_main()
