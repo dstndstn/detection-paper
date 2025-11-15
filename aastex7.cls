@@ -1,0 +1,1 @@
+aastex701.cls
