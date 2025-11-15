@@ -1293,12 +1293,16 @@ def sed_mixture_detection(seds, weights, detmaps, detivs,
 #         plt.xticks([]); plt.yticks([])
 
 def image_grid(x, y, rgb):  #, s=8, Nmax=100, first_and_last=True):
-    R = 8
-    C = 8
+    #R = 8
+    #C = 8
+    R = 6
+    #C = 7
+    C = 6
     sz = 8
 
-    plt.figure(figsize=(4,4))
-    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.9)
+    plt.figure(figsize=(3,3))
+    #plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.9)
+    plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.88)
 
     H,W,three = rgb.shape
     I = np.flatnonzero((x >= sz) * (y >= sz) * (x < W-sz) * (y < H-sz))
@@ -1475,7 +1479,6 @@ def new_main():
                               (DES.x < (W-sz)) * (DES.y < (H-sz)) *
                               goodmap[np.clip(DES.y, 0, H-1), np.clip(DES.x, 0, W-1)])
         bayes_figs(DES, detmaps, detivs, goodmap, wcs, rgb)
-        sys.exit(0)
 
     # Blue, Yellow, Red, i-only
     union_seds = sedlist[:3] + [sedlist[-1]]
@@ -1638,12 +1641,13 @@ def new_main():
         s.snmap = sedsn(detmaps, detivs, s.sed)
 
     def plot_cc():
-        plt.figure(figsize=(3.5,3.5))
-        plt.subplots_adjust(left=0.2, right=0.99, bottom=0.2, top=0.9)
+        #plt.figure(figsize=(3.5,3.5))
+        plt.figure(figsize=(3,3))
+        plt.subplots_adjust(left=0.2, right=0.99, bottom=0.2, top=0.87)
 
     def plot_oneimage():
-        plt.figure(figsize=(3,3))
-        plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.9)
+        plt.figure(figsize=(2.5,2.5))
+        plt.subplots_adjust(left=0.01, right=0.99, bottom=0.01, top=0.85)
 
     H,W = detmaps[0].shape
     # Cut to sources in 500x500 subimage
@@ -1834,74 +1838,77 @@ def new_main():
             print(len(I), 'unmatched', one_name, 'detections are below-threshold in', two_name)
             x,y = x[I],y[I]
             image_grid(x, y, rgb)
-            plt.title('Detected in %s, not in %s' % (one_name, two_name))
+            #plt.title('Detected in %s, not in %s' % (one_name, two_name))
+            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-2.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-2.pdf' % (one_tag, two_tag))
 
-            s = 10
-            I = np.flatnonzero((y >= s) * (y < H-s))
-            plt.clf()
-            # Randomly select at most 20?
-            nmax = 20
-            if len(I) > nmax:
-                I = I[np.random.permutation(len(I))[:nmax]]
-            for xi,yi in zip(x[I], y[I]):
-                #for band,co in zip(bands, deep_co):
+            # plots we're not using in the paper
+            if False:
+                s = 10
+                I = np.flatnonzero((y >= s) * (y < H-s))
+                plt.clf()
+                # Randomly select at most 20?
+                nmax = 20
+                if len(I) > nmax:
+                    I = I[np.random.permutation(len(I))[:nmax]]
+                for xi,yi in zip(x[I], y[I]):
+                    #for band,co in zip(bands, deep_co):
+                    for band,det in zip(bands, detmaps):
+                    #for band,det,detiv in zip(bands, detmaps, detivs):
+                        #plt.plot(co[xi, yi-s:yi+s+1], '-', color={'i':'m'}.get(band,band))
+                        plt.plot(det[yi-s:yi+s+1, xi], '-', color={'i':'m'}.get(band,band), alpha=0.25)
+                        #print('detiv', band, ':', detiv[yi, xi])
+                plt.ylabel('Detection map value (flux)')
+                plt.axhline(0, color='k', alpha=0.3)
+                plt.ylim(-0.2, +0.4)
+                plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+                plt.savefig('unmatched-%s-%s-3.png' % (one_tag, two_tag))
+    
+                s = 10
+                I = np.flatnonzero((y >= s) * (y < H-s))
+                plt.clf()
+                # Randomly select at most 20?
+                nmax = 20
+                if len(I) > nmax:
+                    I = I[np.random.permutation(len(I))[:nmax]]
+                for xi,yi in zip(x[I], y[I]):
+                    for band,det,detiv in zip(bands, detmaps, detivs):
+                        plt.plot(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]),
+                                 '-', color={'i':'m'}.get(band,band), alpha=0.25)
+                plt.ylim(-5, +8)
+                plt.axhline(0, color='k', alpha=0.3)
+                plt.ylabel('Detection map S/N')
+                plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+                plt.savefig('unmatched-%s-%s-4.png' % (one_tag, two_tag))
+    
+                plt.clf()
                 for band,det in zip(bands, detmaps):
-                #for band,det,detiv in zip(bands, detmaps, detivs):
-                    #plt.plot(co[xi, yi-s:yi+s+1], '-', color={'i':'m'}.get(band,band))
-                    plt.plot(det[yi-s:yi+s+1, xi], '-', color={'i':'m'}.get(band,band), alpha=0.25)
-                    #print('detiv', band, ':', detiv[yi, xi])
-            plt.ylabel('Detection map value (flux)')
-            plt.axhline(0, color='k', alpha=0.3)
-            plt.ylim(-0.2, +0.4)
-            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-3.png' % (one_tag, two_tag))
-
-            s = 10
-            I = np.flatnonzero((y >= s) * (y < H-s))
-            plt.clf()
-            # Randomly select at most 20?
-            nmax = 20
-            if len(I) > nmax:
-                I = I[np.random.permutation(len(I))[:nmax]]
-            for xi,yi in zip(x[I], y[I]):
+                    vals = []
+                    for xi,yi in zip(x[I], y[I]):
+                        vals.append(det[yi-s:yi+s+1, xi])
+                    vals = np.stack(vals, axis=-1)
+                    med = np.median(vals, axis=-1)
+                    plt.plot(med, '-', color={'i':'m'}.get(band,band))
+                plt.ylim(-0.075, +0.15)
+                plt.axhline(0, color='k', alpha=0.3)
+                plt.ylabel('Detection map value')
+                plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+                plt.savefig('unmatched-%s-%s-5.png' % (one_tag, two_tag))
+    
+                plt.clf()
                 for band,det,detiv in zip(bands, detmaps, detivs):
-                    plt.plot(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]),
-                             '-', color={'i':'m'}.get(band,band), alpha=0.25)
-            plt.ylim(-5, +8)
-            plt.axhline(0, color='k', alpha=0.3)
-            plt.ylabel('Detection map S/N')
-            plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-4.png' % (one_tag, two_tag))
-
-            plt.clf()
-            for band,det in zip(bands, detmaps):
-                vals = []
-                for xi,yi in zip(x[I], y[I]):
-                    vals.append(det[yi-s:yi+s+1, xi])
-                vals = np.stack(vals, axis=-1)
-                med = np.median(vals, axis=-1)
-                plt.plot(med, '-', color={'i':'m'}.get(band,band))
-            plt.ylim(-0.075, +0.15)
-            plt.axhline(0, color='k', alpha=0.3)
-            plt.ylabel('Detection map value')
-            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-5.png' % (one_tag, two_tag))
-
-            plt.clf()
-            for band,det,detiv in zip(bands, detmaps, detivs):
-                vals = []
-                for xi,yi in zip(x[I], y[I]):
-                    vals.append(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]))
-                vals = np.stack(vals, axis=-1)
-                med = np.median(vals, axis=-1)
-                plt.plot(med, '-', color={'i':'m'}.get(band,band))
-            plt.ylim(-5, +6)
-            plt.axhline(0, color='k', alpha=0.3)
-            plt.ylabel('Detection map S/N')
-            plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
-            plt.savefig('unmatched-%s-%s-6.png' % (one_tag, two_tag))
+                    vals = []
+                    for xi,yi in zip(x[I], y[I]):
+                        vals.append(det[yi-s:yi+s+1, xi] * np.sqrt(detiv[yi-s:yi+s+1, xi]))
+                    vals = np.stack(vals, axis=-1)
+                    med = np.median(vals, axis=-1)
+                    plt.plot(med, '-', color={'i':'m'}.get(band,band))
+                plt.ylim(-5, +6)
+                plt.axhline(0, color='k', alpha=0.3)
+                plt.ylabel('Detection map S/N')
+                plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+                plt.savefig('unmatched-%s-%s-6.png' % (one_tag, two_tag))
 
             plot_cc()
             plt.clf()
@@ -1909,23 +1916,48 @@ def new_main():
             deepfluxes = [detmap[y, x] for detmap in deep_detmaps]
             #for i,fluxes in enumerate([detfluxes, deepfluxes]):
             #    plt.subplot(1,2,i+1)
+
+            xmin,xmax = -1, 3
+            ymin,ymax = -2, 3
+            
             for i,fluxes in enumerate([detfluxes, deepfluxes]):
                 mags = [-2.5 * (np.log10(f) - 9) for f in fluxes]
                 g,r,i = mags
-                plt.plot(g - r, r - i, '.', alpha=0.25)
+                #plt.plot(np.clip(g - r, xmin, xmax), np.clip(r - i, ymin, ymax),
+                #         '.', alpha=0.25)
+                px = g-r
+                py = r-i
+                blu = '#1f77b4'
+                kwa = dict(color=blu, alpha=0.25, ms=4)
+                # good
+                I = np.flatnonzero((px > xmin) * (px < xmax) * (py > ymin) * (py < ymax))
+                plt.plot(px[I], py[I], 'o', **kwa)
+                # off the left edge
+                I = np.flatnonzero(px <= xmin)
+                plt.plot([xmin]*len(I), np.clip(py[I], ymin, ymax), '<', **kwa)
+                # off the right edge
+                I = np.flatnonzero(px >= xmax)
+                plt.plot([xmax]*len(I), np.clip(py[I], ymin, ymax), '>', **kwa)
+                # off the top
+                I = np.flatnonzero((px > xmin) * (px < xmax) * (py >= ymax))
+                plt.plot(px[I], [ymax]*len(I), '^', **kwa)
+                # off the bottom
+                I = np.flatnonzero((px > xmin) * (px < xmax) * (py <= ymin))
+                plt.plot(px[I], [ymin]*len(I), 'v', **kwa)
+
                 plt.xlabel('g - r (mag)')
                 plt.ylabel('r - i (mag)')
                 break
-            ax = [-2, +6, -5, +3]
+            #ax = [-2, +6, -5, +3]
             #plt.subplot(1,2,1)
             #plt.title('One exposure')
-            plt.axis(ax)
+            #plt.axis(ax)
             plt.axhline(0, color='k', alpha=0.2)
             plt.axvline(0, color='k', alpha=0.2)
             #plt.subplot(1,2,2)
             #plt.title('Deep coadd')
-            #plt.axis(ax)
-            plt.title('In %s, not in %s' % (one_name, two_name))
+            plt.axis([xmin-0.1, xmax+0.1, ymin-0.1, ymax+0.1])
+            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-7.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-7.pdf' % (one_tag, two_tag))
 
@@ -1937,11 +1969,16 @@ def new_main():
                 detfluxes  = [detmap[one_y, one_x] for detmap in detmaps]
                 mags = [-2.5 * (np.log10(f) - 9) for f in detfluxes]
                 g,r,i = mags
-                plt.plot(g - r, r - i, '.', alpha=0.01)
+                xmin,xmax = -1, 3
+                ymin,ymax = -2, 3
+                blu = '#1f77b4'
+                plt.plot(np.clip(g - r, xmin, xmax), np.clip(r - i, ymin, ymax),
+                         '.', alpha=0.05, color=blu)
                 plt.xlabel('g - r (mag)')
                 plt.ylabel('r - i (mag)')
-                ax = [-2, +6, -5, +3]
-                plt.axis(ax)
+                #ax = [-2, +6, -5, +3]
+                #plt.axis(ax)
+                plt.axis([xmin-0.1, xmax+0.1, ymin-0.1, ymax+0.1])
                 plt.axhline(0, color='k', alpha=0.2)
                 plt.axvline(0, color='k', alpha=0.2)
                 plt.title('Detected in %s' % (one_name))
@@ -1970,7 +2007,7 @@ def new_main():
             plt.clf()
             plt.imshow(medimg, interpolation='nearest', origin='lower')
             plt.xticks([]); plt.yticks([])
-            plt.title('In %s, not in %s' % (one_name, two_name))
+            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-9.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-9.pdf' % (one_tag, two_tag))
 

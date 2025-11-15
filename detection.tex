@@ -1,12 +1,13 @@
-\documentclass[11pt,letterpaper,linenumbers]{aastex63}
+%\documentclass[11pt,letterpaper,linenumbers]{aastex63}
+\documentclass[11pt,letterpaper,linenumbers]{aastex7}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage{multirow}
-\usepackage{bigstrut}
-\usepackage{tikz}
-\usetikzlibrary{snakes,arrows,shapes}
+%\usepackage{bigstrut}
+%\usepackage{tikz}
+%\usetikzlibrary{arrows,shapes}
 
 % X = sum_{i=0}^d max(0, x_i)^2
 % P(X) = 1/2^d sum_{k=0}^d (d choose k) P_chi2(k, X)
@@ -82,6 +83,7 @@
 
 \title{Principled point-source detection in collections of astronomical images}
 \author{Dustin Lang}
+\email{dstndstn@gmail.com}
 %\altaffiliation{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
 % \affiliation{%
 %   Dunlap Institute and Department for Astronomy \& Astrophysics,
@@ -95,6 +97,7 @@
   University of Waterloo,
   200 University Avenue West, Waterloo, ON N2L 3G1, Canada}
 \author{David W. Hogg}
+\email{david.hogg@nyu.edu}
 \affiliation{%
   Center for Computational Astrophysics,
   Flatiron Institute,
@@ -149,6 +152,10 @@ function.
 Even in this limited context, the subject is rich and valuable; more
 general---and more difficult---cases will be illuminated if we can
 understand the simplest case first.
+
+
+
+
 
 Fundamentally, when much is understood about a signal latent in
 data with approximately Gaussian noise, the best detection methods are (or look like) \emph{matched
@@ -1622,6 +1629,8 @@ but with smooth transitions between the different SEDs, and with
 different effective threshold levels for the different SEDs, depending
 on their relative mixture weights.
 
+
+
 \begin{figure}
   \begin{center}
     \includegraphics[width=0.49\textwidth]{chisq-color}%
@@ -1666,6 +1675,9 @@ to zero, then a noise fluctuation may cause its measured flux to be
 negative, which the $\chipos^2$ method clips to zero, reducing its
 detection strength.  The SED-matched methods show a tuning effect:
 their efficiency is highest for stars that match the priors.
+%Figure \ref{fig:comp-images} illustrates this effect on real data:
+%objects 
+
 
 \begin{figure}
   \begin{center}
@@ -1908,6 +1920,7 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
       \label{fig:bayes-vs-gri}}
 \end{figure}
 
+
 \subsection{SED-matched detection}
 
 Here we illustrate the performance of the SED-matched detection method.
@@ -1987,8 +2000,8 @@ other map.  That is, we ignore Bayesian detections where the maximum
 of $g$, $r$, or $i$ signal-to-noise is above $15$, and we drop
 $gri$-union detections where the Bayesian log-probability is above
 $200$.  This yields 52 unique Bayesian detections and 28 unique
-$gri$-union detections.  As shown in Figures \ref{fig:bayes-vs-gri}
-and \ref{fig:only}, the sources detected by only the Bayesian method
+$gri$-union detections.  As shown in Figure \ref{fig:bayes-vs-gri},
+the sources detected by only the Bayesian method
 have the typical colors of real sources, while the sources detected by
 only the $gri$-union method include a number of objects with extreme colors.
 
@@ -2039,7 +2052,7 @@ only the $gri$-union method include a number of objects with extreme colors.
   \end{center}
   \caption{Sources detected by the different methods.  On the diagonal
     are shown grids of sources detected by each method, including the
-    first (brighest) and last (faintest) 32 sources.  Notice that the brightest
+    first (brighest) and last (faintest) 18 sources.  Notice that the brightest
     sources detected by the different methods are almost identical.  The
     off-diagonal images show the brightest and faintest sources that are detected
     by one method and not another.  Two methods can be compared qualitatively
@@ -2049,6 +2062,8 @@ only the $gri$-union method include a number of objects with extreme colors.
     deviations in the outer light profiles of galaxies.
     Note: although the detection was performed on single images, the color images
     here are from 100-image deep coadds, in order to show the ``truth''.
+    In general, the SED-matched methods produce more real source detections
+    than the chi-squared methods.
     \label{fig:comp-images}
     }
 \end{figure}
@@ -2141,41 +2156,42 @@ only the $gri$-union method include a number of objects with extreme colors.
     \label{fig:comp-cc}}
 \end{figure}
 
+
 \begin{figure}[p!]
+  \newcommand{\rheader}[1]{\rotatebox{90}{#1}}
   \begin{center}
-    \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}}
+    %AAA
+    % I DO NOT KNOW WTF THIS IS NEEDED BUT OTHERWISE THE SPACE IS ALL FUCKED UP
+    \hspace{-1.5cm}
+    \begin{tabular}{@{}c@{}c@{}c@{}c@{}c}
       & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
-      %& Chi-squared & Chi-positive & SED union & SED mixture \\
-      %Chi-squared &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
-      %\raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared}} &
-      \includegraphics[height=0.2\textwidth]{median-chisq} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chisq-chipos-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chisq-sed-union-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chisq-sed-mix-9} \\
+      \rheader{Chi-squared $\chi^2$} &
+      \includegraphics[width=0.15\textwidth]{median-chisq} &
+      \includegraphics[width=0.15\textwidth]{unmatched-chisq-chipos-9} &
+      \includegraphics[width=0.15\textwidth]{unmatched-chisq-sed-union-9} &
+      \includegraphics[width=0.15\textwidth]{unmatched-chisq-sed-mix-9} \\
       %
       %Chi-positive &
-      %\raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive}} &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chipos-chisq-9} &
-      \includegraphics[height=0.2\textwidth]{median-chipos} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chipos-sed-union-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-chipos-sed-mix-9} \\
+      \rheader{Chi-positive $\chipos^2$} &
+      \includegraphics[height=0.15\textwidth]{unmatched-chipos-chisq-9} &
+      \includegraphics[height=0.15\textwidth]{median-chipos} &
+      \includegraphics[height=0.15\textwidth]{unmatched-chipos-sed-union-9} &
+      \includegraphics[height=0.15\textwidth]{unmatched-chipos-sed-mix-9} \\
       %
-      %SED union &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-chisq-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-chipos-9} &
-      \includegraphics[height=0.2\textwidth]{median-sed-union} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-union-sed-mix-9} \\
+      % SED union &
+      \rheader{SED (union)} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-union-chisq-9} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-union-chipos-9} &
+      \includegraphics[height=0.15\textwidth]{median-sed-union} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-union-sed-mix-9} \\
       %
       %SED mixture &
-      \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-chisq-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-chipos-9} &
-      \includegraphics[height=0.2\textwidth]{unmatched-sed-mix-sed-union-9} &
-      \includegraphics[height=0.2\textwidth]{median-sed-mix}
-    \end{tabular}
+      \rheader{SED (Bayes)} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-mix-chisq-9} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-mix-chipos-9} &
+      \includegraphics[height=0.15\textwidth]{unmatched-sed-mix-sed-union-9} &
+      \includegraphics[height=0.15\textwidth]{median-sed-mix} \\
+  \end{tabular}
   \end{center}
   \caption{Sources detected by each method.  On the diagonal, we show
     the median image (in a deep coadd) of all the detections produced
@@ -2187,11 +2203,8 @@ only the $gri$-union method include a number of objects with extreme colors.
     the diagonal look more like real sources in a deep coadd, meaning that the
     SED-matched methods are generally producing detections at real source
     locations.
-    \label{fig:comp-median-image}
-    }
+    \label{fig:comp-median-image}}
 \end{figure}
-
-
 
 
 \subsection{Comparing $\chi^2$ and SED-matched methods}
@@ -2342,8 +2355,7 @@ prominent.
 
 
 
-\acknowledgments
-
+\begin{acknowledgments}
 We thank
 Ben Weiner (University of Arizona),
 Julianne Dalcanton (University of Washington),
@@ -2360,10 +2372,16 @@ Research at Perimeter Institute is supported in part by the Government
 of Canada through the Department of Innovation, Science and Economic
 Development Canada and by the Province of Ontario through the Ministry
 of Colleges and Universities.
+\end{acknowledgments}
 
-\bibliographystyle{plain}
+%\bibliographystyle{plain}
+%\bibliographystyle{apj}
+%\bibliography{detection}
+
+\bibliographystyle{aasjournalv7}
 \bibliographystyle{apj}
-\bibliography{detection}
+\bibliography{detection}{}
+
 
 % \begin{thebibliography}{}
 % \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
