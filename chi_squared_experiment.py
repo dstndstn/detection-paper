@@ -127,9 +127,19 @@ def sed_union_detection(fluxes, sig_fluxes, seds):
     return x
 
 def sed_mixture_detection(fluxes, sig_fluxes, seds, alpha=None):
-    # fluxes: npix x nbands array
-    # sig_fluxes: nbands
-    # seds: [(name, scalar sed, weight -- ignored)]
+    '''
+    Computes the foreground-to-background likelihood ratio for the
+    Bayesian SED mixture model.
+    
+    fluxes: npix x nbands array
+    -- of detection-map values, D_j
+
+    sig_fluxes: nbands
+    -- uncertainties on the detection maps - sigma_(D_j)
+
+    seds: [(name, sed, weight)]
+    -- where each "sed" is an "nbands" element vector
+    '''
     if alpha is None:
         alpha = 1.
     x = 0.
@@ -152,19 +162,21 @@ def sed_union_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate):
     return X.root
 
 def sed_mixture_threshold(flux_th, noise_level, model_seds, pbg, falsepos_rate, alpha=None):
+    # "x" here is the p(flux|source) / p(flux|noise) likelihood ratio.
     x = sed_mixture_detection(flux_th, noise_level, model_seds, alpha=alpha)
     x = x.reshape(pbg.shape)
+    # ie, the sum of pfg is 1.
+    # pfg = x * pbg
+    # and the sum of pbg is 1.
+    # (the "flux_th" here is assumed to be a uniform grid in the g and r fluxes)
+
+    # We want to set our threshold "th" on the likelihood ratio so that the
+    # false positive rate is equal to the target "falsepos_rate".
+
     # Find threshold
     def fprate(th):
         return np.sum(pbg * (x > th))
 
-    print('values in x:', x.min(), x.max())
-    #print('false pos rate with threshold 0:', fprate(0))
-    #print('false pos rate with threshold 1e3:', fprate(1e3))
-    #print('false pos rate with threshold 1e10:', fprate(1e10))
-    
-    #X = scipy.optimize.root_scalar(lambda th: fprate(th) - falsepos_rate,
-    #                               method='bisect', bracket=(0, 1e10))
     X = scipy.optimize.root_scalar(lambda th: fprate(th) - falsepos_rate,
                                    method='bisect', bracket=(0, 1e20), maxiter=200)
     print('SED(mixture) Thresh:', X)

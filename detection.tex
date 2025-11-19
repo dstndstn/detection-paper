@@ -816,6 +816,28 @@ set the ratio of priors to $p(\bg)/p(\fg) = 2000$.
 This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
+\newcommand{\pastro}{\ensuremath{p_\textrm{astro}}}
+
+\subsubsection{Probability of astrophysical event, \pastro}
+In the gravitational wave community, the concept of \pastro\ is used
+to characterize the probability that a given event is astrophysical, as opposed to being
+due to detector noise or a terrestrial artifact.  This is defined (eg, in \cite{unified_pastro}) as
+\begin{eqnarray}
+  \pastro(\data) = \frac{p(H_1 \given \data)}{p(H_1 \given \data) + p(H_0 \given \data)}
+\end{eqnarray}
+where $H_1$ is the hypothesis that the data are due to a real
+astrophysical source, and $H_0$ is the hypothesis that the data are
+due to an artifact or statistical noise.  Unlike the frequentist and
+Bayesian frameworks described above, $H_0$ here includes
+\emph{artifacts}, which are (almost by definition) exceedingly hard to
+model in a statistical manner.  Setting this issue aside, we can see that
+a given $p_\textrm{astro}$ threshold can be converted into a likelihood-ratio threshold:
+\begin{eqnarray}
+  \frac{p(\data \given \fg)}{p(\data \given \bg)} = \frac{\pastro(\data)}{1 - \pastro(\data)} \frac{p(\bg)}{p(\fg)}
+\end{eqnarray}
+where the priors also appear as in the Bayesian framework described above.
+In this way, \pastro\ can be seen as an alternative way of expressing the subjective utilities in
+a Bayesian decision theory setting.
 
 \subsubsection{Comment}
 
@@ -2378,7 +2400,7 @@ of Colleges and Universities.
 %\bibliographystyle{apj}
 %\bibliography{detection}
 
-\bibliographystyle{aasjournalv7}
+%\bibliographystyle{aasjournalv7}
 \bibliographystyle{apj}
 \bibliography{detection}{}
 

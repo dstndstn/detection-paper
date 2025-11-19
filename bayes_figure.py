@@ -352,10 +352,14 @@ def bayes_figures():
 
 def get_pratio(d_j, sig_j, sed_i, alpha = 1.):
     '''
-    Get the probability ratio (fg/bg) for given data points and SED.
+    Evaluates the Bayesian SED-matched filter, for a single SED.
+
+    Returns the likelihood ratio (fg/bg) for given data points and SED.
+
+    Data are detection map values d_j with uncertainties sig_j,
+    with d_j on a pixel grid (sizes described below).
 
     alpha: exponential prior on total flux
-
     d_j: (n_bands, nx, ny)
     sig_j: (n_bands)
     sed_i: (n_bands)
