@@ -817,6 +817,7 @@ This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
 \newcommand{\pastro}{\ensuremath{p_\textrm{astro}}}
+\newcommand{\hatpastro}{\ensuremath{\hat{p}_\textrm{astro}}}
 
 \subsubsection{Probability of astrophysical event, \pastro}
 In the gravitational wave community, the concept of \pastro\ is used
@@ -830,13 +831,25 @@ astrophysical source, and $H_0$ is the hypothesis that the data are
 due to an artifact or statistical noise.  Unlike the frequentist and
 Bayesian frameworks described above, $H_0$ here includes
 \emph{artifacts}, which are (almost by definition) exceedingly hard to
-model in a statistical manner.  Setting this issue aside, we can see that
-a given $p_\textrm{astro}$ threshold can be converted into a likelihood-ratio threshold:
+model in a statistical manner.  We will set this issue aside.
+
+We note that $H_1$ and $H_0$ constitute the only two hypotheses in
+this model; the denominator in the above equation is therefore 1, and
+we can see that $\pastro(\data)$ is simply a redefinition of $p(H_1
+\given \data)$; the \emph{decision rule} is that we should claim a detection if
 \begin{eqnarray}
-  \frac{p(\data \given \fg)}{p(\data \given \bg)} = \frac{p(\bg)}{p(\fg)} \frac{\pastro(\data)}{1 - \pastro(\data)}
+  p(H_1 \given \data) > \hatpastro
 \end{eqnarray}
-where the priors also appear as in the Bayesian framework described above.
-In this way, \pastro\ can be seen as an alternative way of expressing the subjective utilities in
+where $\hatpastro$ is a scalar constant.
+
+Invoking Bayes's theorem, we can see that this can be rewritten as a likelihood-ratio test:
+\begin{eqnarray}
+  \frac{p(\data \given \fg) p(\fg)}%
+       {p(\data \given \fg) p(\fg) + p(\data \given \bg) p(\bg)} &>& \hatpastro \\
+       \frac{p(\data \given \fg)}{p(\data \given \bg)} &>& \frac{p(\bg)}{p(\fg)} \, \frac{\hatpastro}{1 - \hatpastro}
+\end{eqnarray}
+where the priors appear as in the Bayesian framework described above.
+In this way, \hatpastro\ can be seen as an alternative way of expressing the subjective utilities in
 a Bayesian decision theory setting.
 
 \subsubsection{Comment}
