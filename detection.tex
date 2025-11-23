@@ -117,16 +117,16 @@
 
 \begin{abstract}
 We review the well-known \emph{matched filter} method for the
-detection of point sources in astronomical images.  This is shown to
-be optimal (that is, to saturate the Cram\'er--Rao bound) under stated
-conditions that are very strong: an isolated source in
+detection of point sources in astronomical images.  We consider only the
+case of an isolated point source in
 background-dominated imaging with perfectly known background level,
-point-spread function, and noise models.  We show that the matched
+point-spread function, and noise models; this is an idealized
+limit of typical optical astronomical images.  We show that the matched
 filter produces a maximum-likelihood estimate of the brightness of a
 purported point source, and this leads to a simple way to combine
 multiple images---taken through the same bandpass filter but with
 different noise levels and point-spread functions---to produce an
-optimal point source detection map.  We then extend the approach to
+optimal multi-image point source detection map.  We then extend the approach to
 images taken through different bandpass filters, introducing the
 \emph{SED-matched filter}, which allows us to combine images taken
 through different filters, but requires us to specify the colors of
@@ -1885,7 +1885,8 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
   \begin{center}
     \includegraphics[width=0.9\textwidth]{strength}
     \caption{Relative strengths of the different SED-matched detection
-      filters.  We match our detected sources with the Dark Energy
+      filters with respect to star color.
+      We match our detected sources with the Dark Energy
       Survey DR1 source database in order to show an accurately
       measured color for each source.  We plot the detection strength
       (sensitivity) of the ``Blue'' and ``Red'' SED-matched filters
