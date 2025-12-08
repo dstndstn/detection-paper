@@ -555,7 +555,7 @@ In general, we should consider any detection procedure as generating
 all relevant information regarding the presence of a point source at each
 pixel; the detection map and its variance are sufficient to describe
 our knowledge.  In some astronomical source detection packages
-(including SourceExtractor), there is a notion of requiring more than
+(including SourceExtractor, \cite{sourceextractor}), there is a notion of requiring more than
 one neighboring pixel to exceed a detection threshold.  This is not
 necessary or useful; in effect it imposes a larger detection threshold
 that varies based on the source morphology and PSF, which is
@@ -675,7 +675,7 @@ two simple hypotheses, a \emph{likelihood-ratio test} yields maximal
 
 The \emph{Neyman--Pearson detector} can be written as a rule
 \begin{eqnarray}
-  \Lambda(\data) \; \triangleq \; \frac{p(\data | H_1)}{p(\data | H_0)} \; \overunderset{H_1}{H_0}{\gtrless} \; \eta
+  \Lambda(\data) \; \triangleq \; \frac{p(\data \given H_1)}{p(\data \given H_0)} \; \overunderset{H_1}{H_0}{\gtrless} \; \eta
 \end{eqnarray}
 where the symbol $\overunderset{H_1}{H_0}{\gtrless}$ %\gtrless_{H_0}^{H_1}$
 means that we ``detect''
@@ -687,10 +687,11 @@ Here, $\Lambda(\data)$ is a ratio of the likelihoods under the
 The threshold $\eta$ is set so that the false positive rate is less than
 a given allowable rate $\alpha$,
 \begin{eqnarray}
-\alpha = \int_{\Lambda(\data) > \eta}\displaylimits p(\data | H_0)
+  %\alpha = \int_{\Lambda(\data) > \eta}\displaylimits p(\data | H_0) \textrm{d,data}
+  \alpha = \int_{\Lambda(x) > \eta}\displaylimits p(x \given H_0) \, \textrm{d}x
 \label{eq:npthresh}
 \end{eqnarray}
-where for false positives, the data are truly drawn from the $H_0$
+where for false positives, the data $x$ are truly drawn from the $H_0$
 hypothesis (hence the integrand), but the likelihood ratio is greater
 than the threshold (hence the integration limits).
 
@@ -799,9 +800,14 @@ background models---which is related to the fraction of pixels that
 truly contain stars---and the utilities, which describes how we are
 willing to trade between different outcomes.
 
+Notice that as we increase our detection threshold, we will convert some false-positive
+detections into true-negatives, changing the expected utility given in the
+numerator in Equation \ref{eq:kthresh}, while also converting some true-positive detections into
+false-negatives, which changes the denominator.
+
 Typically, in source detection we want to be relatively conservative:
-false positive detections are considered to be quite bad, so we can
-set $u(\falsepos)$ to be a very negative number.  True positive
+false positive detections are considered to be quite bad, so we
+set $u(\falsepos)$ to be a large negative number.  True positive
 detections are quite good, so $u(\truepos)$ is a moderate positive
 value.  True negatives (correctly deciding that there is no source in
 a pixel) are slightly good ($u(\trueneg)$ is slightly positive), and
@@ -883,12 +889,12 @@ there is little difference between the two.
 \section{Detecting a point source in multiple images}
 
 In this section we will assume we have a stationary point source whose
-flux is constant over time, and a series of images taken through
-different bandpass filters and with different noise levels, exposure
+flux is constant over time, and a series of images taken
+with different noise levels, exposure
 times, point-spread functions, and telescope pointings.  We can
 achieve optimal detection of the source by building a \detmap\ for
 each image and combining them with weights as described below.
-
+%through different bandpass filters and 
 
 
 \subsection{Identical bandpass filters}
