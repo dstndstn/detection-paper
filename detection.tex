@@ -450,7 +450,7 @@ never known exactly, and since correlation by large pixelized models
 can be expensive, it is common to approximate the PSF by a Gaussian
 for the purposes of detecting sources.  The impact of this
 approximation on detection efficiency is apparent in the derivation of
-the matched filter; in equation \ref{eqn:psfdotprod}, the detection
+the matched filter; in \eqnref{eqn:psfdotprod}, the detection
 map signal-to-noise is proportional to the cosine distance between the
 true PSF and the correlation kernel.  In typical ground-based images,
 this results in only a few percent loss in signal-to-noise.  For
@@ -802,7 +802,7 @@ willing to trade between different outcomes.
 
 Notice that as we increase our detection threshold, we will convert some false-positive
 detections into true-negatives, changing the expected utility given in the
-numerator in Equation \ref{eq:kthresh}, while also converting some true-positive detections into
+numerator in \eqnref{eq:kthresh}, while also converting some true-positive detections into
 false-negatives, which changes the denominator.
 
 Typically, in source detection we want to be relatively conservative:
@@ -1430,8 +1430,8 @@ simulations to yield an acceptable false positive rate.
 
 To illustrate the method, we consider a case where we have two bands
 of imaging, $g$ and $r$ bands.  In \figref{fig:cona}, we plot the
-probability contours of the background model (equation \ref{eq:pbg})
-and the foreground model (equation \ref{eq:pfg}), for the simplest
+probability contours of the background model (\eqnref{eq:pbg})
+and the foreground model (\eqnref{eq:pfg}), for the simplest
 case where our SED prior $p(s)$ is a delta function at $s_{g} =
 \frac{1}{3.5}$, $s_{r} = \frac{2.5}{3.5}$: this is a ``Red'' detection
 filter that assumes a $g - r$ color of $\sim 1$ magnitude.  As expected, the
@@ -2037,8 +2037,8 @@ find 63 bins populated, as shown in \figref{fig:prior}.  The prior
 includes some SED components that have zero flux in $g$ band, which
 correspond to very red sources.
 
-We run the Bayesian detection procedure described in Equation
-\ref{eq:pfg}, computing in log space to avoid numerical overflow.
+We run the Bayesian detection procedure described in
+\eqnref{eq:pfg}, computing in log space to avoid numerical overflow.
 This takes a few minutes on a single core with our unoptimized
 implementation.
 
@@ -2686,7 +2686,7 @@ detection is given by:
 \end{equation}
 which means that the operation of \emph{correlating} the image with
 its PSF produces a map with optimal signal-to-noise.  Repeating
-equation \ref{eq:detmap1}, we have found that the map $M_{\jvec}$ can
+\eqnref{eq:detmap1}, we have found that the map $M_{\jvec}$ can
 be computed by correlating the image with its PSF:
 \begin{equation}
 M_{\jvec} = \sum_{\iina} \psfat{\ivec} \, I_{\ivec + \jvec} \quad ,
@@ -2849,7 +2849,7 @@ proportional to the signal-to-noise \emph{squared}, as expected.
 \subsection{Optimality}
 \label{app:multiopt}
 As before, we will show that the estimator $F^{\star}$ in
-Equation \ref{eq:onebandmap} saturates the Cram\'er--Rao bound for $F$.
+\eqnref{eq:onebandmap} saturates the Cram\'er--Rao bound for $F$.
 
 We will consider two images, $A$ and $B$, with PSFs $\psi$ and $\phi$,
 respectively, and calibration factors $\kappa_A$ and $\kappa_B$ that
@@ -2876,7 +2876,7 @@ $P(A,B | F) = P(A|F) P(B|F)$.  Following the analysis in
   \frac{\norm{\phi}^2}{\kappa_B^2 \sigma_B^2}
 \end{eqnarray}
 which equals the variance of the $F^{\star}$ estimator,
-$\sigma_{F^{\star}}^2$ as given in Equation \ref{eq:onebandstd}.
+$\sigma_{F^{\star}}^2$ as given in \eqnref{eq:onebandstd}.
 Therefore, the estimator saturates the Cram\'er--Rao bound.
 
 
