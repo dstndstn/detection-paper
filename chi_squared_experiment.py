@@ -1,29 +1,3 @@
-'''
-Make a set of diverse sources -- not our model -- 
-
-make sources with a range of colours
-in noisy data
-close to threshold
-
-choose SEDs that basically contain the range of colours
-(have our SEDs not-quite contain all the sources)
--stick with our 3 SED models
-
-- look at 5 discrete sources
-   (red, red-yellow, yellow, yellow-blue, and blue)
-
-- explore the plane of g S/N, r S/N, measure detection fraction
-at a controlled false positive rate
-
-chi-sq methods hacks for negative fluxes
-- only include in the chi-sq sum positive fluxes
-- add the logs of erfs?
-- demand > -1sigma of flux
-- demand all positive
-
-measure survey speed
-
-'''
 import matplotlib
 matplotlib.rcParams['figure.figsize'] = (3.5,3.5)
 matplotlib.use('Agg')

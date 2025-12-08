@@ -2046,7 +2046,7 @@ We run the Bayesian detection procedure described in
 This takes a few minutes on a single core with our unoptimized
 implementation.
 
-In order to show the performance of the Bayesian approach, we will
+In order to show the qualitative behavior of the Bayesian approach, we will
 detect sources at a high threshold and compare against a simple
 approach.  For the Bayesian map, we threshold at a log-probability
 ratio of $200$, which yields $2380$ sources in good regions of the
@@ -2336,10 +2336,11 @@ filter is given $1\%$ weight, and the remaining weight is split
 between the three color-matched SEDs.
 
 For this experiment, for detection we use a single exposure in each of
-the $g$, $r$, and $i$ bands.
+the $g$, $r$, and $i$ bands: DECam exposure numbers 563982, 569613, 567442, respectively.
 
 Thresholds for the $\chi^2$ and $\chipos^2$ methods were set
-analytically, and the SED-matched ones were set empirically by drawing
+analytically, with a false-positive rate corresponding to $5 \sigma$ for a Gaussian.
+The SED-matched ones were set empirically by drawing
 10 instances of random Gaussian noise for the detection maps, with the same
 variance as the detection maps computed from the data.  When we run
 the $\chi^2$ and $\chipos^2$ methods on these same random inputs, they
