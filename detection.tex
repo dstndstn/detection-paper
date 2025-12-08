@@ -121,17 +121,29 @@ detection of point sources in astronomical images.  We consider only the
 case of an isolated point source in
 background-dominated imaging with perfectly known background level,
 point-spread function, and noise models; this is an idealized
-limit of typical optical astronomical images.  We show that the matched
-filter produces a maximum-likelihood estimate of the brightness of a
-purported point source, and this leads to a simple way to combine
-multiple images---taken through the same bandpass filter but with
-different noise levels and point-spread functions---to produce an
-optimal multi-image point source detection map.  We then extend the approach to
+limit of typical optical astronomical images.
+%
+% We show that the matched
+% filter produces a maximum-likelihood estimate of the brightness of a
+% purported point source, and this leads to a simple way to combine
+% multiple images---taken through the same bandpass filter but with
+% different noise levels and point-spread functions---to produce an
+% optimal multi-image point source detection map.
+%
+We review the extension from single-image to multi-image detection, where
+the images have different noise levels and point-spread functions but
+identical bandpass filters.
+%
+We then extend the approach to
 images taken through different bandpass filters, introducing the
 \emph{SED-matched filter}, which allows us to combine images taken
 through different filters, but requires us to specify the colors of
-the objects we wish to detect.  We show that this approach is superior
-to some methods traditionally employed, and that other traditional
+the objects we wish to detect.
+%
+We show that this approach is superior
+to some methods traditionally employed,
+% do we?
+and that other traditional
 methods can be seen as instances of SED-matched filtering with implied
 (and often unreasonable) priors.
 We present a Bayesian formulation, including a flux prior that leads to
