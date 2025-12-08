@@ -907,7 +907,8 @@ maximum-likelihood estimate of the total \emph{counts} contributed by
 the source, in the units of the original image.  In order to
 combine information from multiple images, we must calibrate them so
 that they are in the same units.  Since this calibration is simply a
-linear scaling, it can be applied to the original image or to the
+linear scaling (given our simple image model),
+it can be applied to the original image or to the
 \detmap.  Similarly, if the images are on different pixel
 grids---either from different pointings of the same CCD, or from
 different CCDs---then we must \emph{resample} the \detmap s to a
@@ -985,7 +986,8 @@ optimal.
 
 \paragraph{Coadds}
 Occasionally, astronomers attempt to construct image coadds and then
-detect sources by correlating the coadd with an estimate of its PSF.
+detect sources by correlating the coadd with an estimate of its PSF
+(eg, \cite{stripe82coadd}).
 It is straightforward to show that this is necessarily sub-optimal
 unless the images have the same PSF.  Intuitively, the PSF of the
 coadd is not equal to the PSF of either image, therefore this approach
