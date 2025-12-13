@@ -18,6 +18,7 @@
 \newcommand{\eqnref}[1]{\mbox{\equationname~\ref{#1}}}
 \newcommand{\appref}[1]{\mbox{Appendix~\ref{#1}}}
 \newcommand{\Appref}[1]{\mbox{Appendix~\ref{#1}}}
+\newcommand{\secref}[1]{\mbox{section~\ref{#1}}}
 \newcommand{\niceurl}[1]{\mbox{\href{#1}{\textsl{#1}}}}
 \newcommand{\latin}[1]{\emph{#1}}
 \newcommand{\etal}{\latin{et\,al.}}
@@ -188,7 +189,7 @@ gravitational radiation \citep{ligo}.
 
 In what follows, we will argue for matched filtering for point-source
 detection.  This is not new (it has been reviewed recently by
-\cite{zackay1} and \cite{zackay2}); what is new is that we consider the common context of
+\citealt{zackay1} and \citealt{zackay2}); what is new is that we consider the common context of
 heterogeneous (in point-spread function and sensitivity) multi-epoch,
 multi-band imaging.
 %
@@ -255,7 +256,7 @@ properties (positions, colors, and so on) ought to be measured
 (inferred) from the raw pixels in the collection of input images via a
 likelihood function.  That measurement and likelihood function is
 beyond the scope of this paper, but the subject of a parallel research
-program (eg, \cite{unwise-phot}, \cite{lsoverview}).
+program \citep[eg,][]{unwise-phot, lsoverview}.
 
 \section{Our image model}
 
@@ -547,7 +548,7 @@ rather than being a final product.
 all relevant information regarding the presence of a point source at each
 pixel; the detection map and its variance are sufficient to describe
 our knowledge.  In some astronomical source detection packages
-(including SourceExtractor, \cite{sourceextractor}), there is a notion of requiring more than
+(including SourceExtractor, \citealt{sourceextractor}), there is a notion of requiring more than
 one neighboring pixel to exceed a detection threshold.  This is not
 necessary or useful; in effect it imposes a larger detection threshold
 that varies based on the source morphology and PSF, which is
@@ -715,7 +716,7 @@ $6 \sigd$), $\alpha$, is less than $10^{-9}$.
 \subsubsection{Bayesian detection}
 In a Bayesian setting, we can formalize the detection task as a
 \emph{Bayesian decision theory} problem (as in
-\cite{astrometrydotnet}).  We must first write down our \emph{utility}
+\citealt{astrometrydotnet}).  We must first write down our \emph{utility}
 for each of the four outcomes shown in Table \ref{tab:outcomes}.
 Below, we refer to the utility of a true positive outcome as
 $u(\truepos)$, and so on.  Utilities are in arbitrary linear units of
@@ -838,7 +839,7 @@ roughly $5.3 \sigd$.
 \subsubsection{Probability of astrophysical event, \pastro}
 In the gravitational wave community, the concept of \pastro\ is used
 to characterize the probability that a given event is astrophysical, as opposed to being
-due to detector noise or a terrestrial artifact.  This is defined (eg, in \cite{unified_pastro}) as
+due to detector noise or a terrestrial artifact.  This is defined (eg, in \citealt{unified_pastro}) as
 \begin{eqnarray}
   \pastro(\data) = \frac{p(H_1 \given \data)}{p(H_1 \given \data) + p(H_0 \given \data)}
 \end{eqnarray}
@@ -980,11 +981,11 @@ optimal.
 \paragraph{Coadds}
 Occasionally, astronomers attempt to construct image coadds and then
 detect sources by correlating the coadd with an estimate of its PSF
-(eg, \cite{stripe82coadd}).
+(eg, \citealt{stripe82coadd}).
 It is straightforward to show that this is necessarily sub-optimal
 unless the images have the same PSF.  Intuitively, the PSF of the
-coadd is not equal to the PSF of either image, therefore this approach
-uses a ``mismatched filter'' rather than a matched filter, resulting
+coadd is not equal to the PSF of the individual images, so this approach is
+using a ``mismatched filter'' rather than a matched filter, resulting
 in loss of signal-to-noise or detection efficiency.
 
 \begin{figure}[h]
@@ -1831,8 +1832,8 @@ This also includes an outlier-masking step that detects and masks flux that
 appears in only one image in the stack; this efficiently rejects residual cosmic
 rays, asteroids, and other transients and artifacts.
 The astrometric
-calibration uses Gaia (DR2) as the reference catalog \citep{gaia,
-  gaiaDR1}, and the photometric calibration uses the Pan-STARRS DR1
+calibration uses Gaia (DR2) as the reference catalog \citep{gaiaDR1,
+  gaia}, and the photometric calibration uses the Pan-STARRS DR1
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \citep{psfex}.
 
