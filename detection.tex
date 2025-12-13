@@ -1934,26 +1934,6 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 
 \begin{figure}
   \begin{center}
-    \includegraphics[width=0.32\textwidth]{bayes-data-cc}
-    \includegraphics[width=0.32\textwidth]{bayes-prior-sed}
-    \includegraphics[width=0.32\textwidth]{bayes-prior-cc}
-    \caption{Empirical Bayesian prior for SED-matched detection.
-      \emph{Left:} Sources from the Dark Energy Survey catalog, in
-      color space.  \emph{Center:} Sources binned in SED space, with
-      low-population bins dropped.  The axes are the fraction of flux
-      contributed by the $g$ and $r$ bands, respectively.  Implicitly,
-      the fraction contributed by the $i$ band is \mbox{1 - ($g$ +
-        $r$).}  Empty bins are shown with a light shading.  Notice
-      that some bins with $g \sim 0$ are populated; these correspond
-      to DES catalog entries with measured $g$ flux consistent with
-      zero.  \emph{Right:} Our discrete SED-space binning, projected
-      to color space.
-      \label{fig:prior}}
-  \end{center}
-\end{figure}
-
-\begin{figure}
-  \begin{center}
     %\framebox{%
     \begin{minipage}[c]{0.4\textwidth}
       \includegraphics[width=\textwidth]{bayes-vs-gri}%
@@ -2041,9 +2021,10 @@ into fluxes, compute the fraction of flux contributed by the $g$, $r$,
 and $i$ bands, and histogram these values into a $21 \times 21$ grid in
 $g-r$, $r-i$ color space.
 Keeping bins containing more than $0.1 \%$ of the catalog entries, we
-find 63 bins populated, as shown in \figref{fig:prior}.  The prior
+find 63 bins populated.  The prior
 includes some SED components that have zero flux in $g$ band, which
-correspond to very red sources.
+correspond to very red sources.  We use these bins as our SED-matched
+filters, with weights defined by the number of objects per bin.
 
 We run the Bayesian detection procedure described in
 \eqnref{eq:pfg}, computing in log space to avoid numerical overflow.
