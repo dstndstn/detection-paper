@@ -1626,7 +1626,16 @@ false positive rate.  The false positive rate can be computed easily
 by substituting the survival function for the probability distribution
 function in the equation above.
 
-\subsection{Experiments}
+\section{Experiments}
+
+We first present comparisons between the original $\chi^2$ method, the
+$\chipos^2$ variant presented above, and two variants of SED-matched
+filtering, using synthetic data.  Then, we use real data from the Dark
+Energy Camera \citep{decam}, first examining the behavior of the
+SED-matched detection method, then comparing it with the $\chi^2$
+methods.
+
+\subsection{Chi-squared and SED-matched detection on synthetic data}
 \label{sec:chisq_expt}
 
 \begin{figure}
@@ -1794,8 +1803,7 @@ demonstrated here to still hold for this modified method, though we
 have not investigated it in detail.
 
 
-\section{Experiments}
-
+\subsection{Real data description}
 
 % The experiment here make extensive use of the Legacy Survey code
 % infrastructure -- running calibrations of the CP images, and
@@ -1961,7 +1969,7 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \end{figure}
 
 
-\subsection{SED-matched detection}
+\subsection{SED-matched detection on real data}
 
 Here we illustrate the performance of the SED-matched detection method.
 We select a set of 25 exposures from the DECam set described above.
@@ -2004,7 +2012,7 @@ source colors.  We observe differences of tens of percent, which can
 lead to a very significant number of additional correctly detected sources at
 the lowest signal-to-noise levels.
 
-\subsection{Bayesian SED-matched detection}
+\subsection{Bayesian SED-matched detection on real data}
 
 We build an empirical ``library'' of SEDs for these bands, which we
 use as a prior, by querying the Dark Energy Survey database in our
@@ -2300,7 +2308,7 @@ only the $gri$-union method include a number of objects with extreme colors.
 \end{figure}
 
 
-\subsection{Comparing $\chi^2$ and SED-matched methods}
+\subsection{Comparing $\chi^2$ and SED-matched methods on real data}
 
 Here, we compare the original $\chi^2$ method, the positive-flux-only
 $\chipos^2$ method, and two SED-matched methods: first, taking the
@@ -2364,11 +2372,7 @@ Figure \ref{fig:comp-median-image} further compares pairs of methods, showing
 the median in a deep coadded image of the detections produced by each method,
 and detections produced by one method and not another.
 
-
-
-%\clearpage
 \subsection{Galaxy detection}
-
 
 While we have focused on the detection of point sources in this paper,
 it is a trivial extension to build a detection filter tuned to a
