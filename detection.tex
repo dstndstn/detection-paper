@@ -1160,7 +1160,20 @@ brightness in band A by multiplying by two.  The variance of the
 scaled estimate increases appropriately (by a factor of four), so a
 bandpass in which a source is expected to be faint will contribute an
 estimate with a large variance and will be downweighted when the
-estimates are combined.  We can also view the problem as one of
+estimates are combined.
+
+For example, if we treat $r$ band as the canonical band and our
+objects of interest have color $r-i = 1$ mag, then we expect the flux in
+$i$ to be a factor of $\sim2.5$ greater than the flux in $r$; $s_i = 2.5$,
+and we will scale our $i$-band detection map $D_i$ by $1/s_i = 0.4$ to
+produce a prediction for the $r$-band flux.  Since the sources are
+expected to be brighter in $i$ band, we must \emph{scale down} the
+$i$-band estimate to produce an $r$-band estimate.  The $i$-band
+variance is also reduced in a corresponding way, so this does not
+dilute the weight of high-precision measurements.
+
+
+We can also view the problem as one of
 estimating a total flux that has been split into the different
 bandpasses, and in that view the SED-matched filter is analogous to
 the way flux is spread into pixels by the point-spread function (and
@@ -1205,15 +1218,6 @@ with per-pixel uncertainty
 \end{eqnarray}
 
 
-For example, if we treat $r$ band as the canonical band and our
-objects of interest have color $r-i = 1$ mag, then we expect the flux in
-$i$ to be a factor of $\sim2.5$ greater than the flux in $r$; $s_i = 2.5$,
-and we will scale our $i$-band detection map $D_i$ by $1/s_i = 0.4$ to
-produce a prediction for the $r$-band flux.  Since the sources are
-expected to be brighter in $i$ band, we must \emph{scale down} the
-$i$-band estimate to produce an $r$-band estimate.  The $i$-band
-variance is also reduced in a corresponding way, so this does not
-dilute the weight of high-precision measurements.
 
 
 In practice, for those unwilling to use the Bayesian method presented
@@ -1252,6 +1256,7 @@ We can write the likelihood for a single pixel in the set of detection
 maps $D_j$ for bands $j$, given the existence of a source, as
 \begin{equation}
   p_S(\{ D_j \}) = \iint p(\{ D_j \} | F, s) \, p(F) \, p(s) \, \dd F \, \dd s
+  \label{eq:margsed}
 \end{equation}
 where $F$ is the flux of the source in some canonical band, and $s$ is
 the SED of the source; here, we have made the strong assumption that the
@@ -2452,15 +2457,47 @@ ignored entirely.  This property will becomes increasingly useful as
 multi-wavelength, many-exposure, multi-instrument studies become more
 prominent.
 
-% Our experiments with $g$, $r$, $i$ images that each
-% contribute a similar amount of information showed relatively minor
-% differences between the $\chipos^2$ method and our SED-matched
-% methods, but for larger and more diverse data sets, the SED-matched
-% methods automatically scale correctly, while the $\chipos^2$ method
-% does not.
+% --- this would allow us to use a broad range of filters and source
+% models, and detect different classes of objects simultaneously in
+% one framework.
 
+Source detection is often one of the first steps in an astrophysical
+data analysis.  If a Bayesian method is used to detect sources, then
+care must be taken in the interpretation of these sources; the exact
+set of sources detected will be affected by the priors.  Of course,
+the same issue will occur with more heuristic approaches such as
+taking the union of detections in individual bandpasses, or using a
+method such as the Chi-squared coadd; combining information from
+multiple bandpasses necessarily leads to sensitivity that varies with
+source SEDs.  With a Bayesian method, the priors are explicit and can be
+correctly incorporated into downstream analyses.
 
+In our Bayesian version of the SED-match filter, we assumed that the
+SED and flux priors are independent.  It would be more realistic to
+assume that these are coupled; blue quasars and red galaxies have
+different luminosity functions.  This would require specifying a flux
+prior for each SED under consideration, considerably expanding the
+number of priors required and perhaps making interpretation of the
+results more difficult.
 
+% Real astronomical images contain signal in some pixels due to
+% artifacts such as cosmic rays, as well as rapidly-moving objects such
+% as asteroids or Earth satellites.  In the experiments presented here,
+% these pixels have been masked using a heuristic outlier-rejection step
+% in the \emph{legacypipe} software.
+
+In our multi-image case, we assumed that the \emph{calibration} of
+each images was perfectly known.  In real images, this is something
+that must be measured, and some of the most precise calibrations use
+\emph{self-calibration} or \emp{u\:ber-calibration} approaches
+\cite{ubercal}, leveraging sources detected in multiple images to
+determine their relative calibration.  In a fully self-consistent
+approach, this would tie together calibration and source detection in
+a way that would make sources not independent of each other.  In
+practice, these approaches are typically iterative rather than fully
+self-consistent, and tend to use brighter, high-signal-to-noise stars
+as cross-calibrators, so assumptions of independence at source
+detection time is reasonable.
 
 
 \begin{acknowledgments}
@@ -2482,164 +2519,9 @@ Development Canada and by the Province of Ontario through the Ministry
 of Colleges and Universities.
 \end{acknowledgments}
 
-%\bibliographystyle{plain}
-%\bibliographystyle{apj}
-%\bibliography{detection}
-
 %\bibliographystyle{aasjournalv7}
 \bibliographystyle{apj}
 \bibliography{detection}{}
-
-
-% \begin{thebibliography}{}
-% \expandafter\ifx\csname natexlab\endcsname\relax\def\natexlab#1{#1}\fi
-% 
-% \bibitem[{{Abbott} {et~al.}(2016){Abbott}, {Abbott}, {Abbott}, {Abernathy},
-%   {Acernese}, {Ackley}, {Adams}, {Adams}, {Addesso}, {Adhikari}, \&
-%   et~al.}]{ligo}
-% {Abbott}, B.~P., {Abbott}, R., {Abbott}, T.~D., {et~al.} 2016, Physical Review
-%   Letters, 116, 061102
-% 
-% \bibitem[{Bernstein {et~al.}(2012)Bernstein, Kessler, Kuhlmann, Biswasal,
-%   {et~al.}}]{dessn}
-% Bernstein, J.~P., Kessler, R., Kuhlmann, S., Biswasal, R., {et~al.} 2012, \apj,
-%   753, astro-ph/1111.1969
-% 
-% \bibitem[{{Bertin}(2011)}]{psfex}
-% {Bertin}, E. 2011, in Astronomical Society of the Pacific Conference Series,
-%   Vol. 442, Astronomical Data Analysis Software and Systems XX, ed. I.~N.
-%   {Evans}, A.~{Accomazzi}, D.~J. {Mink}, \& A.~H. {Rots}, 435
-% 
-% \bibitem[{{Bolton} {et~al.}(2012){Bolton}, {Schlegel}, {Aubourg}, {Bailey},
-%   {Bhardwaj}, {Brownstein}, {Burles}, {Chen}, {Dawson}, {Eisenstein}, {Gunn},
-%   {Knapp}, {Loomis}, {Lupton}, {Maraston}, {Muna}, {Myers}, {Olmstead},
-%   {Padmanabhan}, {P{\^a}ris}, {Percival}, {Petitjean}, {Rockosi}, {Ross},
-%   {Schneider}, {Shu}, {Strauss}, {Thomas}, {Tremonti}, {Wake}, {Weaver}, \&
-%   {Wood-Vasey}}]{bossspectro}
-% {Bolton}, A.~S., {Schlegel}, D.~J., {Aubourg}, {\'E}., {et~al.} 2012, \aj, 144,
-%   144
-% 
-% \bibitem[{{Chambers} {et~al.}(2016){Chambers}, {Magnier}, {Metcalfe},
-%   {Flewelling}, {Huber}, {Waters}, {Denneau}, {Draper}, {Farrow}, {Finkbeiner},
-%   {Holmberg}, {Koppenhoefer}, {Price}, {Saglia}, {Schlafly}, {Smartt},
-%   {Sweeney}, {Wainscoat}, {Burgett}, {Grav}, {Heasley}, {Hodapp}, {Jedicke},
-%   {Kaiser}, {Kudritzki}, {Luppino}, {Lupton}, {Monet}, {Morgan}, {Onaka},
-%   {Stubbs}, {Tonry}, {Banados}, {Bell}, {Bender}, {Bernard}, {Botticella},
-%   {Casertano}, {Chastel}, {Chen}, {Chen}, {Cole}, {Deacon}, {Frenk},
-%   {Fitzsimmons}, {Gezari}, {Goessl}, {Goggia}, {Goldman}, {Grebel}, {Hambly},
-%   {Hasinger}, {Heavens}, {Heckman}, {Henderson}, {Henning}, {Holman}, {Hopp},
-%   {Ip}, {Isani}, {Keyes}, {Koekemoer}, {Kotak}, {Long}, {Lucey}, {Liu},
-%   {Martin}, {McLean}, {Morganson}, {Murphy}, {Nieto-Santisteban}, {Norberg},
-%   {Peacock}, {Pier}, {Postman}, {Primak}, {Rae}, {Rest}, {Riess}, {Riffeser},
-%   {Rix}, {Roser}, {Schilbach}, {Schultz}, {Scolnic}, {Szalay}, {Seitz},
-%   {Shiao}, {Small}, {Smith}, {Soderblom}, {Taylor}, {Thakar}, {Thiel},
-%   {Thilker}, {Urata}, {Valenti}, {Walter}, {Watters}, {Werner}, {White},
-%   {Wood-Vasey}, \& {Wyse}}]{panstarrs}
-% {Chambers}, K.~C., {Magnier}, E.~A., {Metcalfe}, N., {et~al.} 2016, ArXiv
-%   e-prints, arXiv:1612.05560
-% 
-% \bibitem[{{Dey} {et~al.}(2019){Dey}, {Schlegel}, {Lang}, {Blum}, {Burleigh},
-%   {Fan}, {Findlay}, {Finkbeiner}, {Herrera}, {Juneau}, {Landriau}, {Levi},
-%   {McGreer}, {Meisner}, {Myers}, {Moustakas}, {Nugent}, {Patej}, {Schlafly},
-%   {Walker}, {Valdes}, {Weaver}, {Y{\`e}che}, {Zou}, {Zhou}, {Abareshi},
-%   {Abbott}, {Abolfathi}, {Aguilera}, {Alam}, {Allen}, {Alvarez}, {Annis},
-%   {Ansarinejad}, {Aubert}, {Beechert}, {Bell}, {BenZvi}, {Beutler}, {Bielby},
-%   {Bolton}, {Brice{\~n}o}, {Buckley-Geer}, {Butler}, {Calamida}, {Carlberg},
-%   {Carter}, {Casas}, {Castander}, {Choi}, {Comparat}, {Cukanovaite}, {Delubac},
-%   {DeVries}, {Dey}, {Dhungana}, {Dickinson}, {Ding}, {Donaldson}, {Duan},
-%   {Duckworth}, {Eftekharzadeh}, {Eisenstein}, {Etourneau}, {Fagrelius},
-%   {Farihi}, {Fitzpatrick}, {Font-Ribera}, {Fulmer}, {G{\"a}nsicke},
-%   {Gaztanaga}, {George}, {Gerdes}, {Gontcho}, {Gorgoni}, {Green}, {Guy},
-%   {Harmer}, {Hernandez}, {Honscheid}, {Huang}, {James}, {Jannuzi}, {Jiang},
-%   {Joyce}, {Karcher}, {Karkar}, {Kehoe}, {Kneib}, {Kueter-Young}, {Lan},
-%   {Lauer}, {Le Guillou}, {Le Van Suu}, {Lee}, {Lesser}, {Perreault Levasseur},
-%   {Li}, {Mann}, {Marshall}, {Mart{\'\i}nez-V{\'a}zquez}, {Martini}, {du Mas des
-%   Bourboux}, {McManus}, {Meier}, {M{\'e}nard}, {Metcalfe},
-%   {Mu{\~n}oz-Guti{\'e}rrez}, {Najita}, {Napier}, {Narayan}, {Newman}, {Nie},
-%   {Nord}, {Norman}, {Olsen}, {Paat}, {Palanque-Delabrouille}, {Peng},
-%   {Poppett}, {Poremba}, {Prakash}, {Rabinowitz}, {Raichoor}, {Rezaie},
-%   {Robertson}, {Roe}, {Ross}, {Ross}, {Rudnick}, {Safonova}, {Saha},
-%   {S{\'a}nchez}, {Savary}, {Schweiker}, {Scott}, {Seo}, {Shan}, {Silva},
-%   {Slepian}, {Soto}, {Sprayberry}, {Staten}, {Stillman}, {Stupak}, {Summers},
-%   {Sien Tie}, {Tirado}, {Vargas-Maga{\~n}a}, {Vivas}, {Wechsler}, {Williams},
-%   {Yang}, {Yang}, {Yapici}, {Zaritsky}, {Zenteno}, {Zhang}, {Zhang}, {Zhou}, \&
-%   {Zhou}}]{lsoverview}
-% {Dey}, A., {Schlegel}, D.~J., {Lang}, D., {et~al.} 2019, \aj, 157, 168
-% 
-% \bibitem[{Doyle {et~al.}(2000)Doyle, Deeg, Kozhevnikov, Oetiker, Martín, Blue,
-%   Rottler, Stone, Ninkov, Jenkins, Schneider, Dunham, Doyle, \&
-%   Paleologou}]{exoplanet}
-% Doyle, L.~R., Deeg, H.~J., Kozhevnikov, V.~P., {et~al.} 2000, The Astrophysical
-%   Journal, 535, 338
-% 
-% \bibitem[{{Flaugher} {et~al.}(2015){Flaugher}, {Diehl}, {Honscheid}, {Abbott},
-%   {Alvarez}, {Angstadt}, {Annis}, {Antonik}, {Ballester}, {Beaufore},
-%   {Bernstein}, {Bernstein}, {Bigelow}, {Bonati}, {Boprie}, {Brooks},
-%   {Buckley-Geer}, {Campa}, {Cardiel-Sas}, {Castander}, {Castilla}, {Cease},
-%   {Cela-Ruiz}, {Chappa}, {Chi}, {Cooper}, {da Costa}, {Dede}, {Derylo},
-%   {DePoy}, {de Vicente}, {Doel}, {Drlica-Wagner}, {Eiting}, {Elliott}, {Emes},
-%   {Estrada}, {Fausti Neto}, {Finley}, {Flores}, {Frieman}, {Gerdes},
-%   {Gladders}, {Gregory}, {Gutierrez}, {Hao}, {Holland}, {Holm}, {Huffman},
-%   {Jackson}, {James}, {Jonas}, {Karcher}, {Karliner}, {Kent}, {Kessler},
-%   {Kozlovsky}, {Kron}, {Kubik}, {Kuehn}, {Kuhlmann}, {Kuk}, {Lahav}, {Lathrop},
-%   {Lee}, {Levi}, {Lewis}, {Li}, {Mandrichenko}, {Marshall}, {Martinez},
-%   {Merritt}, {Miquel}, {Mu{\~n}oz}, {Neilsen}, {Nichol}, {Nord}, {Ogando},
-%   {Olsen}, {Palaio}, {Patton}, {Peoples}, {Plazas}, {Rauch}, {Reil}, {Rheault},
-%   {Roe}, {Rogers}, {Roodman}, {Sanchez}, {Scarpine}, {Schindler}, {Schmidt},
-%   {Schmitt}, {Schubnell}, {Schultz}, {Schurter}, {Scott}, {Serrano}, {Shaw},
-%   {Smith}, {Soares-Santos}, {Stefanik}, {Stuermer}, {Suchyta}, {Sypniewski},
-%   {Tarle}, {Thaler}, {Tighe}, {Tran}, {Tucker}, {Walker}, {Wang}, {Watson},
-%   {Weaverdyck}, {Wester}, {Woods}, {Yanny}, \& {DES Collaboration}}]{decam}
-% {Flaugher}, B., {Diehl}, H.~T., {Honscheid}, K., {et~al.} 2015, \aj, 150, 150
-% 
-% \bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{a}}){Gaia
-%   Collaboration}, {Brown}, {Vallenari}, {Prusti}, {de Bruijne}, {Mignard},
-%   {Drimmel}, {Babusiaux}, {Bailer-Jones}, {Bastian}, \& et~al.}]{gaiaDR1}
-% {Gaia Collaboration}, {Brown}, A.~G.~A., {Vallenari}, A., {et~al.}
-%   2016{\natexlab{a}}, \aap, 595, A2
-% 
-% \bibitem[{{Gaia Collaboration} {et~al.}(2016{\natexlab{b}}){Gaia
-%   Collaboration}, {Prusti}, {de Bruijne}, {Brown}, {Vallenari}, {Babusiaux},
-%   {Bailer-Jones}, {Bastian}, {Biermann}, {Evans}, \& et~al.}]{gaia}
-% {Gaia Collaboration}, {Prusti}, T., {de Bruijne}, J.~H.~J., {et~al.}
-%   2016{\natexlab{b}}, \aap, 595, A1
-% 
-% \bibitem[{{Hogg} \& {Lang}(2013)}]{gaussgals}
-% {Hogg}, D.~W., \& {Lang}, D. 2013, \pasp, 125, 719
-% 
-% \bibitem[{{Lang} {et~al.}(2016){Lang}, {Hogg}, \& {Schlegel}}]{unwise-phot}
-% {Lang}, D., {Hogg}, D.~W., \& {Schlegel}, D.~J. 2016, \aj, 151, 36
-% 
-% \bibitem[{{Melin} {et~al.}(2006){Melin}, {Bartlett}, \& {Delabrouille}}]{melin}
-% {Melin}, J.-B., {Bartlett}, J.~G., \& {Delabrouille}, J. 2006, \aap, 459, 341
-% 
-% \bibitem[{{Rykoff} {et~al.}(2014){Rykoff}, {Rozo}, {Busha}, {Cunha},
-%   {Finoguenov}, {Evrard}, {Hao}, {Koester}, {Leauthaud}, {Nord}, {Pierre},
-%   {Reddick}, {Sadibekova}, {Sheldon}, \& {Wechsler}}]{redmapper}
-% {Rykoff}, E.~S., {Rozo}, E., {Busha}, M.~T., {et~al.} 2014, \apj, 785, 104
-% 
-% \bibitem[{{Szalay} {et~al.}(1999){Szalay}, {Connolly}, \&
-%   {Szokoly}}]{szalay1999}
-% {Szalay}, A.~S., {Connolly}, A.~J., \& {Szokoly}, G.~P. 1999, \aj, 117, 68
-% 
-% \bibitem[{{The Dark Energy Survey Collaboration}(2005)}]{des}
-% {The Dark Energy Survey Collaboration}. 2005, ArXiv Astrophysics e-prints,
-%   astro-ph/0510346
-% 
-% \bibitem[{{Valdes} {et~al.}(2014){Valdes}, {Gruendl}, \& {DES
-%   Project}}]{cppipeline}
-% {Valdes}, F., {Gruendl}, R., \& {DES Project}. 2014, in Astronomical Society of
-%   the Pacific Conference Series, Vol. 485, Astronomical Data Analysis Software
-%   and Systems XXIII, ed. N.~{Manset} \& P.~{Forshay}, 379
-% 
-% \bibitem[{{Willman} {et~al.}(2005){Willman}, {Blanton}, {West}, {Dalcanton},
-%   {Hogg}, {Schneider}, {Wherry}, {Yanny}, \& {Brinkmann}}]{willman1}
-% {Willman}, B., {Blanton}, M.~R., {West}, A.~A., {et~al.} 2005, \aj, 129, 2692
-% 
-% \bibitem[{{Zackay} \& {Ofek}(2017)}]{zackay1}
-% {Zackay}, B., \& {Ofek}, E.~O. 2017, \apj, 836, 187
-% 
-% \end{thebibliography}
 
 \appendix
 

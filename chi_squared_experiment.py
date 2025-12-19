@@ -313,14 +313,15 @@ def main(plots=None):
         lines = []
         labels = []
 
-        #alpha_vals = [0.01, 1., 5.] #3., 5., 8., 10.]
-        #alpha_labels = ['Bright prior', 'Faint prior', 'Fainter prior']
-        #alpha_vals = [5., 1., 0.01] #3., 5., 8., 10.]
-        #alpha_vals = [5., 0.1, 0.01] #3., 5., 8., 10.]
-        # alpha_vals = [5., 2., 0.01] #3., 5., 8., 10.]
-        # alpha_labels = ['Faint prior', 'Medium prior', 'Bright prior']
         alpha_vals = [4., 1]
         alpha_labels = ['Faint prior', 'Bright prior']
+        # alpha_vals = [32., 16., 4., 1, 0.25, 0.0625]
+        # alpha_labels = ['FF', 'F', 'Faint prior', 'Bright prior', 'B', 'BB']
+        # acolors = [matplotlib.cm.viridis(x) for x in np.linspace(0, 1, len(alpha_vals))]
+        # alinestyles = ['-']*len(alpha_vals)
+        # alinewidths = [1.5] * len(alpha_vals)
+        # aalphas = [1.] * len(alpha_vals)
+
         print('Alpha decision boundaries')
         #for j,fp_rate in enumerate([1e-1, 1e-2, 1e-3, 1e-4]):
         for i,(a, alpha_label) in enumerate(zip(alpha_vals, alpha_labels)):
