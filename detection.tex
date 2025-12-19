@@ -301,7 +301,8 @@ Specifically, we will make the following strong assumptions:
   of the sky background, dark current, and read noise) is zero-mean,
   Gaussian, pixelwise independent, and of known constant variance.  The
   zero-mean assumption can be seen as assuming perfect background
-  subtraction (sky estimation);
+  subtraction (sky estimation), while the constant-variance assumption implies
+  that the Poisson variation of the source is dominated by other per-pixel uncertainties;
 \item the image is well sampled;
 \item the (perhaps tiny) image contains \emph{at most} one point
   source with an unknown flux and position;
