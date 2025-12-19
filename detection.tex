@@ -18,7 +18,9 @@
 \newcommand{\eqnref}[1]{\mbox{\equationname~\ref{#1}}}
 \newcommand{\appref}[1]{\mbox{Appendix~\ref{#1}}}
 \newcommand{\Appref}[1]{\mbox{Appendix~\ref{#1}}}
+\newcommand{\Secref}[1]{\mbox{Section~\ref{#1}}}
 \newcommand{\secref}[1]{\mbox{section~\ref{#1}}}
+\newcommand{\subsecref}[1]{\mbox{section~\ref{#1}}}
 \newcommand{\niceurl}[1]{\mbox{\href{#1}{\textsl{#1}}}}
 \newcommand{\latin}[1]{\emph{#1}}
 \newcommand{\etal}{\latin{et\,al.}}
@@ -133,7 +135,6 @@ images taken through different bandpass filters, introducing the
 \emph{SED-matched filter}, which allows us to combine images taken
 through different filters, but requires us to specify
 the colors of the objects to which we wish to be most sensitive.
-%a set of fiducial colors at which we wish the detector to be most sensitive.
 %
 We show that this approach is superior
 to some methods traditionally employed,
@@ -146,6 +147,8 @@ methods can be seen as instances of SED-matched filtering with implied
 %
 We present approaches that are justified in terms of frequentism, Bayesian decision theory,
 and standard astronomical practices; all three are very similar from an operational perspective.
+We illustrate our results with experiments on synthetic and real data.
+% (if I mention DECam do I need to reference it?  references in abstracts are annoying)
 \end{abstract}
 
 
@@ -258,7 +261,37 @@ likelihood function.  That measurement and likelihood function is
 beyond the scope of this paper, but the subject of a parallel research
 program \citep[eg,][]{unwise-phot, lsoverview}.
 
+
+
+This article is structured as follows.
+\Secref{sec:imagemodel} lays out the problem to be solved and the assumptions
+we make.
+\Secref{sec:detection} examines the single-image case, presenting the \emph{matched filter}
+and introducing the notation we use, including defining the \emph{detection map}.
+We comment on the ways that real data violate the assumptions we have made and how
+this affects the results in \subsecref{sec:detectioncomments}.
+We then describe the process of \emph{detecting} a point source as framed in various
+statistical viewpoints in \subsecref{sec:thresholds}.
+In \secref{sec:multiimage} we examine the multiple-image case, first for the case that
+the images are all taken using the same bandpass filter.  This uses a straightforward
+combination of the single-image detection maps.
+Then, in \subsecref{sec:sedmatched} we examine the case of images taken through
+different bandpass filters.  We introduce the \emph{SED-matched filter}; this is a novel
+method and the primary contribution of this article.
+In \subsecref{sec:bayessed} we give a Bayesian approach to marginalizing over SEDs,
+which also requires specifying a prior over fluxes; we present one prior that leads to
+tractable closed-form integrals.
+In \secref{sec:chisq} we compare our new SED-matched filtering method with an existing
+method, the ``Chi-squared coadd'' of \cite{szalay1999}.  This includes an extension to that
+method that was suggested by our anonymous reviewer.
+\Secref{sec:experiments} presents experimental results, first using simulated data to
+compare the Chi-squared and SED-matched methods, then using real data from the
+Dark Energy Camera \citep{decam}.
+We conclude with a discussion in \secref{sec:discussion}.
+
+
 \section{Our image model}
+\label{sec:imagemodel}
 
 We consider idealized astronomical images such as those obtained from
 a CCD in typical broadband optical imaging.
@@ -434,6 +467,7 @@ list of detected sources.  This is discussed below in section \ref{sec:threshold
 
 
 \subsection{Comments}
+\label{sec:detectioncomments}
 
 \paragraph{PSF model}
 Computing the detection map requires correlation of the image by a
@@ -1118,13 +1152,6 @@ scale the various bandpasses so that they are estimates of a common
 quantity: perhaps the flux in a canonical band, or some other linear
 quantity such as the integrated intensity.
 
-
-%% FIXME -- does that make sense?  Apparent brightness?  Apparent
-%% luminosity?  I just want to say, you could measure it in anything
-%% linear, like W/m^2/sr/s or, heck, the projected area of a star of a
-%% given temperature)
-
-
 The intuition here is that if we know that our sources of interest are
 twice as bright in bandpass A as in bandpass B, then we can convert an
 estimate of the brightness in band B into an estimate of the
@@ -1210,6 +1237,7 @@ thresholding after fitting to determine which sources should be kept.
 
 
 \subsection{Going Bayesian}
+\label{sec:bayessed}
 
 The \emph{SED-matched filter} presented above tells us how to find
 likely source positions given a source spectral energy distribution.
@@ -1519,6 +1547,7 @@ have not been able to find a scale-free prior that leads to tractable
 integrals.
 
 \section{Comparison to Chi-squared coadd}
+\label{sec:chisq}
 
 \cite{szalay1999} present the idea of using the $\chi^2$
 statistic of a set of images taken through different bandpass filters.
@@ -1627,6 +1656,7 @@ by substituting the survival function for the probability distribution
 function in the equation above.
 
 \section{Experiments}
+\label{sec:experiments}
 
 We first present comparisons between the original $\chi^2$ method, the
 $\chipos^2$ variant presented above, and two variants of SED-matched
@@ -2395,6 +2425,7 @@ filter, for typical galaxies in DECam images.
 
 
 \section{Discussion}
+\label{sec:discussion}
 
 We have reviewed the ubiquitous \emph{matched filter} and shown how it
 can be used to detect point sources in collections of astronomical
