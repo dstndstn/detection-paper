@@ -2247,8 +2247,8 @@ only the $gri$-union method include a number of objects with extreme colors.
 \begin{figure}[p!]
   \begin{center}
     \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}c@{}}
-      \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
-      \multicolumn{5}{c}{Not detected by method}
+      \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Not detected by method}} &
+      \multicolumn{5}{c}{Detected by method}
       \\
       &
       & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
@@ -2256,33 +2256,71 @@ only the $gri$-union method include a number of objects with extreme colors.
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
       \includegraphics[height=0.23\textwidth]{colorcolor-chisq} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-7} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-7} \\
       %
       %Chi-positive
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-7} &
       \includegraphics[height=0.23\textwidth]{colorcolor-chipos} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-7} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-7} \\
       %
       %SED-union
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-7} &
       \includegraphics[height=0.23\textwidth]{colorcolor-sed-union} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-7} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-7} \\
       %
       %SED-mixture
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-7} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-7} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-7} &
       \includegraphics[height=0.23\textwidth]{colorcolor-sed-mix} \\
+      %
+      % Transpose
+      % \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
+      % \multicolumn{5}{c}{Not detected by method}
+      % \\
+      % &
+      % & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      % %Chi-squared
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
+      % \includegraphics[height=0.23\textwidth]{colorcolor-chisq} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-7} \\
+      % %
+      % %Chi-positive
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-7} &
+      % \includegraphics[height=0.23\textwidth]{colorcolor-chipos} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-7} \\
+      % %
+      % %SED-union
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-7} &
+      % \includegraphics[height=0.23\textwidth]{colorcolor-sed-union} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-7} \\
+      % %
+      % %SED-mixture
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-7} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-7} &
+      % \includegraphics[height=0.23\textwidth]{colorcolor-sed-mix} \\
     \end{tabular}
   \end{center}
   \caption{Sources detected by the various methods.  On the diagonal are plotted
