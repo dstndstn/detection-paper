@@ -2105,9 +2105,8 @@ only the $gri$-union method include a number of objects with extreme colors.
 \begin{figure}[p!]
   \begin{center}
     \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}c@{}}
-      %
-      \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
-      \multicolumn{5}{c}{Not detected by method}
+      \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Not detected by method}} &
+      \multicolumn{5}{c}{Detected by method}
       \\
       %
       &
@@ -2116,33 +2115,73 @@ only the $gri$-union method include a number of objects with extreme colors.
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
       \includegraphics[height=0.23\textwidth]{chisq-images} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-2} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-2} \\
       %
       %Chi-positive &
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-2} &
       \includegraphics[height=0.23\textwidth]{chisq-pos-images} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-2} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-2} \\
       %
       %SED union &
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-2} &
       \includegraphics[height=0.23\textwidth]{sed-union-images} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-2} \\
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-2} \\
       %
       %SED mixture &
       &
       \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-2} &
-      \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-2} &
+      \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-2} &
       \includegraphics[height=0.23\textwidth]{sed-mix-images} \\
+      %
+      % Transpose (note the caption also says above/below the diagonal
+      %
+      % \multirow[c]{5}{2em}[-0.45\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
+      % \multicolumn{5}{c}{Not detected by method}
+      % \\
+      % %
+      % &
+      % & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      % %Chi-squared &
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-squared $\chi^2$}} &
+      % \includegraphics[height=0.23\textwidth]{chisq-images} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-chipos-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-union-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chisq-sed-mix-2} \\
+      % %
+      % %Chi-positive &
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{Chi-positive $\chipos^2$}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-chisq-2} &
+      % \includegraphics[height=0.23\textwidth]{chisq-pos-images} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-union-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-chipos-sed-mix-2} \\
+      % %
+      % %SED union &
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (union)}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chisq-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-chipos-2} &
+      % \includegraphics[height=0.23\textwidth]{sed-union-images} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-union-sed-mix-2} \\
+      % %
+      % %SED mixture &
+      % &
+      % \raisebox{0.05\textwidth}{\rotatebox[origin=l]{90}{SED (Bayes)}} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chisq-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-chipos-2} &
+      % \includegraphics[height=0.23\textwidth]{unmatched-sed-mix-sed-union-2} &
+      % \includegraphics[height=0.23\textwidth]{sed-mix-images} \\
     \end{tabular}
   \end{center}
   \caption{Sources detected by the different methods.  On the diagonal
@@ -2152,13 +2191,13 @@ only the $gri$-union method include a number of objects with extreme colors.
     off-diagonal images show the brightest and faintest sources that are detected
     by one method and not another.  Two methods can be compared qualitatively
     by examining the two plots that appear across the diagonal from each other.
-    For the images above the diagonal, a significant number of the additional
+    For the images below the diagonal, a significant number of the additional
     detections are not true isolated sources but perhaps arise from small
     deviations in the outer light profiles of galaxies.
     Note: although the detection was performed on single images, the color images
     here are from 100-image deep coadds, in order to show the ``truth''.
     In general, the SED-matched methods produce more real source detections
-    than the chi-squared methods.
+    than the Chi-squared methods.
     \label{fig:comp-images}
     }
 \end{figure}
