@@ -2340,13 +2340,12 @@ only the $gri$-union method include a number of objects with extreme colors.
 \begin{figure}[p!]
   \newcommand{\rheader}[1]{\rotatebox{90}{#1}}
   \begin{center}
-    %AAA
     % I DO NOT KNOW WhyTF THIS IS NEEDED BUT OTHERWISE THE SPACE IS ALL FUCKED UP
     \hspace{-1.5cm}
     \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}c@{}}
       %
-      \multirow[c]{5}{2em}[-0.23\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
-      \multicolumn{5}{c}{Not detected by method}
+      \multirow[c]{5}{2em}[-0.23\textwidth]{\rotatebox[origin=l]{90}{Not detected by method}} &
+      \multicolumn{5}{c}{Detected by method}
       \\
       &
       & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
@@ -2354,34 +2353,72 @@ only the $gri$-union method include a number of objects with extreme colors.
       &
       \rheader{Chi-squared $\chi^2$} &
       \includegraphics[width=0.12\textwidth]{median-chisq} &
-      \includegraphics[width=0.12\textwidth]{unmatched-chisq-chipos-9} &
-      \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-union-9} &
-      \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-mix-9} \\
+      \includegraphics[height=0.12\textwidth]{unmatched-chipos-chisq-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chisq-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chisq-9} \\
       %
       %Chi-positive
       &
       \rheader{Chi-positive $\chipos^2$} &
-      \includegraphics[height=0.12\textwidth]{unmatched-chipos-chisq-9} &
+      \includegraphics[width=0.12\textwidth]{unmatched-chisq-chipos-9} &
       \includegraphics[height=0.12\textwidth]{median-chipos} &
-      \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-union-9} &
-      \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-mix-9} \\
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chipos-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chipos-9} \\
       %
       % SED union
       &
       \rheader{\hspace{1em}SED (union)} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chisq-9} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chipos-9} &
+      \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-union-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-union-9} &
       \includegraphics[height=0.12\textwidth]{median-sed-union} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-sed-mix-9} \\
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-sed-union-9} \\
       %
       %SED mixture
       &
       \rheader{\hspace{1em}SED (Bayes)} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chisq-9} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chipos-9} &
-      \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-sed-union-9} &
+      \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-mix-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-mix-9} &
+      \includegraphics[height=0.12\textwidth]{unmatched-sed-union-sed-mix-9} &
       \includegraphics[height=0.12\textwidth]{median-sed-mix} \\
-  \end{tabular}
+      %
+      % \multirow[c]{5}{2em}[-0.23\textwidth]{\rotatebox[origin=l]{90}{Detected by method}} &
+      % \multicolumn{5}{c}{Not detected by method}
+      % \\
+      % &
+      % & Chi-squared $\chi^2$ & Chi-positive $\chipos^2$ & SED (union) & SED (Bayes) \\
+      % % Chi-sq
+      % &
+      % \rheader{Chi-squared $\chi^2$} &
+      % \includegraphics[width=0.12\textwidth]{median-chisq} &
+      % \includegraphics[width=0.12\textwidth]{unmatched-chisq-chipos-9} &
+      % \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-union-9} &
+      % \includegraphics[width=0.12\textwidth]{unmatched-chisq-sed-mix-9} \\
+      % %
+      % %Chi-positive
+      % &
+      % \rheader{Chi-positive $\chipos^2$} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-chipos-chisq-9} &
+      % \includegraphics[height=0.12\textwidth]{median-chipos} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-union-9} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-chipos-sed-mix-9} \\
+      % %
+      % % SED union
+      % &
+      % \rheader{\hspace{1em}SED (union)} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chisq-9} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-union-chipos-9} &
+      % \includegraphics[height=0.12\textwidth]{median-sed-union} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-union-sed-mix-9} \\
+      % %
+      % %SED mixture
+      % &
+      % \rheader{\hspace{1em}SED (Bayes)} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chisq-9} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-chipos-9} &
+      % \includegraphics[height=0.12\textwidth]{unmatched-sed-mix-sed-union-9} &
+      % \includegraphics[height=0.12\textwidth]{median-sed-mix} \\
+      % %
+    \end{tabular}
   \end{center}
   \caption{Sources detected by each method.  On the diagonal, we show
     the median image (in a deep coadd) of all the detections produced
@@ -2389,7 +2426,7 @@ only the $gri$-union method include a number of objects with extreme colors.
     similar between the methods since the majority of detections are
     in common.
     On the off-diagonal, we show detections from one method and not another
-    method, again the median in a deep coadd.  In general, the images below
+    method, again the median in a deep coadd.  In general, the images above
     the diagonal look more like real sources in a deep coadd, meaning that the
     SED-matched methods are generally producing detections at real source
     locations.
