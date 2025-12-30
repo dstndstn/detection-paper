@@ -4,12 +4,8 @@
 \usepackage{amssymb}
 \usepackage{bm}
 \usepackage{multirow}
-%\usepackage{bigstrut}
-%\usepackage{tikz}
-%\usetikzlibrary{arrows,shapes}
 
 % Trying to get rid of section headers at end of page
-%\raggedbottom
 %\widowpenalty=10000
 %\clubpenalty=10000
 
@@ -59,7 +55,6 @@
 \newcommand{\coord}[2]{(#1, #2)}
 \newcommand{\iina}{\ivec \,\, \mathrm{in} \,\, \mathcal{A}}
 \newcommand{\erf}{\textrm{erf}}
-
 \newcommand{\sigd}{\sigma_{\mbox{\rmfamily\tiny D}}}
 
 \newcommand{\mcc}[1]{\makebox[6em][c]{#1}}
@@ -70,6 +65,18 @@
 \newcommand{\falseneg}{\ensuremath{\mathrm{FN}}}
 
 \newcommand{\chipos}{\chi_+}
+
+\newcommand{\squareparens}[1]{\left[ \, #1 \, \right]}
+\renewcommand{\expect}[1]{\mathbb{E}\squareparens{#1}}
+\newcommand{\fg}{\ensuremath{H_1}}
+\newcommand{\bg}{\ensuremath{H_0}}
+\newcommand{\data}{\ensuremath{\textrm{data}}}
+\newcommand{\given}{\,\vert\,}
+
+\newcommand{\pastro}{\ensuremath{p_\textrm{astro}}}
+\newcommand{\hatpastro}{\ensuremath{\hat{p}_\textrm{astro}}}
+
+\newcommand{\sigdj}{\sigma_{D_j}}
 
 \keywords{
     methods:~statistical ---
@@ -84,7 +91,6 @@
 \title{Principled point-source detection in collections of astronomical images}
 \author{Dustin Lang}
 \email{dstndstn@gmail.com}
-%\altaffiliation{To whom correspondence should be addressed; \texttt{dstndstn@gmail.com}}
 \affiliation{%
   Perimeter Institute for Theoretical Physics,
   31 Caroline Street North, Waterloo, ON N2L 2Y5, Canada}
@@ -108,8 +114,6 @@
 \date{Dec 31, 2024}
 \shorttitle{Point-source detection}
 \shortauthors{Lang and Hogg}
-%\correspondingauthor{Dustin Lang}
-%\email{dstndstn@gmail.com}
 
 \begin{abstract}
 We review the well-known \emph{matched filter} method for the
@@ -138,7 +142,6 @@ the colors of the objects to which we wish to be most sensitive.
 %
 We show that this approach is superior
 to some methods traditionally employed,
-% do we?
 and that other traditional
 methods can be seen as instances of SED-matched filtering with implied
 (and often unreasonable) priors.
@@ -167,9 +170,6 @@ general---and more difficult---cases will be illuminated if we can
 understand the simplest case first.
 
 
-
-
-
 Fundamentally, when much is understood about a signal latent in
 data with approximately Gaussian noise, the best detection methods are (or look like) \emph{matched
 filters}.
@@ -186,9 +186,6 @@ ultra-faint galaxies \citep{willman1} to
 exoplanets \citep{exoplanet} to
 gravitational radiation \citep{ligo}.
 
-% from the tweeps:
-% http://scholar.google.com/scholar?q=astronomy+matched+filter
-% http://arxiv.org/abs/astro-ph/0602424
 
 In what follows, we will argue for matched filtering for point-source
 detection.  This is not new (it has been reviewed recently by
@@ -225,8 +222,6 @@ distributions, but there are natural extensions to deal with
 point-spread function, noise-model, calibration, and time-domain
 uncertainties.
 
-% FIXME -- DISCUSS each of the things listed above in the Discussion (or omit)!
-
 
 A ``traditional'' approach for detecting sources in multi-epoch
 imaging is to co-add the images and then run a detection algorithm on
@@ -237,18 +232,6 @@ sensitivity; producing a coadd effectively forces the use of a
 that the correct procedure involves creating a weighted co-addition of
 matched-filtered (smoothed) images.
 
-% Often, astronomers ``co-add'' their imaging to find faint
-% objects.  Technically, this step is only justifiable if the bandpass
-% and point-spread function are the same for all images, and the images
-% ought to be weighted somehow according to sensitivity.  Co-addition is
-% not necessary for source detection, of course; it is possible to
-% combine low-significance source-detection information coming from many
-% images and do as well or better than co-addition.  
-
-% An amusing
-% conclusion of this project is that in the principled limit, the
-% combination of source-detection information looks very much like a
-% (weighted) co-addition of (smoothed) data!
 
 That is, in what follows, we will detect sources as above-threshold
 pixels or regions in a weighted co-add of PSF-correlated input images.
@@ -260,7 +243,6 @@ properties (positions, colors, and so on) ought to be measured
 likelihood function.  That measurement and likelihood function is
 beyond the scope of this paper, but the subject of a parallel research
 program \citep[eg,][]{unwise-phot, lsoverview}.
-
 
 
 This article is structured as follows.
@@ -399,7 +381,7 @@ matched filter and show that it saturates the Cram\'er--Rao bound.
 
 % In practice, it is common to use a symmetric (circular) Gaussian
 % approximation of the PSF model.  This has the computational advantage
-% that one can use a fast (separable) real-space filtering routine, and 
+% that one can use a fast (separable) real-space filtering routine
 
 
 % In \appref{app:lindet}\ we show that \emph{correlating} an image by
@@ -535,7 +517,6 @@ in worse seeing.
 % 3.3976731247300607e-06
 
 
-
 % \paragraph{Convolution.}  It is common to hear the statement
 % that \emph{convolving} an image by its PSF model yields an optimal
 % detection filter.  This is only true if the PSF is defined to be
@@ -549,8 +530,6 @@ in worse seeing.
 % in this \doctype.  In particular, we are ignoring important
 % practicalities such as blended sources
 
-
-% -- Sub-pixel peak location...
 
 \paragraph{Sub-pixel peaks}  The detection map defined above
 is computed by correlating the image with its PSF, evaluated on the original image pixel
@@ -679,17 +658,6 @@ Table \ref{tab:outcomes}.
 \end{table}
 
 
-\newcommand{\squareparens}[1]{\left[ \, #1 \, \right]}
-\renewcommand{\expect}[1]{\mathbb{E}\squareparens{#1}}
-%\newcommand{\fg}{\ensuremath{F}}
-%\newcommand{\bg}{\ensuremath{B}}
-\newcommand{\fg}{\ensuremath{H_1}}
-\newcommand{\bg}{\ensuremath{H_0}}
-\newcommand{\data}{\ensuremath{\textrm{data}}}
-\newcommand{\given}{\,\vert\,}
-
-
-
 \subsubsection{Frequentist detection}
 Formally, in a frequentist statistical setting, we consider the
 problem of devising a test that will maximize the probability of true
@@ -705,7 +673,8 @@ The \emph{Neyman--Pearson detector} can be written as a rule
 \begin{eqnarray}
   \Lambda(\data) \; \triangleq \; \frac{p(\data \given H_1)}{p(\data \given H_0)} \; \overunderset{H_1}{H_0}{\gtrless} \; \eta
 \end{eqnarray}
-where the symbol $\overunderset{H_1}{H_0}{\gtrless}$ %\gtrless_{H_0}^{H_1}$
+where the symbol $\overunderset{H_1}{H_0}{\gtrless}$
+%\gtrless_{H_0}^{H_1}$
 means that we ``detect''
 (select hypothesis $H_1$) if $\Lambda(\data) > \eta$ and ``reject''
 (select hypothesis $H_0$) if $\Lambda(\data) < \eta$, and $\eta$ is our likelihood ratio threshold.
@@ -759,29 +728,6 @@ subjective goodness.\footnote{Author DWH recommends using US Dollars.}
 We then compute a threshold that will yield the greatest
 \emph{expected utility} using our statistical model of the world.
 
-% The
-% table of utilities is shown in Table \ref{tab:utilities}.
-% 
-% \begin{table}[h!]
-% \begin{center}
-% \begin{tabular}{|c|c|c@{\extracolsep{\fill}}|c|}
-%   \cline{3-4}
-%   \multicolumn{2}{c|}{} & \multicolumn{2}{c|}{Source exists? \tstrut} \\
-%   \cline{3-4}
-%   \multicolumn{2}{c|}{} & \multicolumn{1}{c|}{\mcc{Yes}} & \mcc{No \tstrut} \\
-%   \hline
-%   \multirow{2}{*}{Decision} & Detect & \mcc{$u(\truepos)$} & \mcc{$u(\falsepos)$ \tstrut} \\
-%   \cline{2-4}
-%   & Reject & \mcc{$u(\falseneg)$} & \mcc{$u(\trueneg)$ \tstrut} \\
-%   \hline
-% \end{tabular}
-% \end{center}
-% \caption{Table of utilities for a Bayesian decision theory framing of
-%   the source detection problem.  We must write down how good or bad
-%   each outcome is in order to arrive at a threshold that will maximize
-%   our expected utility.  The utilities $u(\cdot)$ are in arbitrary
-%   linear units of subjective goodness.\label{tab:utilities}}
-% \end{table}
 
 Our model of the world will entail the posterior probability
 distributions for both the ``foreground'' model (there is a star),
@@ -868,8 +814,6 @@ set the ratio of priors to $p(\bg)/p(\fg) = 2000$.
 This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
-\newcommand{\pastro}{\ensuremath{p_\textrm{astro}}}
-\newcommand{\hatpastro}{\ensuremath{\hat{p}_\textrm{astro}}}
 
 \subsubsection{Probability of astrophysical event, \pastro}
 In the gravitational wave community, the concept of \pastro\ is used
@@ -923,7 +867,6 @@ with different noise levels, exposure
 times, point-spread functions, and telescope pointings.  We can
 achieve optimal detection of the source by building a \detmap\ for
 each image and combining them with weights as described below.
-%through different bandpass filters and 
 
 
 \subsection{Identical bandpass filters}
@@ -1060,63 +1003,7 @@ in loss of signal-to-noise or detection efficiency.
     \label{fig:dontcoadd}}
 \end{figure}
 
-% \begin{figure}[h]
-%   \newcommand{\minitab}[2][l]{\begin{tabular}{#1}#2\end{tabular}}
-%   \begin{center}
-%     %\begin{tabular}{@{}c@{}c@{}c@{}}
-%     \begin{tabular}{@{}c@{}c@{}}
-%       %\multirow[c]{1}{*}{
-%       % This figure comes from the dont-coadd.py script.
-%       \multirow[t]{1}{0.45\textwidth}{
-%       \framebox{\includegraphics[width=0.5\textwidth,height=0.4\textwidth]{dont-coadd}}%
-%       }
-%       &
-%       \multirow[t]{1}{0.45\textwidth}{
-%         text1 \\ text 2}
-%       %\minitab[c]{text 1 \\ text 2 \\ text 3}
-%       %}
-%       %&
-%       %\rule{1pt}{0.4\textheight}
-%       \\
-%     \end{tabular}
-%   \end{center}
-%   \caption{cap}
-% \end{figure}
 
-% \begin{figure}[h]
-%   \begin{center}
-%     \begin{tabular}{@{}c@{}c@{}c@{}}
-%       %\multirow[c]{4}{*}[vmove-length]{%
-%       \multirow[c]{4}{*}{%
-%         % This figure comes from the dont-coadd.py script.
-%         \rule{1pt}{0.4\textwidth}%
-%         \includegraphics[width=0.5\textwidth]{dont-coadd}\bigstrut} &
-%       Bad \\
-%       & \parbox{0.45\textwidth}{\includegraphics[width=0.45\textwidth]{flow1} \\ testing \\ 1,2,3}\\
-%       & Good \\
-%       & \includegraphics[width=0.45\textwidth]{flow2} \\
-%     \end{tabular}
-%   \end{center}
-%   \caption{The benefit of constructing a \emph{detection map} versus
-%     \emph{coadding} the images and then detecting sources on the
-%     coadd.  Here, we have two images with PSF widths different by a
-%     factor of two, and exposure times such that the depths are
-%     similar.  The signal-to-noise at which a source is detected in the
-%     individual images is shown by the dotted lines at the bottom.  By
-%     constructing a detection map, we extract all the available signal
-%     in the combination of the two images; the detection map
-%     signal-to-noise (dashed line at top) equals the sum-in-quadrature
-%     of the two images.  However, if we instead coadd the images and
-%     then detect the source in the coadd (solid curve), we lose a
-%     significant fraction of the signal-to-noise, regardless of the
-%     weighting factor applied to the two images.  This is, the solid
-%     line \emph{never} reaches the dashed line; creating a coadd and
-%     then detecting on it always loses signal-to-noise when the PSFs
-%     are not identical.
-%     \label{fig:dontcoadd}}
-% \end{figure}
-
-%
 As an illustration, we simulated two images with similar detection
 signal-to-noise but Gaussian PSFs that differed by a factor of two.
 We computed the detection map, and also created a series of coadds
@@ -1179,7 +1066,6 @@ bandpasses, and in that view the SED-matched filter is analogous to
 the way flux is spread into pixels by the point-spread function (and
 re-collected by correlating with the matched filter).
 
-\newcommand{\sigdj}{\sigma_{D_j}}
 
 Assume we have computed detection maps $D_j$, with per-pixel standard deviation
 $\sigdj$, for a number of different bandpasses.  Assume each
@@ -1218,8 +1104,6 @@ with per-pixel uncertainty
 \end{eqnarray}
 
 
-
-
 In practice, for those unwilling to use the Bayesian method presented
 below, we would advocate computing SED-matched detection maps for a
 set of spectral energy distributions that sparsely sample the space of
@@ -1238,7 +1122,6 @@ individual images should one decide whether the source should be kept.
 This leads toward using slightly lower detection thresholds (that will
 produce more false positives due to noise), plus additional
 thresholding after fitting to determine which sources should be kept.
-
 
 
 \subsection{Going Bayesian}
@@ -1306,18 +1189,10 @@ prior, we have
     \exp{ \left( F^2 \sum_j \frac{s_{i,j}^2}{\sigma_{D_j}^2} \right)}
     \, \dd F
 \end{eqnarray}
-%where we have introduced the constants
-%\begin{eqnarray}
-%k &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_j^2}
-%\\
-%\chi^2 &=& \exp{\left( \sum_j -\frac{d_j^2}{2 \sigma_j^2} \right)}
-%\end{eqnarray}
 where we have pulled out the constant
 \begin{eqnarray}
 K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2} 
 \exp{\left( \sum_j -\frac{D_j^2}{2 \sigma_{D_j}^2} \right)}
-%\\
-%&=& \gaussian{D_j | 0, \sigma_j^2}
 = \gaussian{D_j \,|\, 0, \sigma_{D_j}^2}
 \label{eq:pbg}
 \end{eqnarray}
@@ -1403,11 +1278,6 @@ threshold at which to accept a peak in the $p_S/K$ map as a source can
 be framed as a Bayesian decision theory problem, or can be tuned on
 simulations to yield an acceptable false positive rate.
 
-%% FIXME -- can we do it analytically?
-
-
-%Textwidth is \the\textwidth
-% -> ~513 pts = 7.125 in
 
 \begin{figure}
   \begin{center}
@@ -1511,8 +1381,6 @@ orthogonal to these three SED directions.
     \end{center}
 \end{figure}
 
-
-%%% FIXME -- need to mention this plot in the text!!
 
 \begin{figure}
     \begin{center}
@@ -1779,8 +1647,6 @@ to zero, then a noise fluctuation may cause its measured flux to be
 negative, which the $\chipos^2$ method clips to zero, reducing its
 detection strength.  The SED-matched methods show a tuning effect:
 their efficiency is highest for stars that match the priors.
-%Figure \ref{fig:comp-images} illustrates this effect on real data:
-%objects 
 
 
 \begin{figure}
@@ -1828,7 +1694,7 @@ stars.
 % by \cite{szalay1999}).
 
 
-%%% FIXME --
+
 \cite{szalay1999} in fact also suggest a method for detecting objects
 of a specific color that is similar but not identical to the
 SED-matched approaches we present here; they suggest projecting the
@@ -1880,9 +1746,6 @@ calibration uses Gaia (DR2) as the reference catalog \citep{gaiaDR1,
   gaia}, and the photometric calibration uses the Pan-STARRS DR1
 reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 \citep{psfex}.
-
-
-
 
 
 \begin{figure}
@@ -1952,8 +1815,8 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
       measured color for each source.  We plot the detection strength
       (sensitivity) of the ``Blue'' and ``Red'' SED-matched filters
       versus the ``Yellow'' filter.  That is, a source with relative
-      strength 1.1 in the ``Blue'' filter would be detected at $5.5
-      \sigma$ in the ``Blue'' filter if it were detected at $5 \sigma$
+      strength 1.1 in the ``Blue'' filter would be detected at
+      $5.5 \sigma$ in the ``Blue'' filter if it were detected at $5 \sigma$
       in the ``Yellow'' filter.  As expected, sources with blue $g-i$
       colors are most sensitively detected by the ``Blue'' SED-matched
       filter, sources with intermediate colors are most sensitively
@@ -1970,12 +1833,9 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
 
 \begin{figure}
   \begin{center}
-    %\framebox{%
     \begin{minipage}[c]{0.4\textwidth}
       \includegraphics[width=\textwidth]{bayes-vs-gri}%
     \end{minipage}%
-    %}%
-    %\framebox{%
     \begin{minipage}[c]{0.4\textwidth}
       \begin{center}
         Only detected by $gri$-union \\
@@ -1986,7 +1846,6 @@ reference catalog \citep{panstarrs}.  The PSF models use PsfEx
         \rule{0pt}{3em}
       \end{center}%
     \end{minipage}%
-    %}%
   \end{center}
     \caption{Bayesian SED-matched detection method compared to the
       union of $g$, $r$, and $i$ single-band detection.  \emph{Left:} The
@@ -2034,13 +1893,6 @@ are shown in \figref{fig:expt}.  \figref{fig:bestsed} shows a sample
 of sources that are most strongly detected by each of the SED-matched
 filters.
 
-% We also observe that some sources are most strongly detected in one of
-% the single-band-only SED-matched filters.  For the $g$-band-only and
-% $r$-band-only filters, these are almost exclusively image artifacts,
-% such as cosmic rays that are not masked by the Community Pipeline; and
-% transient sources, including asteroids.  The $i$-band-only filter can
-% also detect extremely red sources.  A few examples are shown in
-% \figref{fig:oneband}.
 
 In \figref{fig:strength} we illustrate how the relative strength of
 the different SED-matched filters change with respect to measured
@@ -2089,17 +1941,6 @@ $gri$-union detections.  As shown in Figure \ref{fig:bayes-vs-gri},
 the sources detected by only the Bayesian method
 have the typical colors of real sources, while the sources detected by
 only the $gri$-union method include a number of objects with extreme colors.
-
-% a large number of cosmic rays and
-% asteroids, as well as a number of real very red sources.  If we clip
-% outlier pixels while forming the detection maps, we can eliminate
-% these cosmic rays before the detection step; the $gri$-union method
-% then preferentially detects sources with extreme colors.  Since real
-% images will often contain artifacts and moving objects, the fact that
-% the $gri$-union method \emph{prefers} these objects to real sources is
-% problematic; the Bayesian method, on the other hand, requires sources
-% with such unexpected colors to have much higher signal than it does
-% for real sources.
 
 
 \begin{figure}[p!]
@@ -2262,8 +2103,9 @@ only the $gri$-union method include a number of objects with extreme colors.
 \begin{figure}[p!]
   \newcommand{\rheader}[1]{\rotatebox{90}{#1}}
   \begin{center}
-    % I DO NOT KNOW WhyTF THIS IS NEEDED BUT OTHERWISE THE SPACE IS ALL FUCKED UP
+    % I DO NOT KNOW WhyTF THIS IS NEEDED BUT OTHERWISE THE SPACE IS ALL BORKED UP
     \hspace{-1.5cm}
+    %
     \begin{tabular}{@{}c@{}c@{}c@{}c@{}c@{}c@{}}
       %
       \multirow[c]{5}{2em}[-0.23\textwidth]{\rotatebox[origin=l]{90}{Not detected by method}} &
@@ -2365,15 +2207,6 @@ variance as the detection maps computed from the data.  When we run
 the $\chi^2$ and $\chipos^2$ methods on these same random inputs, they
 generate somewhat more than the target number of false positive
 detections, but we keep the analytic thresholds regardless.
-
-% SED union: total of 38 false detections
-% [4, 3, 2, 1, 5, 6, 2, 6, 3, 6]
-% SED mixture: total of 39 false detections
-% [5, 2, 2, 4, 4, 3, 4, 7, 0, 8]
-% Chi-sq: total of 59 false detections
-% [4, 3, 1, 9, 6, 7, 7, 8, 8, 6]
-% Chi-pos: total of 53 false detections
-% [1, 6, 2, 5, 9, 5, 6, 6, 5, 8]
 
 For each method, we define a detected peak as a pixel value (in
 whatever statistic the method uses) above the threshold and
