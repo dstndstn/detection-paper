@@ -78,6 +78,8 @@
 
 \newcommand{\sigdj}{\sigma_{D_j}}
 
+\newcommand{\changed}[1]{\textbf{#1}}
+
 \keywords{
     methods:~statistical ---
     techniques:~image~processing
@@ -116,6 +118,7 @@
 \shortauthors{Lang and Hogg}
 
 \begin{abstract}\noindent
+  \changed{
   There is almost no data-analysis operation more important to astronomy than the detection of sources (stars or galaxies, say) in imaging.
   Here we write down a set of reasonable assumptions for well-understood (or well calibrated) background-dominated imaging (faint sources) and find the detection methods that flow from those assumptions.
   Our methods are hypothesis comparisons, involving matched filters.
@@ -124,6 +127,7 @@
   Detection in multi-band imaging involves making choices about the range of colors or spectral energy distributions to which the method will be most sensitive; we deliver methods based on Bayesian decision theory and also frequentist methods that deliver similar outcomes in real-data tests.
   We discuss relationships between these methods and standard practices.
   The methods we present perform well, but our main point is that methods should be principled; that is, they should flow from our fundamental assumptions about the data.
+  }
 \end{abstract}
 
 \section{Introduction}
@@ -141,8 +145,8 @@ general---and more difficult---cases will be illuminated if we can
 understand the simplest case first.
 
 
-Fundamentally, when much is understood about a signal latent in
-data with approximately Gaussian noise, the best detection methods are (or look like) \emph{matched
+Fundamentally, when much is understood about a \changed{signal latent in
+data with approximately Gaussian noise}, the best detection methods are (or look like) \emph{matched
 filters}.
 A matched filter is a model of the expected signal with which the data
 are \emph{cross-correlated}. % (often wrongly called ``convolved'').
@@ -216,6 +220,7 @@ beyond the scope of this paper, but the subject of a parallel research
 program \citep[eg,][]{unwise-phot, lsoverview}.
 
 
+\changed{
 This article is structured as follows.
 \Secref{sec:imagemodel} lays out the problem to be solved and the assumptions
 we make.
@@ -241,21 +246,21 @@ method that was suggested by our anonymous reviewer.
 compare the Chi-squared and SED-matched methods, then using real data from the
 Dark Energy Camera \citep{decam}.
 We conclude with a discussion in \secref{sec:discussion}.
-
+}
 
 \section{Our image model}
 \label{sec:imagemodel}
 
 We consider idealized astronomical images such as those obtained from
 a CCD in typical broadband optical imaging.
-Specifically, we will make the following strong assumptions:
+\changed{Specifically, we will make the following strong assumptions:}
 \begin{itemize}
 \item the noise (coming from such sources as the Poisson distribution
   of the sky background, dark current, and read noise) is zero-mean,
   Gaussian, pixelwise independent, and of known constant variance.  The
   zero-mean assumption can be seen as assuming perfect background
-  subtraction (sky estimation), while the constant-variance assumption implies
-  that the Poisson variation of the source is dominated by other per-pixel uncertainties;
+  subtraction (sky estimation), \changed{while the constant-variance assumption implies
+  that the Poisson variation of the source is dominated by other per-pixel uncertainties;}
 \item the image is well sampled;
 \item the (perhaps tiny) image contains \emph{at most} one point
   source with an unknown flux and position;
@@ -503,18 +508,23 @@ in worse seeing.
 
 
 \paragraph{Sub-pixel peaks}  The detection map defined above
-is computed by correlating the image with its PSF, evaluated on the original image pixel
+is computed by correlating the image with its PSF, evaluated on the
+\changed{
+original image pixel
 grid.  As the PSF becomes narrow, the detection efficiency varies
 depending on the position of a source relative to the pixel center.  Essentially, the
 correlation operation allows us to check many source hypotheses, \emph{with
-the source centered in pixels}.  The detection
+the source centered in pixels.
+}
+The detection
 map is maximized when the source is centered in a pixel, but as the source is
 shifted within a pixel, the peak value attained by the detection map is
-lower (because the filter is slightly mismatched).  For example, with
+lower (because the filter is slightly mismatched).}  For example, with
 a Gaussian PSF with standard deviation of 1 pixel, the detection map
 drops as low as 88\% efficiency for a source midway between pixels in
 both dimensions.
 
+\changed{
 This effect can be reduced by evaluating the detection map on a finer
 grid than the original image pixels.  We will see below (section
 \secref{sec:multiimage}) that when combining multiple images, a
@@ -527,7 +537,7 @@ each detection, dropping sources whose best-fit values are below our
 original threshold.  In general, we should consider any detection
 procedure as generating \emph{likely candidates} for further analysis,
 rather than being a final product.
-
+}
 
 \paragraph{Peak area}  Correlation by the PSF summarizes
 all relevant information regarding the presence of a point source at each
@@ -745,10 +755,12 @@ background models---which is related to the fraction of pixels that
 truly contain stars---and the utilities, which describes how we are
 willing to trade between different outcomes.
 
+\changed{
 Notice that as we increase our detection threshold, we will convert some false-positive
 detections into true-negatives, changing the expected utility given in the
 numerator in \eqnref{eq:kthresh}, while also converting some true-positive detections into
 false-negatives, which changes the denominator.
+}
 
 Typically, in source detection we want to be relatively conservative:
 false positive detections are considered to be quite bad, so we
@@ -785,7 +797,7 @@ set the ratio of priors to $p(\bg)/p(\fg) = 2000$.
 This yields a likelihood ratio threshold of $10^6$, which occurs at
 roughly $5.3 \sigd$.
 
-
+\changed{
 \subsubsection{Probability of astrophysical event, \pastro}
 In the gravitational wave community, the concept of \pastro\ is used
 to characterize the probability that a given event is astrophysical, as opposed to being
@@ -799,7 +811,8 @@ due to an artifact or statistical noise.  Unlike the frequentist and
 Bayesian frameworks described above, $H_0$ here includes
 \emph{artifacts}, which are (almost by definition) exceedingly hard to
 model in a statistical manner.  We will set this issue aside.
-
+}
+\changed{
 We note that $H_1$ and $H_0$ constitute the only two hypotheses in
 this model; the denominator in the above equation is therefore 1, and
 we can see that $\pastro(\data)$ is simply a redefinition of $p(H_1
@@ -808,7 +821,8 @@ we can see that $\pastro(\data)$ is simply a redefinition of $p(H_1
   p(H_1 \given \data) > \hatpastro
 \end{eqnarray}
 where $\hatpastro$ is a scalar constant.
-
+}
+\changed{
 Invoking Bayes's theorem, we can see that this can be rewritten as a likelihood-ratio test:
 \begin{eqnarray}
   \frac{p(\data \given \fg) p(\fg)}%
@@ -818,6 +832,7 @@ Invoking Bayes's theorem, we can see that this can be rewritten as a likelihood-
 where the priors appear as in the Bayesian framework described above.
 In this way, \hatpastro\ can be seen as an alternative way of expressing the subjective utilities in
 a Bayesian decision theory setting.
+}
 
 \subsubsection{Comment}
 
@@ -928,6 +943,7 @@ saturates the Cram\'er--Rao bound and is therefore statistically
 optimal.
 
 \paragraph{Coadds}
+\changed{
 Frequently, astronomers construct image coadds and then
 detect sources by correlating the coadd with an estimate of its PSF
 (eg, \citealt{stripe82coadd}).
@@ -936,6 +952,7 @@ unless the images have the same pixel-convolved PSF.  Intuitively, the PSF of th
 coadd is not equal to the PSF of the individual images, so this approach is
 using a ``mismatched filter'' rather than a matched filter, resulting
 in loss of signal-to-noise or detection efficiency.
+}
 
 \begin{figure}[h]
   \begin{center}
@@ -1021,6 +1038,7 @@ bandpass in which a source is expected to be faint will contribute an
 estimate with a large variance and will be downweighted when the
 estimates are combined.
 
+\changed{
 For example, if we treat $r$ band as the canonical band and our
 objects of interest have color $r-i = 1$ mag, then we expect the flux in
 $i$ to be a factor of $\sim2.5$ greater than the flux in $r$; $s_i = 2.5$,
@@ -1030,7 +1048,7 @@ expected to be brighter in $i$ band, we must \emph{scale down} the
 $i$-band estimate to produce an $r$-band estimate.  The $i$-band
 variance is also reduced in a corresponding way, so this does not
 dilute the weight of high-precision measurements.
-
+}
 
 We can also view the problem as one of
 estimating a total flux that has been split into the different
@@ -1109,6 +1127,7 @@ a noise fluctuation.
 
 We can write the likelihood for a single pixel in the set of detection
 maps $D_j$ for bands $j$, given the existence of a source, as
+\changed{
 \begin{equation}
   p(\{ D_j \} \given \fg) = \iint p(\{ D_j \} \given \fg, F, s) \, p(F \given \fg) \,
   p(s \given \fg) \, \dd F \, \dd s
@@ -1120,6 +1139,7 @@ any hyper-parameters in that model.  Here, we have made the strong assumption th
 flux and SED priors are independent.  We will assume that the SED prior $p(s \given \fg)$ is
 represented as a weighted sum of discrete SEDs: a gridding of SED
 space, for example.  We then have
+}
 \begin{eqnarray}
   p(\{ D_j \} \given \fg)
   &=&
@@ -1175,6 +1195,7 @@ $\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
 background distribution (\ie, the null hypothesis, $\bg$, that there is no
 source)!
 
+\changed{
 Using an identity from \cite{gr1980},
 % (specifically, it's 3.322-2 on page 307)
 \begin{eqnarray}
@@ -1184,6 +1205,7 @@ Using an identity from \cite{gr1980},
   \exp\left(\frac{a^2}{4 b}\right)
   \left(1 - \erf\left(\frac{a}{2 \sqrt{b}}\right)\right)
 \end{eqnarray}
+}
 and defining variables
 \begin{eqnarray}
   a_i &=& \alpha - \sum_j \frac{D_j s_{i,j}}{\sigma_{D_j}^2} \\
@@ -1218,8 +1240,10 @@ we get an integral in which the flux prior can be integrated analytically:
 which can be evaluated numerically with modest computational cost as
 long as the number of SEDs $i$ is not too large.  In practice, a
 coarse gridding of SED space yields good results, as shown below.
+\changed{
 The reader would be forgiven for not recognizing that \eqnref{eq:pfg} is one of the
 key results of this paper.
+}
 
 % and defining variables
 % \begin{eqnarray}
@@ -1340,9 +1364,9 @@ orthogonal to these three SED directions.
       integrals, we use an exponential prior on the flux; here
       we show the effect of the exponential scale factor ($\alpha$) on
       the results.  \emph{Left:} Probability contours for the ``Red''
-      foreground model, as before, with $\alpha=1$, compared with a flux prior that
+      foreground model, \changed{as before, with $\alpha=1$, compared with a flux prior that
       prefers brighter sources---larger observed fluxes are considered
-      more probable---with $\alpha=0.5$.  \emph{Right:} A one-dimensional example showing
+      more probable---with $\alpha=0.5$.}  \emph{Right:} A one-dimensional example showing
       the effect of changing the flux prior by a factor of
       two.  The dashed model places more prior belief in larger
       fluxes, and therefore must produce smaller probabilites at low
@@ -1359,7 +1383,7 @@ orthogonal to these three SED directions.
     % This figure comes from chi_squared_experiment.py
     \includegraphics[width=0.45\textwidth]{alpha-det}
     \end{center}
-    \caption{The effect of the flux prior on the decision boundaries
+    \caption{\changed{The effect of the flux prior on the decision boundaries
       of Bayesian SED-matched
       source detection.  The exponential scale factor $\alpha$ affects
       the shape of the decision contours.
@@ -1375,6 +1399,7 @@ orthogonal to these three SED directions.
       %shapes of the other curves, tracking the slopes of the
       %individual SED-matched filters.
       The detailed shape of the decision boundary is affected by the flux prior.
+      }
     }
 \end{figure}
 
@@ -1405,9 +1430,10 @@ over bands $j$,
 \end{eqnarray}
 and a sufficiently large set of connected pixels with $\chi^2$ above a
 detection threshold is taken as evidence for a source.
+\changed{
 Here, since we are using detection maps, we need only consider
 single peak pixels.
-
+}
 %See \figref{fig:sedmatched}.
 
 % \begin{figure}
@@ -1504,12 +1530,14 @@ function in the equation above.
 \section{Experiments}
 \label{sec:experiments}
 
+\changed{
 We first present comparisons between the original $\chi^2$ (``Chi-squared'') method, the
 $\chipos^2$ (``Chi-positive'') variant presented above, and two variants of SED-matched
 filtering, using synthetic data.  Then, we use real data from the Dark
 Energy Camera \citep{decam}, first examining the behavior of the
 SED-matched detection method, then comparing it with the $\chi^2$
 methods.
+}
 
 \subsection{Chi-squared and SED-matched detection on synthetic data}
 \label{sec:chisq_expt}
@@ -1535,9 +1563,9 @@ methods.
     outside the $\chi^2$ circle) will be detected.  The thresholds
     have been set so that each method produces the same false-positive
     rate given pure Gaussian noise inputs (equivalent to a $4 \sigma$
-    Gaussian).  This illustrates how the $\chipos^2$ method improves upon
+    Gaussian).  This illustrates how the $\chipos^2$ method \changed{improves upon
     the $\chi^2$ method by detecting
-    more true sources, thanks to treating negative fluxes differently
+    more true sources,} thanks to treating negative fluxes differently
     than positive fluxes: the blue-dashed decision boundary detects
     more sources with positive fluxes, and does not detect sources
     where both fluxes are negative.  Notice that the SED-matched
@@ -1888,15 +1916,16 @@ $g-r$, $r-i$ color space.
 Keeping bins containing more than $0.1 \%$ of the catalog entries, we
 find 63 bins populated.  The prior
 includes some SED components that have zero flux in $g$ band, which
-correspond to very red sources.  We use these bins as our SED-matched
+correspond to very red sources.  \changed{We use these bins as our SED-matched
 filters, with weights defined by the number of objects per bin.
+}
 
 We run the Bayesian detection procedure described in
 \eqnref{eq:pfg}, computing in log space to avoid numerical overflow.
 This takes a few minutes on a single core with our unoptimized
 implementation.
 
-In order to show the qualitative behavior of the Bayesian approach, we will
+In order to show the \changed{qualitative behavior} of the Bayesian approach, we will
 detect sources at a high threshold and compare against a simple
 approach.  For the Bayesian map, we threshold at a log-probability
 ratio of $200$, which yields $2380$ sources in good regions of the
@@ -2180,7 +2209,7 @@ For this experiment, for detection we use a single exposure in each of
 the $g$, $r$, and $i$ bands: DECam exposure numbers 563982, 569613, 567442, respectively.
 
 Thresholds for the $\chi^2$ and $\chipos^2$ methods were set
-analytically, with a false-positive rate corresponding to $5 \sigma$ for a Gaussian.
+analytically, \changed{with a false-positive rate corresponding to $5 \sigma$ for a Gaussian.}
 The SED-matched ones were set empirically by drawing
 10 instances of random Gaussian noise for the detection maps, with the same
 variance as the detection maps computed from the data.  When we run
@@ -2256,6 +2285,7 @@ exponential prior that leads to a closed-form expression for the fully
 marginalized Bayesian detection probability; this can be computed
 inexpensively.
 
+\changed{
 If a project wishes to avoid either Bayesian statistical philosophy or else any
 computational demands of marginalization, the SED union methodology
 is frequentist-safe and requires no marginalizations.
@@ -2263,6 +2293,7 @@ Our experiments suggest that the SED Bayes and SED union methods are
 expected to deliver very similar catalogs or results in most settings.
 Technically, the SED union methodology is effectively a frequentist profile
 over the family of permitted SEDs.
+}
 
 A pleasing aspect of the matched-filtering approach---including our
 extension to SED-matched filtering---is that it can correctly use all
@@ -2277,6 +2308,7 @@ prominent.
 % models, and detect different classes of objects simultaneously in
 % one framework.
 
+\changed{
 Source detection is often one of the first steps in an astrophysical
 data analysis.  If a Bayesian method is used to detect sources, then
 care must be taken in the interpretation of these sources; the exact
@@ -2287,7 +2319,9 @@ method such as the Chi-squared coadd; combining information from
 multiple bandpasses necessarily leads to sensitivity that varies with
 source SEDs.  With a Bayesian method, the priors are explicit and can be
 correctly incorporated into downstream analyses.
+}
 
+\changed{
 In our Bayesian version of the SED-match filter, we assumed that the
 SED and flux priors are independent.  It would be more realistic to
 assume that these are coupled; blue quasars and red galaxies have
@@ -2295,6 +2329,7 @@ different luminosity functions.  This would require specifying a flux
 prior for each SED under consideration, considerably expanding the
 number of priors required and perhaps making interpretation of the
 results more difficult.
+}
 
 % Real astronomical images contain signal in some pixels due to
 % artifacts such as cosmic rays, as well as rapidly-moving objects such
@@ -2302,6 +2337,7 @@ results more difficult.
 % these pixels have been masked using a heuristic outlier-rejection step
 % in the \emph{legacypipe} software.
 
+\changed{
 In our multi-image case, we assumed that the \emph{calibration} of
 each images was perfectly known.  In real images, this is something
 that must be measured, and some of the most precise calibrations use
@@ -2314,7 +2350,7 @@ practice, these approaches are typically iterative rather than fully
 self-consistent, and tend to use brighter, high-signal-to-noise stars
 as cross-calibrators, so assumptions of independence at source
 detection time is reasonable.
-
+}
 
 \begin{acknowledgments}
 We thank
