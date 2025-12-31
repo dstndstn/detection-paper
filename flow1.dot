@@ -1,6 +1,6 @@
 digraph {
 rankdir="LR";
-node [fixedsize=true, width=1.3, height=0.5];
+node [fixedsize=true, width=1.4, height=0.5];
 
 subgraph {
 sortv=1;
@@ -13,7 +13,7 @@ coadd [label="Coadd", shape=box];
 imA -> coadd [label="xxxxx", texlbl="$w$"];
 imB -> coadd [label="xxxxx", texlbl="$1 - w$"];
 
-det [label="Detection map", shape=box, color="red", style="line width=3pt"];
+det [label="Coadd detection map", shape=box, color="red", style="line width=3pt"];
 
 coadd -> det [label="xxxxx", texlbl="Correlate"];
 }
