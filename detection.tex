@@ -115,45 +115,16 @@
 \shorttitle{Point-source detection}
 \shortauthors{Lang and Hogg}
 
-\begin{abstract}
-We review the well-known \emph{matched filter} method for the
-detection of point sources in astronomical images.  We consider only the
-case of an isolated point source in
-background-dominated imaging with perfectly known background level,
-point-spread function, and noise models; this is an idealized
-limit of typical optical astronomical images.
-%
-% We show that the matched
-% filter produces a maximum-likelihood estimate of the brightness of a
-% purported point source, and this leads to a simple way to combine
-% multiple images---taken through the same bandpass filter but with
-% different noise levels and point-spread functions---to produce an
-% optimal multi-image point source detection map.
-%
-We review the extension from single-image to multi-image detection, where
-the images have different noise levels and point-spread functions but
-identical bandpass filters.
-%
-We then extend the approach to
-images taken through different bandpass filters, introducing the
-\emph{SED-matched filter}, which allows us to combine images taken
-through different filters, but requires us to specify
-the colors of the objects to which we wish to be most sensitive.
-%
-We show that this approach is superior
-to some methods traditionally employed,
-and that other traditional
-methods can be seen as instances of SED-matched filtering with implied
-(and often unreasonable) priors.
-%We present a Bayesian formulation, including a flux prior that leads to
-%a closed-form expression with low computational cost.
-%
-We present approaches that are justified in terms of frequentism, Bayesian decision theory,
-and standard astronomical practices; all three are very similar from an operational perspective.
-We illustrate our results with experiments on synthetic and real data.
-% (if I mention DECam do I need to reference it?  references in abstracts are annoying)
+\begin{abstract}\noindent
+  There is almost no data-analysis operation more important to astronomy than the detection of sources (stars or galaxies, say) in imaging.
+  Here we write down a set of reasonable assumptions for well-understood (or well calibrated) background-dominated imaging (faint sources) and find the detection methods that flow from those assumptions.
+  Our methods are hypothesis comparisons, involving matched filters.
+  We show that they are generally preferable to one-hypothesis (p-value or n-sigma-deviation) methods, especially for avoiding spurious detection of non-star image features.
+  We consider the case that there are multiple images at each point on the sky, and---more importantly for our purposes---when those images are taken through different bandpasses.
+  Detection in multi-band imaging involves making choices about the range of colors or spectral energy distributions to which the method will be most sensitive; we deliver methods based on Bayesian decision theory and frequentist methods that deliver similar outcomes in real-data tests.
+  We discuss relationships between these methods and standard practices.
+  The methods we present perform well, but our main point is that methods should be principled; that is, they should flow from our fundamental assumptions about the data.
 \end{abstract}
-
 
 \section{Introduction}
 
