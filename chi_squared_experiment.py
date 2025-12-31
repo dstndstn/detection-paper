@@ -314,7 +314,7 @@ def main(plots=None):
         bayes_figure.subplots()
         #plt.subplots_adjust(left=0.1, bottom=0.1, right=0.99, top=0.99)
         lines = []
-        labels = []
+        legendlabels = []
 
         alpha_vals = [4., 1]
         alpha_labels = ['Faint prior', 'Bright prior']
@@ -340,7 +340,7 @@ def main(plots=None):
                     continue
                 print('FP rate', fp_rate)
                 if j == 0:
-                    labels.append(alpha_label)
+                    legendlabels.append(alpha_label)
                 thresh = sed_mixture_threshold(flux_thaa, noise_level, model_seds, pbg_aa,
                                                fp_rate, alpha=a)
                 print('Threshold:', thresh)
@@ -374,7 +374,7 @@ def main(plots=None):
                             colors=[acolors[ai]], linestyles=[alinestyles[ai]],
                             linewidths=[alinewidths[ai]], alpha=aalphas[ai])
                 ll = mlines.Line2D(
-                    [], [], label=labels[i],
+                    [], [], label=legendlabels[i],
                     color=acolors[ai], linestyle=alinestyles[ai],
                     linewidth=alinewidths[ai], alpha=aalphas[ai])
                 if j == 0:
