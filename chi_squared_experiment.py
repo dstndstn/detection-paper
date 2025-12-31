@@ -251,6 +251,8 @@ def main(plots=None):
     print('sum pbg:', np.sum(pbg))
 
     det_names = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+    #det_names = [r'Chi-squared ($\chi^2$)', r'Chi-positive ($\chi_+^2$)',
+    #             'SED (union)', 'SED (Bayes)']
     prop_cycle = plt.rcParams['axes.prop_cycle']
     colors = prop_cycle.by_key()['color']
     mpl_colors = colors
@@ -259,8 +261,9 @@ def main(plots=None):
     linewidths = [1, 3, 1, 3]
     alphas = [1, 0.5, 1, 0.5]
     xcolors = [colors[0], colors[0], colors[1], colors[1]]
-    #labels = ['$\chi^2$ (raw)', '$\chi^2$ (pos)', 'SED (union)', 'SED (mixture)']
-    labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+    #labels = [r'$\chi^2$', r'$\chi_+^2$', 'SED (union)', 'SED (Bayes)']
+    labels = [r'Chi-squared ($\chi^2$)', r'Chi-positive ($\chi_+^2$)',
+              'SED (union)', 'SED (Bayes)']
 
     if do_plot('alpha'):
         noise_level = noise_levels[0]
@@ -441,7 +444,7 @@ def main(plots=None):
 
             plt.subplot(4,1,i+1)
             plt.hist(c, range=histrange, bins=28, color=mpl_colors[i],
-                     label=det_names[i])
+                     label=labels[i])
             if i == 1:
                 plt.ylabel('Number of false detections', ha='center', y=0)
             plt.axvline(0., linestyle='--', alpha=0.2, color='k')

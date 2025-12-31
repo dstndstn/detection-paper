@@ -1479,7 +1479,7 @@ the quadrants with one negative flux value, the pixels are projected
 onto the axis with positive flux.  These pixel values will therefore
 be distributed according to the $\chi^2$ distribution with \emph{one}
 degree of freedom.  In general, if we compute the modified $\chi^2$
-distribution $\chipos^2$, with $d$ bands of data, then
+distribution, which we call $\chipos^2$, with $d$ bands of data, then
 \begin{eqnarray}
   \chipos^2 = \sum_{j=0}^d \max(0, D_j)^2
   \label{eqn:chipos}
@@ -1490,7 +1490,7 @@ P(\chipos^2, d) = \frac{1}{2^d} \sum_{k=0}^d \binom{d}{k} P_{\chi^2}(\chipos^2, 
 \end{eqnarray}
 where $P_{\chi^2}(x^2, k)$ is the probability distribution function of
 the regular chi-squared distribution with $k$ degrees of freedom (and
-defining $P_{\chi^2}(x, 0) = \delta(x))$), and $d$ is the number of
+defining $P_{\chi^2}(x, 0) = \delta(x)$), and $d$ is the number of
 bandpass filters to be measured, or degrees of freedom.  The
 $\binom{d}{k}$ term (``$d$ choose $k$'') counts the number of (hyper-)quadrants with $k$
 positive fluxes, and the $P_{\chi^2}(\cdot, k)$ term gives the distribution of those $k$ positive fluxes.  Using
@@ -1504,8 +1504,8 @@ function in the equation above.
 \section{Experiments}
 \label{sec:experiments}
 
-We first present comparisons between the original $\chi^2$ method, the
-$\chipos^2$ variant presented above, and two variants of SED-matched
+We first present comparisons between the original $\chi^2$ (``Chi-squared'') method, the
+$\chipos^2$ (``Chi-positive'') variant presented above, and two variants of SED-matched
 filtering, using synthetic data.  Then, we use real data from the Dark
 Energy Camera \citep{decam}, first examining the behavior of the
 SED-matched detection method, then comparing it with the $\chi^2$
@@ -1515,7 +1515,7 @@ methods.
 \label{sec:chisq_expt}
 
 \begin{figure}
-  % python chi_squared_experiment.py
+  % python chi_squared_experiment.py decision-boundaries
   \begin{center}
     \includegraphics[width=0.49\textwidth]{chisq-decision-boundary}%
     \hspace{0.01\textwidth}%
@@ -1525,8 +1525,8 @@ methods.
     of two bands ($g$ and $r$), and for two variants of the $\chi^2$
     and SED-matched detection methods.  \emph{Left:} In this case,
     the two bands are assumed to have equal levels of noise.  For the
-    $\chi^2$ detector, we show the original version, and the
-    $\chipos^2$ version defined in \eqnref{eqn:chipos}.  For the
+    $\chi^2$ (Chi-squared) detector, we show the original version, and the
+    $\chipos^2$ (Chi-positive) version defined in \eqnref{eqn:chipos}.  For the
     SED-matched detector, we show a version that takes the union of
     detections from three SEDs, and a Bayesian version that sums the
     detection probabilities between the same three SEDs.  The SEDs are
@@ -1577,7 +1577,7 @@ on their relative mixture weights.
 
 \begin{figure}
   \begin{center}
-    % from chi_squared_experiment.py
+    % from chi_squared_experiment.py chisq-color
     \includegraphics[width=0.49\textwidth]{chisq-color}%
   \end{center}
   \caption{Detection rates for the $\chi^2$-based and SED-matched
@@ -1624,7 +1624,7 @@ their efficiency is highest for stars that match the priors.
 
 \begin{figure}
   \begin{center}
-    % from chi_squared_experiment.py
+    % from chi_squared_experiment.py chisq-det-color
     \includegraphics[width=0.55\textwidth]{chisq-det-colors}%
   \end{center}
   \caption{The colors of false positive detections for each method.
