@@ -1790,6 +1790,15 @@ def new_main():
     union_meth = ('SED (union)', 'sed-union', union_x, union_y, union_map, union_thresh)
     mix_meth = ('SED (Bayes)', 'sed-mix', mix_x, mix_y, mix_map, mix_thresh)
 
+    methods = [chi_meth, chipos_meth, union_meth, mix_meth]
+
+    for name,tag,x,y,themap,thresh in methods:
+        plt.clf()
+        ima = dict(interpolation='nearest', origin='lower', cmap='gray')
+        plt.imshow(themap >= thresh, **ima)
+        plt.savefig('%s-hot.png' % tag)
+
+
     colorcolor_plot = set()
     medimg_plot = set()
 
@@ -1838,8 +1847,7 @@ def new_main():
             print(len(I), 'unmatched', one_name, 'detections are below-threshold in', two_name)
             x,y = x[I],y[I]
             image_grid(x, y, rgb)
-            #plt.title('Detected in %s, not in %s' % (one_name, two_name))
-            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
+            plt.title('Detected by %s,\nnot by %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-2.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-2.pdf' % (one_tag, two_tag))
 
@@ -1862,7 +1870,7 @@ def new_main():
                 plt.ylabel('Detection map value (flux)')
                 plt.axhline(0, color='k', alpha=0.3)
                 plt.ylim(-0.2, +0.4)
-                plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+                plt.suptitle('Detected by %s, not by %s' % (one_name, two_name))
                 plt.savefig('unmatched-%s-%s-3.png' % (one_tag, two_tag))
     
                 s = 10
@@ -1879,7 +1887,7 @@ def new_main():
                 plt.ylim(-5, +8)
                 plt.axhline(0, color='k', alpha=0.3)
                 plt.ylabel('Detection map S/N')
-                plt.suptitle('Detected in %s, not in %s' % (one_name, two_name))
+                plt.suptitle('Detected by %s, not by %s' % (one_name, two_name))
                 plt.savefig('unmatched-%s-%s-4.png' % (one_tag, two_tag))
     
                 plt.clf()
@@ -1893,7 +1901,7 @@ def new_main():
                 plt.ylim(-0.075, +0.15)
                 plt.axhline(0, color='k', alpha=0.3)
                 plt.ylabel('Detection map value')
-                plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+                plt.suptitle('Detected by %s, not by %s: median' % (one_name, two_name))
                 plt.savefig('unmatched-%s-%s-5.png' % (one_tag, two_tag))
     
                 plt.clf()
@@ -1907,7 +1915,7 @@ def new_main():
                 plt.ylim(-5, +6)
                 plt.axhline(0, color='k', alpha=0.3)
                 plt.ylabel('Detection map S/N')
-                plt.suptitle('Detected in %s, not in %s: median' % (one_name, two_name))
+                plt.suptitle('Detected by %s, not by %s: median' % (one_name, two_name))
                 plt.savefig('unmatched-%s-%s-6.png' % (one_tag, two_tag))
 
             plot_cc()
@@ -1957,7 +1965,7 @@ def new_main():
             #plt.subplot(1,2,2)
             #plt.title('Deep coadd')
             plt.axis([xmin-0.1, xmax+0.1, ymin-0.1, ymax+0.1])
-            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
+            plt.title('Detected by %s,\nnot by %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-7.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-7.pdf' % (one_tag, two_tag))
 
@@ -1981,7 +1989,7 @@ def new_main():
                 plt.axis([xmin-0.1, xmax+0.1, ymin-0.1, ymax+0.1])
                 plt.axhline(0, color='k', alpha=0.2)
                 plt.axvline(0, color='k', alpha=0.2)
-                plt.title('Detected in %s' % (one_name))
+                plt.title('Detected by %s' % (one_name))
                 plt.savefig('colorcolor-%s.png' % (one_tag))
                 plt.savefig('colorcolor-%s.pdf' % (one_tag))
 
@@ -1990,7 +1998,7 @@ def new_main():
             for flux,band in zip(deepfluxes, bands):
                 plt.hist(flux, range=(-0.05, +0.25), bins=40, histtype='step', color={'i':'m'}.get(band,band))
             plt.xlabel('flux (nanomaggies)')
-            plt.suptitle('Detected in %s, not in %s: deep fluxes' % (one_name, two_name))
+            plt.suptitle('Detected by %s, not by %s: deep fluxes' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-8.png' % (one_tag, two_tag))
 
             # Compute the median image around unmatched sources!
@@ -2007,7 +2015,7 @@ def new_main():
             plt.clf()
             plt.imshow(medimg, interpolation='nearest', origin='lower')
             plt.xticks([]); plt.yticks([])
-            plt.title('Detected in %s,\nnot in %s' % (one_name, two_name))
+            plt.title('Detected by %s,\nnot by %s' % (one_name, two_name))
             plt.savefig('unmatched-%s-%s-9.png' % (one_tag, two_tag))
             plt.savefig('unmatched-%s-%s-9.pdf' % (one_tag, two_tag))
 
@@ -2027,7 +2035,7 @@ def new_main():
                 plt.clf()
                 plt.imshow(medimg, interpolation='nearest', origin='lower')
                 plt.xticks([]); plt.yticks([])
-                plt.title('Detected in %s' % (one_name))
+                plt.title('Detected by %s' % (one_name))
                 plt.savefig('median-%s.png' % (one_tag))
                 plt.savefig('median-%s.pdf' % (one_tag))
 
