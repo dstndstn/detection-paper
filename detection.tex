@@ -1110,32 +1110,34 @@ a noise fluctuation.
 We can write the likelihood for a single pixel in the set of detection
 maps $D_j$ for bands $j$, given the existence of a source, as
 \begin{equation}
-  p_S(\{ D_j \}) = \iint p(\{ D_j \} | F, s) \, p(F) \, p(s) \, \dd F \, \dd s
+  p(\{ D_j \} \given \fg) = \iint p(\{ D_j \} \given \fg, F, s) \, p(F \given \fg) \,
+  p(s \given \fg) \, \dd F \, \dd s
   \label{eq:margsed}
 \end{equation}
 where $F$ is the flux of the source in some canonical band, and $s$ is
-the SED of the source; here, we have made the strong assumption that the
-flux and SED priors are independent.  We will assume that the SED prior $p(s)$ is
+the SED of the source.  $\fg$ indicates the model in which there is a source, and includes
+any hyper-parameters in that model.  Here, we have made the strong assumption that the
+flux and SED priors are independent.  We will assume that the SED prior $p(s \given \fg)$ is
 represented as a weighted sum of discrete SEDs: a gridding of SED
 space, for example.  We then have
 \begin{eqnarray}
-  p_S(\{ D_j \})
+  p(\{ D_j \} \given \fg)
   &=&
-  \sum_{i} w_i \int p(\{ D_j \} | F, s_i) \, p(F) \, \dd F
+  \sum_{i} w_i \int p(\{ D_j \} \given \fg, F, s_i) \, p(F \given \fg) \, \dd F
   \\
   &=&
-  \sum_i w_i \int \prod_j \gaussian{D_j \,|\, F \cdot s_{i,j}, \sigma_{D_j}^2} \, p(F) \, \dd F
+  \sum_i w_i \int \prod_j \gaussian{D_j \given F \cdot s_{i,j}, \sigma_{D_j}^2} \, p(F \given \fg) \, \dd F
   \\
   &=&
   \sum_i w_i 
   \left( \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2} \right)
   \int 
     \exp{ \left( \sum_j \frac{(D_j - F \cdot s_{i,j})^2}{-2 \, \sigma_{D_j}^2} \right) }
-    \, p(F) \, \dd F
+    \, p(F \given \fg) \, \dd F
 \end{eqnarray}
 %
 where we have written out the indepedent Gaussian likelihoods of the
-detection maps\footnote{The notation $\gaussian{x \,|\, \mu, \sigma^2}$ indicates the likelihood
+detection maps\footnote{The notation $\gaussian{x \given \mu, \sigma^2}$ indicates the likelihood
   of drawing value $x$ from the Gaussian distribution $\gaussian{\mu, \sigma^2}$.},
 and the SEDs are represented as scalings of the
 canonical flux $F$: for SED $i$, band $j$ is predicted to have flux $F
@@ -1148,7 +1150,7 @@ variable (to be chosen).  We caution that this prior does have some
 undesirable properties, discussed below.  With this exponential flux
 prior, we have
 \begin{eqnarray}
-  p_S(\{ D_j \})
+  p(\{ D_j \} \given \fg)
   &=&
   K \alpha
   \sum_i w_i 
@@ -1170,7 +1172,7 @@ K &=& \prod_j \frac{1}{\sqrt{2 \pi} \sigma_{D_j}^2}
 \end{eqnarray}
 which will be recognized as the zero-mean Gaussian probability of
 $\{D_j\}$: the likelihood that data values $D_j$ are drawn from the
-background distribution (\ie, the null hypothesis that there is no
+background distribution (\ie, the null hypothesis, $\bg$, that there is no
 source)!
 
 Using an identity from \cite{gr1980},
@@ -1196,7 +1198,7 @@ we get an integral in which the flux prior can be integrated analytically:
 % (phew, b>0 always)
 %
 \begin{eqnarray}
-  p_S(\{ D_j \})
+  p(\{ D_j \} \given \fg)
   &=&
   K \alpha
   \sum_i w_i 
@@ -1204,7 +1206,7 @@ we get an integral in which the flux prior can be integrated analytically:
     \exp(-a_i F) \exp(-b_i F^2)
     \, \dd F
     \\
-  p_S(\{ D_j \})
+  p(\{ D_j \} \given \fg)
   &=&
   K \alpha
   \sum_i w_i 
@@ -1246,7 +1248,7 @@ In order to select sources, we can compare this likelihood to the
 null-hypothesis likelihood: that there is no source and the observed
 values are due to noise.  Conveniently, the null-hypothesis likelihood
 is exactly the factor $K$ in the above expression!  Determining the
-threshold at which to accept a peak in the $p_S/K$ map as a source can
+threshold at which to accept a peak in the $p(\{D_j\} \given \fg)/K$ map as a source can
 be framed as a Bayesian decision theory problem, or can be tuned on
 simulations to yield an acceptable false positive rate.
 
