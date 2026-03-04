@@ -55,7 +55,9 @@
 \newcommand{\coord}[2]{(#1, #2)}
 \newcommand{\iina}{\ivec \,\, \mathrm{in} \,\, \mathcal{A}}
 \newcommand{\erf}{\textrm{erf}}
-\newcommand{\sigd}{\sigma_{\mbox{\rmfamily\tiny D}}}
+%\newcommand{\sigd}{\sigma_{\mbox{\rmfamily\tiny D}}}
+\newcommand{\sigd}{\sigma_{\scriptscriptstyle D}}
+\newcommand{\sigdj}{\sigma_{D_j}}
 
 \newcommand{\mcc}[1]{\makebox[6em][c]{#1}}
 \newcommand\tstrut{\rule[-0.5ex]{0pt}{3ex}}
@@ -76,9 +78,9 @@
 \newcommand{\pastro}{\ensuremath{p_\textrm{astro}}}
 \newcommand{\hatpastro}{\ensuremath{\hat{p}_\textrm{astro}}}
 
-\newcommand{\sigdj}{\sigma_{D_j}}
 
-\newcommand{\changed}[1]{\textbf{#1}}
+%\newcommand{\changed}[1]{\textbf{#1}}
+\newcommand{\changed}[1]{#1}
 
 \keywords{
     methods:~statistical ---
@@ -100,6 +102,7 @@
   Department of Physics \& Astronomy,
   University of Waterloo,
   200 University Avenue West, Waterloo, ON N2L 3G1, Canada}
+%\correspondingauthor{dstndstn@gmail.com}
 \author{David W. Hogg}
 \email{david.hogg@nyu.edu}
 \affiliation{%
@@ -386,7 +389,7 @@ The PSF norm $\psfnorm$ is defined as
 \psfnorm = \sqrt{\sum_{\iina} \psfat{\ivec}^2} \quad ,
 \end{eqnarray}
 and as shown in \appref{app:gaussnorm}, a Gaussian PSF with standard
-devation $\psfw$ pixels has a norm approximately:
+deviation $\psfw$ pixels has a norm approximately:
 \begin{eqnarray}
   \norm{\bm{\psf^G}} \simeq \frac{1}{2 \sqrt{\pi} \psfw} \quad .
 \end{eqnarray}
@@ -526,8 +529,8 @@ both dimensions.
 
 \changed{
 This effect can be reduced by evaluating the detection map on a finer
-grid than the original image pixels.  We will see below (section
-\secref{sec:multiimage}) that when combining multiple images, a
+grid than the original image pixels.  We will see below
+(in \secref{sec:multiimage}) that when combining multiple images, a
 \emph{resampling} step will be required to bring all images to the
 same pixel grid; a similar step could be used to interpolate the
 detection map of a single image.  Alternatively, we could lower our
@@ -571,7 +574,7 @@ is related to the cosine distance between the true and model galaxy
 profiles.
 
 In practice, our mixture-of-Gaussians approximations to standard
-exponential and deVaucouleurs galaxy profiles \citep{gaussgals} are
+exponential and de Vaucouleurs galaxy profiles \citep{gaussgals} are
 convenient for this task, since they allow efficient separable
 real-space correlation operations.
 
@@ -751,8 +754,8 @@ u(\falseneg) \, p(\fg \given \data) + u(\trueneg) \, p(\bg \given \data) \\
 where the term on the left-hand side is a likelihood ratio---the same
 quantity $\Lambda(\data)$ used in the frequentist test.  The term on the right-hand
 side depends on both the \emph{priors} of the foreground and
-background models---which is related to the fraction of pixels that
-truly contain stars---and the utilities, which describes how we are
+background models---which are related to the fraction of pixels that
+truly contain stars---and the utilities, which describe how we are
 willing to trade between different outcomes.
 
 \changed{
@@ -1097,7 +1100,7 @@ with per-pixel uncertainty
 In practice, for those unwilling to use the Bayesian method presented
 below, we would advocate computing SED-matched detection maps for a
 set of spectral energy distributions that sparsely sample the space of
-sources of interest, and take the union of sources detected.  By
+sources of interest, and taking the union of sources detected.  By
 performing multiple significance tests, more false positives will be
 generated, so it will be necessary to slightly increase the
 detection threshold to maintain false positives at an acceptable
@@ -1369,7 +1372,7 @@ orthogonal to these three SED directions.
       more probable---with $\alpha=0.5$.}  \emph{Right:} A one-dimensional example showing
       the effect of changing the flux prior by a factor of
       two.  The dashed model places more prior belief in larger
-      fluxes, and therefore must produce smaller probabilites at low
+      fluxes, and therefore must produce smaller probabilities at low
       flux levels.  This illustrates that care must be taken with the
       scale factor of the flux prior.
       \label{fig:scaling}
@@ -1521,7 +1524,7 @@ bandpass filters to be measured, or degrees of freedom.  The
 $\binom{d}{k}$ term (``$d$ choose $k$'') counts the number of (hyper-)quadrants with $k$
 positive fluxes, and the $P_{\chi^2}(\cdot, k)$ term gives the distribution of those $k$ positive fluxes.  Using
 $\chipos^2$ as a detection filter results in fewer false positives
-that the original $\chi^2$ detection filter, which therefore allows
+than the original $\chi^2$ detection filter, which therefore allows
 the detection threshold to be decreased while maintaining the same
 false positive rate.  The false positive rate can be computed easily
 by substituting the survival function for the probability distribution
@@ -1881,7 +1884,7 @@ filter matched to a source with colors $g - r = r - i = 0$; a
 ``Yellow'' filter matched to $g - r = 1$, $r - i = 0.3$; and a ``Red''
 filter matched to $g - r = 1.5$, $r - i = 1$.
 
-For the plots shows here, we select sources in the Yellow filter with
+For the plots shown here, we select sources in the Yellow filter with
 signal-to-noise above $30$, taking as a source the peak pixel within
 each connected component of pixels above the threshold; we do not try
 to resolve or deblend nearby peaks.  We drop any source near the edge
@@ -2322,7 +2325,7 @@ correctly incorporated into downstream analyses.
 }
 
 \changed{
-In our Bayesian version of the SED-match filter, we assumed that the
+In our Bayesian version of the SED-matched filter, we assumed that the
 SED and flux priors are independent.  It would be more realistic to
 assume that these are coupled; blue quasars and red galaxies have
 different luminosity functions.  This would require specifying a flux
